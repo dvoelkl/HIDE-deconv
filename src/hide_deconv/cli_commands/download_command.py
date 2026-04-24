@@ -42,7 +42,7 @@ def download_single_cells() -> int:
     selection = inquirer.select(
         message="Select Project to download:", choices=choices
     ).execute()
-
+    
     if selection is None:
         return MSG_USER_ABORT
 
@@ -55,14 +55,14 @@ def download_single_cells() -> int:
             is_file=False, is_dir=True, message="Input is not a folder."
         ),
     ).execute()
-
+    
     ad_path = str(save_path) + "/" + str(selection) + ".h5ad"
 
-    ret = download_file(prj_list[key]["link"], save_path=ad_path)
+    ret = download_file(prj_list[selection]["link"], save_path=ad_path)
 
     if ret == MSG_SUCCESS:
         with open(str(save_path) + "/" + str(selection) + "_info.txt", "x") as f:
-            f.write(prj_list[key]["meta_info"])
+            f.write(prj_list[selection]["meta_info"])
 
         console.print(f"[green]Data downloaded to {ad_path}[/green]")
         console.print(

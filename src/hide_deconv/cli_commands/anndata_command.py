@@ -91,7 +91,7 @@ def preprocess_anndata() -> int:
             inquirer.number(
                 "Enter maximum summed gene count above which a cell is considered to be low quality.",
                 min_allowed=0,
-                default=100,
+                default=5000,
                 mandatory=True,
                 float_allowed=False,
                 mandatory_message="A positive integer must be entered.",
