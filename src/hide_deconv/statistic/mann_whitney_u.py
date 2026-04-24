@@ -22,7 +22,7 @@ def run_mann_whitney_u(
     bulks: pd.DataFrame, sample_list: pd.DataFrame, sample_id_col: str, cohort_col: str
 ) -> pd.DataFrame:
     """
-    Performs a Man Whitney U Test with FDR correction for a two cohorts.
+    Performs a Man Whitney U Test with FDR correction for two cohorts.
 
     Parameters
     ----------
