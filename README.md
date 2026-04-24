@@ -51,7 +51,7 @@ hide-deconv analyze diff --path <project_dir>
 hide-deconv analyze survival --path <project_dir>
 ```
 - For difference analysis, the sample sheet must contain columns for sample ID and cohort.
-- For survival analysis, the sample sheet must contain columns for sample ID, survival time, and event.
+- For survival analysis, the sample sheet must contain columns for sample ID, survival time and event. Values in the event column must be either "1": event occured or "0": no event.
 
 **Command overview:**
 ```bash

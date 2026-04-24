@@ -61,6 +61,15 @@ def config_genes(hidedeconv_path: Path) -> int:
         console.print_exception()
         return MSG_FAILURE
 
+    if n_shared_genes == 0:
+        console.print("[red bold]Number of shared genes is 0.[/red bold]")
+        console.print(
+            "[dim]Do Bulk and AnnData both have the same format for genes? (e.g. EnsemblID, GeneSymbol, Entrez)[/dim]"
+        )
+        return MSG_FAILURE
+    else:
+        console.print(f"Shared genes between single cells and bulk: {n_shared_genes}")
+
     n_genes = inquirer.number(
         "Enter number of genes to use for deconvolution:",
         min_allowed=1,
