@@ -1,7 +1,7 @@
 # HIDE-deconv
 
 **Interactive command line tool and python package for hierarchical deconvolution and analysis of bulk RNA-seq data.**
-
+![HIDE-Deconv Summary](/figures/HIDE-deconv%20Graphical%20summary.png)
 ---
 
 ## Features
@@ -13,7 +13,7 @@
 - Usable via command line interface and Python API
 - Provides a guided workflow that allows users without programming experience to perform deconvolution
 
-![Workflow Summary](/figures/HIDE-deconv%20Graphical%20summary.png)
+
 
 ## Installation
 
