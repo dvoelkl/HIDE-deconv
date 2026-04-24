@@ -13,6 +13,8 @@
 - Usable via command line interface and Python API
 - Provides a guided workflow that allows users without programming experience to perform deconvolution
 
+![Workflow Summary](/figures/HIDE-deconv%20Graphical%20summary.png)
+
 ## Installation
 
 ```bash
