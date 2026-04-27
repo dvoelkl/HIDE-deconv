@@ -294,10 +294,11 @@ class TestPcaAndUmap:
 
         captured = {}
 
-        def capture_plot_pca(data, out_path, labeling, group_name):
+        def capture_plot_pca(data, out_path, labeling, group_name, title_suffix=""):
             captured["labeling"] = labeling
             captured["group_name"] = group_name
             captured["out_path"] = out_path
+            captured["title_suffix"] = title_suffix
 
         monkeypatch.setattr(
             analyze_command, "get_deconvolution_results", lambda path: ["proj"]
@@ -352,7 +353,7 @@ class TestPcaAndUmap:
 
         captured = {}
 
-        def capture_plot_umap(data, out_path, labeling, group_name):
+        def capture_plot_umap(data, out_path, labeling, group_name, title_suffix=""):
             captured["labeling"] = labeling
             captured["group_name"] = group_name
             captured["out_path"] = out_path
