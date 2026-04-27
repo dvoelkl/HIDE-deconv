@@ -45,6 +45,18 @@ class TestKruskalWallis:
         assert np.all((result["p"] >= 0) & (result["p"] <= 1))
         assert np.all((result["p_adj"] >= 0) & (result["p_adj"] <= 1))
 
+    def test_run_kruskal_wallis_detects_difference(
+        self, sample_bulks_three_cohorts, sample_sheet_three_cohorts
+    ) -> None:
+        """Test that Kruskal-Wallis finds ct_shifted differing across cohorts."""
+        res = run_kruskal_wallis(
+            sample_bulks_three_cohorts,
+            sample_sheet_three_cohorts,
+            sample_id_col="SampleID",
+            cohort_col="Cohort",
+        )
+        assert res.loc["ct_shifted", "p_adj"] < 0.05
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -97,6 +109,48 @@ class TestMannWhitneyU:
                 sample_id_col="SampleID",
                 cohort_col="Cohort",
             )
+
+    def test_run_mann_whitney_u_detects_difference(
+        self, sample_bulks_two_cohorts, sample_sheet_two_cohorts
+    ) -> None:
+        """
+        Test that MWU finds ct_a_high differing between cohorts A and B.
+        """
+        res = run_mann_whitney_u(
+            sample_bulks_two_cohorts,
+            sample_sheet_two_cohorts,
+            sample_id_col="SampleID",
+            cohort_col="Cohort",
+        )
+        assert res.loc["ct_a_high", "p_adj"] < 0.05
+
+    def test_run_dunn_finds_pairwise_differences_when_kruskal_significant(
+        self, sample_bulks_three_cohorts, sample_sheet_three_cohorts
+    ) -> None:
+        """
+        Test that pairwise significance for ct_shifted is found.
+        """
+        krus = run_kruskal_wallis(
+            sample_bulks_three_cohorts,
+            sample_sheet_three_cohorts,
+            sample_id_col="SampleID",
+            cohort_col="Cohort",
+        )
+        # ensure the fixture produces a significant signal for the target celltype
+        assert krus.loc["ct_shifted", "p_adj"] < 0.05
+
+        dunn = run_posthoc_dunn(
+            krus,
+            sample_bulks_three_cohorts,
+            sample_sheet_three_cohorts,
+            sample_id_col="SampleID",
+            cohort_col="Cohort",
+            sign_level=0.05,
+        )
+
+        assert isinstance(dunn, pd.DataFrame)
+        assert (dunn["celltype"] == "ct_shifted").all()
+        assert (dunn["p_adj"] < 0.05).any()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -14,7 +14,12 @@ from InquirerPy.base.control import Choice
 from InquirerPy.validator import PathValidator
 
 from ..constants import MSG_SUCCESS, MSG_FAILURE
-from ..utils import get_deconvolution_results, sample_ids_valid, load_project_bulk
+from ..utils import (
+    get_deconvolution_results,
+    sample_ids_valid,
+    load_project_bulk,
+    filter_sample_sheet,
+)
 from ..statistic import (
     run_mann_whitney_u,
     print_mwu_summary,
@@ -367,6 +372,8 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                 ).execute()
 
                 ids = sample_sheet[sample_id_col]
+                ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
                 cohorts = sample_sheet[cohort_col]
                 labels = (
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
@@ -462,6 +469,9 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                 ).execute()
 
                 ids = sample_sheet[sample_id_col]
+
+                ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
                 cohorts = sample_sheet[cohort_col]
                 labels = (
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()

@@ -6,7 +6,11 @@ from .cli_utils import (
     get_deconvolution_results,
     load_project_bulk,
 )
-from .sample_sheet_utils import sample_ids_valid
+from .sample_sheet_utils import (
+    sample_ids_valid,
+    remove_nan_sample_ids,
+    filter_sample_sheet,
+)
 from .download_utils import get_downloadable_projects
 
 __all__ = [
@@ -18,4 +22,6 @@ __all__ = [
     "sample_ids_valid",
     "load_project_bulk",
     "get_downloadable_projects",
+    "remove_nan_sample_ids",
+    "filter_sample_sheet",
 ]

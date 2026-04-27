@@ -20,7 +20,7 @@ from InquirerPy.validator import PathValidator
 from rich.prompt import Confirm
 
 from ..visualization import plot_pca, plot_umap
-from ..utils import sample_ids_valid
+from ..utils import sample_ids_valid, filter_sample_sheet
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -101,6 +101,8 @@ def create_bulk_pca_plot() -> int:
                 ).execute()
 
                 ids = sample_sheet[sample_id_col]
+                ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
                 cohorts = sample_sheet[cohort_col]
                 labels = labels = (
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
@@ -204,6 +206,8 @@ def create_bulk_umap_plot() -> int:
                 ).execute()
 
                 ids = sample_sheet[sample_id_col]
+                ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
                 cohorts = sample_sheet[cohort_col]
                 labels = labels = (
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()

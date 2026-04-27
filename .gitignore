@@ -6,3 +6,4 @@ poetry.lock
 /example_data
 /dist
 /examples_LIHC_benchmark
+/lung_test

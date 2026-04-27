@@ -37,12 +37,12 @@ def download_file(url, save_path) -> int:
         URL of the file.
     save_path : str
         Path, where the downloaded file will be stored.
-    
+
     Returns
     -------
     int
         Either MSG_SUCCESS or MSG_FAILURE
-    
+
     """
 
     try:

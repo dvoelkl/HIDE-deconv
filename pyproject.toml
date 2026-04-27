@@ -44,5 +44,6 @@ build-backend = "poetry.core.masonry.api"
 hide-deconv = "hide_deconv.cli:cli"
 [dependency-groups]
 dev = [
-    "pytest (>=9.0.3,<10.0.0)"
+    "pytest (>=9.0.3,<10.0.0)",
+    "ipykernel (>=7.2.0,<8.0.0)"
 ]
