@@ -32,7 +32,7 @@ from .cli_commands import (
     survival_analysis,
     create_umap_plot,
     create_bulk_pca_plot,
-    create_bulk_umap_plot
+    create_bulk_umap_plot,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -633,7 +633,7 @@ def cli_anndata_preprocess() -> None:
 
 @cli_bulk.command("pca")
 def cli_bulk_pca() -> None:
-    """ 
+    """
     Visualizes the RNA-seq bulk as PCA plot. Additionally allows to annotate each dot, if a sample sheet is provided.
     """
 
@@ -645,7 +645,7 @@ def cli_bulk_pca() -> None:
 
 @cli_bulk.command("umap")
 def cli_bulk_umap() -> None:
-    """ 
+    """
     Visualizes the RNA-seq bulk as UMAP plot. Additionally allows to annotate each dot, if a sample sheet is provided.
     """
 

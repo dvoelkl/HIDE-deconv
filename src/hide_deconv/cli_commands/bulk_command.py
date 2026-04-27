@@ -4,7 +4,6 @@ ViewModel functions for all CLI bulk commands
 =====================================================
 """
 
-import os
 from rich.console import Console
 from pathlib import Path
 import pandas as pd
@@ -12,8 +11,6 @@ import pandas as pd
 from ..constants import (
     MSG_FAILURE,
     MSG_SUCCESS,
-    MSG_ALREADY_INITIALIZED,
-    MSG_USER_ABORT,
 )
 
 from InquirerPy import inquirer
@@ -22,8 +19,8 @@ from InquirerPy.validator import PathValidator
 
 from rich.prompt import Confirm
 
-from ..visualization import plot_eval, plot_pca, plot_umap
-from ..utils import get_deconvolution_results, sample_ids_valid
+from ..visualization import plot_pca, plot_umap
+from ..utils import sample_ids_valid
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -60,8 +57,6 @@ def create_bulk_pca_plot() -> int:
     )
     labels = None
     if fSelectSampleSheet:
-        
-
         samplesheet_path = inquirer.filepath(
             message="Select sample sheet:",
             default=str(Path.cwd()),

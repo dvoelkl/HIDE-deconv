@@ -90,7 +90,9 @@ class TestCreateBulkPcaPlot:
     Tests for create_bulk_pca_plot command logic.
     """
 
-    def test_create_bulk_pca_plot_without_sample_sheet(self, monkeypatch, tmp_path) -> None:
+    def test_create_bulk_pca_plot_without_sample_sheet(
+        self, monkeypatch, tmp_path
+    ) -> None:
         """
         Test that create_bulk_pca_plot writes a PCA plot without annotation.
         """
@@ -120,7 +122,9 @@ class TestCreateBulkPcaPlot:
         assert captured["group_name"] == "Cohorts"
         assert captured["out_path"] == f"{bulk_path.parent}/{bulk_path.stem}_pca.png"
 
-    def test_create_bulk_pca_plot_with_sample_sheet(self, monkeypatch, tmp_path) -> None:
+    def test_create_bulk_pca_plot_with_sample_sheet(
+        self, monkeypatch, tmp_path
+    ) -> None:
         """
         Test that create_bulk_pca_plot annotates PCA plot with sample sheet labels.
         """
@@ -155,7 +159,10 @@ class TestCreateBulkPcaPlot:
         assert captured["data"].equals(bulk)
         assert captured["labeling"] == ["A", "A", "B"]
         assert captured["group_name"] == "Cohort"
-        assert captured["out_path"] == f"{bulk_path.parent}/{bulk_path.stem}_Cohort_pca.png"
+        assert (
+            captured["out_path"]
+            == f"{bulk_path.parent}/{bulk_path.stem}_Cohort_pca.png"
+        )
 
     def test_create_bulk_pca_plot_returns_failure_on_invalid_bulk_file(
         self, monkeypatch, tmp_path
@@ -186,7 +193,9 @@ class TestCreateBulkUmapPlot:
     Tests for create_bulk_umap_plot command logic.
     """
 
-    def test_create_bulk_umap_plot_without_sample_sheet(self, monkeypatch, tmp_path) -> None:
+    def test_create_bulk_umap_plot_without_sample_sheet(
+        self, monkeypatch, tmp_path
+    ) -> None:
         """
         Test that create_bulk_umap_plot writes a UMAP plot without annotation.
         """
@@ -216,13 +225,17 @@ class TestCreateBulkUmapPlot:
         assert captured["group_name"] == "Cohorts"
         assert captured["out_path"] == f"{bulk_path.parent}/{bulk_path.stem}_umap.png"
 
-    def test_create_bulk_umap_plot_with_sample_sheet(self, monkeypatch, tmp_path) -> None:
+    def test_create_bulk_umap_plot_with_sample_sheet(
+        self, monkeypatch, tmp_path
+    ) -> None:
         """
         Test that create_bulk_umap_plot annotates UMAP plot with sample sheet labels.
         """
 
         bulk_path, bulk = create_bulk_file(tmp_path)
-        sample_sheet_path = create_sample_sheet(tmp_path, file_name="sample_sheet_umap.csv")
+        sample_sheet_path = create_sample_sheet(
+            tmp_path, file_name="sample_sheet_umap.csv"
+        )
         captured = {}
 
         def capture_plot_umap(data, out_path, labeling=None, group_name="Cohorts"):
@@ -251,7 +264,10 @@ class TestCreateBulkUmapPlot:
         assert captured["data"].equals(bulk)
         assert captured["labeling"] == ["A", "A", "B"]
         assert captured["group_name"] == "Cohort"
-        assert captured["out_path"] == f"{bulk_path.parent}/{bulk_path.stem}_Cohort_umap.png"
+        assert (
+            captured["out_path"]
+            == f"{bulk_path.parent}/{bulk_path.stem}_Cohort_umap.png"
+        )
 
     def test_create_bulk_umap_plot_returns_failure_on_invalid_sample_sheet(
         self, monkeypatch, tmp_path

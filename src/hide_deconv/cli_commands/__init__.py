@@ -37,5 +37,5 @@ __all__ = [
     "survival_analysis",
     "create_umap_plot",
     "create_bulk_pca_plot",
-    "create_bulk_umap_plot"
+    "create_bulk_umap_plot",
 ]
