@@ -361,6 +361,7 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                     + f"/results/{selected_project}/pca_{selected_ct_layer}_{cohort_col}.png",
                     labeling=labels,
                     group_name=cohort_col,
+                    title_suffix=" Composition",
                 )
             else:
                 console.print(
@@ -439,6 +440,7 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                     + f"/results/{selected_project}/umap_{selected_ct_layer}_{cohort_col}.png",
                     labeling=labels,
                     group_name=cohort_col,
+                    title_suffix=" Composition",
                 )
             else:
                 console.print(

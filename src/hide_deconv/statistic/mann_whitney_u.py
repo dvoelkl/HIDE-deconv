@@ -45,7 +45,7 @@ def run_mann_whitney_u(
 
     # Subset samples, as sample list might have more samples, than in deconvolution
     samples = samples.loc[bulks.columns]
-
+    samples = samples.dropna(subset=[cohort_col])
     cohorts = samples[cohort_col].unique()
 
     if len(cohorts) > 2 or len(cohorts) < 2:

@@ -143,7 +143,11 @@ def plot_eval(C_true: pd.DataFrame, C_hat: pd.DataFrame, out_path: str) -> pd.Da
 
 
 def plot_pca(
-    C_est: pd.DataFrame, out_path: str, labeling: list = [], group_name="Cohorts"
+    C_est: pd.DataFrame,
+    out_path: str,
+    labeling: list = [],
+    group_name: str = "Cohorts",
+    title_suffix: str = "",
 ) -> None:
     """
     Performs a principal component analysis on the given composition and plots the result as a scatterplot.
@@ -157,6 +161,10 @@ def plot_pca(
         Filename + Path, where the plot will be stored.
     labeling : list = []
         List with labels for each bulk.
+    group_name : str = "Cohorts"
+        Name of the legend.
+    title_suffix : str = ''
+        Suffix displayed after the image title.
     """
 
     df = C_est.T
@@ -179,7 +187,7 @@ def plot_pca(
     else:
         sns.scatterplot(x="PC1", y="PC2", data=pca_df, ax=ax)
 
-    ax.set_title("PCA")
+    ax.set_title(f"PCA{title_suffix}")
     ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
     ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
 
@@ -194,7 +202,11 @@ def plot_pca(
 
 
 def plot_umap(
-    C_est: pd.DataFrame, out_path: str, labeling: list = [], group_name="Cohorts"
+    C_est: pd.DataFrame,
+    out_path: str,
+    labeling: list = [],
+    group_name="Cohorts",
+    title_suffix: str = "",
 ) -> None:
     """
     Performs a principal component analysis combined with an universal manifold projection on the given composition and plots the result.
@@ -208,6 +220,10 @@ def plot_umap(
         Filename + Path, where the plot will be stored.
     labeling : list = []
         List with labels for each bulk.
+    group_name : str = "Cohorts"
+        Name of the legend.
+    title_suffix : str = ''
+        Suffix displayed after the image title.
     """
 
     df = C_est.T
@@ -239,7 +255,7 @@ def plot_umap(
     else:
         sns.scatterplot(x="UMAP1", y="UMAP2", data=umap_df, ax=ax)
 
-    ax.set_title("UMAP")
+    ax.set_title(f"UMAP{title_suffix}")
 
     if out_path is not None:
         fig.savefig(out_path, dpi=300, bbox_inches="tight")

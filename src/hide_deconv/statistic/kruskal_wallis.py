@@ -44,12 +44,16 @@ def run_kruskal_wallis(
 
     # Subset samples, as sample list might have more samples, than in deconvolution
     samples = samples.loc[bulks.columns]
-
+    samples = samples.dropna(subset=[cohort_col])
     cohorts = samples[cohort_col].unique()
+    bulks = bulks.loc[:, samples.index]
 
     fWarning = False
     for cohort in cohorts:
-        if (samples[cohort_col] == cohort).sum() < 5:
+        if (samples[cohort_col] == cohort).sum() <= 1:
+            console.print(f"[red]Cohort {cohort} contains only 1 sample.[/red]")
+            fWarning = True
+        elif (samples[cohort_col] == cohort).sum() < 5:
             console.print(
                 f"[yellow]Cohort {cohort} contains less than 5 samples.[/yellow]"
             )

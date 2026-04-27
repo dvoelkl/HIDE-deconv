@@ -84,6 +84,8 @@ def run_dunn(
         long_df.insert(0, "celltype", ct)
         rows.append(long_df)
 
+    if len(rows) == 0:
+        return pd.DataFrame(columns=["celltype", "cohort_1", "cohort_2", "p_adj"])
     return pd.concat(rows, ignore_index=True)
 
 

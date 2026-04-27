@@ -113,6 +113,7 @@ def create_bulk_pca_plot() -> int:
         plot_pca(
             bulk,
             out_path=f"{Path(bulk_path).parent}/{Path(bulk_path).stem}" + "_pca.png",
+            title_suffix=" RNA-seq",
         )
     else:
         plot_pca(
@@ -120,6 +121,7 @@ def create_bulk_pca_plot() -> int:
             out_path=f"{Path(bulk_path).parent}/{Path(bulk_path).stem}_{cohort_col}_pca.png",
             labeling=labels,
             group_name=cohort_col,
+            title_suffix=" RNA-seq",
         )
 
     return ret
@@ -213,6 +215,7 @@ def create_bulk_umap_plot() -> int:
         plot_umap(
             bulk,
             out_path=f"{Path(bulk_path).parent}/{Path(bulk_path).stem}" + "_umap.png",
+            title_suffix=" RNA-seq",
         )
     else:
         plot_umap(
@@ -220,6 +223,7 @@ def create_bulk_umap_plot() -> int:
             out_path=f"{Path(bulk_path).parent}/{Path(bulk_path).stem}_{cohort_col}_umap.png",
             labeling=labels,
             group_name=cohort_col,
+            title_suffix=" RNA-seq",
         )
 
     return ret
