@@ -17,7 +17,7 @@ from hide_deconv.models.HIDE import HIDE
 
 class TestHIDEInitialization:
     """
-    Unit tests for HIDE model initialization.
+    Tests for HIDE model initialization.
     """
 
     def test_hide_init_with_valid_data(self, sample_reference_data) -> None:
