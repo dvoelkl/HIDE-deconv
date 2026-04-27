@@ -100,7 +100,9 @@ class TestCreateBulkPcaPlot:
         bulk_path, bulk = create_bulk_file(tmp_path)
         captured = {}
 
-        def capture_plot_pca(data, out_path, labeling=None, group_name="Cohorts", title_suffix=""):
+        def capture_plot_pca(
+            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+        ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling
@@ -133,7 +135,9 @@ class TestCreateBulkPcaPlot:
         sample_sheet_path = create_sample_sheet(tmp_path)
         captured = {}
 
-        def capture_plot_pca(data, out_path, labeling=None, group_name="Cohorts", title_suffix=""):
+        def capture_plot_pca(
+            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+        ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling
@@ -203,7 +207,9 @@ class TestCreateBulkUmapPlot:
         bulk_path, bulk = create_bulk_file(tmp_path)
         captured = {}
 
-        def capture_plot_umap(data, out_path, labeling=None, group_name="Cohorts", title_suffix=""):
+        def capture_plot_umap(
+            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+        ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling
@@ -238,7 +244,9 @@ class TestCreateBulkUmapPlot:
         )
         captured = {}
 
-        def capture_plot_umap(data, out_path, labeling=None, group_name="Cohorts", title_suffix=""):
+        def capture_plot_umap(
+            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+        ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling

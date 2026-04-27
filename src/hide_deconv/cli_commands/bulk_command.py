@@ -33,6 +33,8 @@ def create_bulk_pca_plot() -> int:
     """
     Select a RNA-seq bulk and create a PCA plot.
     """
+    console.print("[bold blue]Bulk PCA plotting[/bold blue]")
+
     ret = MSG_SUCCESS
 
     bulk_path = inquirer.filepath(
@@ -134,6 +136,7 @@ def create_bulk_umap_plot() -> int:
     """
     Select a RNA-seq bulk and create an UMAP plot.
     """
+    console.print("[bold blue]Bulk UMAP plotting[/bold blue]")
 
     ret = MSG_SUCCESS
 

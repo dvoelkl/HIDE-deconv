@@ -49,6 +49,7 @@ def analyze_differences(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    console.print("[bold blue]Composition Difference Analysis[/bold blue]")
 
     ret = MSG_SUCCESS
 
@@ -241,7 +242,7 @@ def benchmark_result(hidedeconv_path: Path) -> int:
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
 
     """
-
+    console.print("[bold blue]Benchmark Evaluation[/bold blue]")
     ret = MSG_SUCCESS
 
     # Select deconvoluted data
@@ -301,6 +302,22 @@ def benchmark_result(hidedeconv_path: Path) -> int:
 
 
 def create_pca_plot(hidedeconv_path: Path) -> int:
+    """
+    Create a pca plot of deconvolved compositions. Guides through selecting a deconvolution project and sample sheet
+    with clinical meta information.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+    console.print("[bold blue]Composition PCA Plotting[/bold blue]")
+
     ret = MSG_SUCCESS
 
     # Select deconvoluted data
@@ -380,6 +397,22 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
 
 
 def create_umap_plot(hidedeconv_path: Path) -> int:
+    """
+    Create a umap plot of deconvolved compositions. Guides through selecting a deconvolution project and sample sheet
+    with clinical meta information.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+
+    console.print("[bold blue]Composition UMAP Plotting[/bold blue]")
     ret = MSG_SUCCESS
 
     # Select deconvoluted data
@@ -474,7 +507,7 @@ def survival_analysis(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
-
+    console.print("[bold blue]Surival Analysis[/bold blue]")
     ret = MSG_SUCCESS
 
     available_projects = get_deconvolution_results(hidedeconv_path)

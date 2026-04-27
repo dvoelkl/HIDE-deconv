@@ -28,6 +28,22 @@ console = Console()
 
 
 def download_file(url, save_path) -> int:
+    """
+    Downloads a file from a given url and saves it at a specified path.
+
+    Parameters
+    ----------
+    url : str
+        URL of the file.
+    save_path : str
+        Path, where the downloaded file will be stored.
+    
+    Returns
+    -------
+    int
+        Either MSG_SUCCESS or MSG_FAILURE
+    
+    """
 
     try:
         r = requests.get(url, stream=True, allow_redirects=True)

@@ -39,7 +39,27 @@ def create_simulation(
 ) -> int:
     """
     Split AnnData File into train and test set and create test bulks with true proportions.
+
+    Parameters
+    ----------
+    ad_path : str = ""
+        Path to AnnData File. If set, question for filepath is skipped.
+    output_path : str = ""
+        Path, where the created data will be stored. If set, question for filepath is skipped.
+    train_frac : float = -1.0
+        Percentage of all cells used in training. If set, question for fraction is skipped.
+    n_bulk : int = -1
+        Number of generated test bulks. If set, question for number of test bulks is skipped.
+    n_cells_per_bulk : int = -1
+        Number of cells used to simulate a single test bulk. If set, question for number of cells is skipped.
+
+    Returns
+    -------
+    int
+        Return code. Either MSG_SUCCESS or MSG_FAILURE.
     """
+    console.print("[bold blue]Data Simulation[/bold blue]")
+
     try:
         # Load anndata and select cell type column to split
         if ad_path is None:
