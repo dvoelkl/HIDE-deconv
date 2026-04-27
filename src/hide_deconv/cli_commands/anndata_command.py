@@ -32,7 +32,7 @@ def preprocess_anndata() -> int:
     ad_path = Path(
         inquirer.filepath(
             message="Enter path to anndata single cell file:",
-            default=str("."),
+            default=str(Path.cwd()),
             mandatory=True,
             mandatory_message="An AnnData file (.h5ad) must be selected to continue setup.",
             validate=PathValidator(is_file=True, message="Input is not a file."),

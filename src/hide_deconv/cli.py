@@ -31,6 +31,8 @@ from .cli_commands import (
     preprocess_anndata,
     survival_analysis,
     create_umap_plot,
+    create_bulk_pca_plot,
+    create_bulk_umap_plot
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,6 +137,19 @@ def cli_anndata() -> None:
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli.group("bulk")
+def cli_bulk() -> None:
+    """
+    Commands related to the processing of bulk files.
+    """
+    pass
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli.command("help")
 def cli_help_command():
     """
@@ -606,12 +621,38 @@ def cli_anndata_preprocess() -> None:
     """
     Applies a standard AnnData preprocessing pipeline to a given AnnData file.
     Removes cells with low quality or high mitochondrial rna expression.
-    Additionally excludes celltypes, that are below the min_cell threshold and removes genes that are either ribosomal, mitochondrial or have a very low expression level.
+    Additionally excludes celltypes, that are below the min_cell threshold and removes genes that are either ribosomal, mitochondrial or have a very low expression level.\n
+    **Note:** AnnData *var_names* must be Gene Names for this function.
     """
 
     preprocess_anndata()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_bulk.command("pca")
+def cli_bulk_pca() -> None:
+    """ 
+    Visualizes the RNA-seq bulk as PCA plot. Additionally allows to annotate each dot, if a sample sheet is provided.
+    """
+
+    create_bulk_pca_plot()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_bulk.command("umap")
+def cli_bulk_umap() -> None:
+    """ 
+    Visualizes the RNA-seq bulk as UMAP plot. Additionally allows to annotate each dot, if a sample sheet is provided.
+    """
+
+    create_bulk_umap_plot()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if __name__ == "__main__":
     cli()

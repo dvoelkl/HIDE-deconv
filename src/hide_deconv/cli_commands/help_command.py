@@ -62,6 +62,8 @@ def show_help():
         "[bold]hide-deconv analyze survival[/bold]  Runs Cox regression\n"
         "[bold]hide-deconv download[/bold]          Download example AnnData Single Cells\n"
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"
+        "[bold]hide-deconv bulk pca[/bold]          Plots bulk RNA-seq data as PCA plot\n"
+        "[bold]hide-deconv bulk umap[/bold]         Plots bulk RNA-seq data as UMAP plot\n"
         "[bold]hide-deconv anndata preprocess[/bold] Preprocesses an AnnData file\n\n"
         "Run a command with the [i]--help[/i] flag for further information.",
         title="Commands",

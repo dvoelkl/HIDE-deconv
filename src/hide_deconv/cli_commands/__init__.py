@@ -14,6 +14,7 @@ from .analyze_command import (
 )
 from .download_command import download_single_cells
 from .anndata_command import preprocess_anndata
+from .bulk_command import create_bulk_pca_plot, create_bulk_umap_plot
 
 __all__ = [
     "setup_config",
@@ -35,4 +36,6 @@ __all__ = [
     "preprocess_anndata",
     "survival_analysis",
     "create_umap_plot",
+    "create_bulk_pca_plot",
+    "create_bulk_umap_plot"
 ]
