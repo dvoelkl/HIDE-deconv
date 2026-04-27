@@ -209,6 +209,7 @@ def analyze_differences(hidedeconv_path: Path) -> int:
                 )
 
         except Exception:
+            console.print_exception()
             console.print("[red]Cannot open sample sheet.[/red]")
             console.print("[dim]Please provide a valid sample sheet.[/dim]")
     else:
@@ -361,9 +362,15 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                     labeling=labels,
                     group_name=cohort_col,
                 )
+            else:
+                console.print(
+                    f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"
+                )
 
         except Exception:
-            pass
+            console.print_exception()
+            console.print("[red]Cannot open sample sheet.[/red]")
+            console.print("[dim]Please provide a valid sample sheet.[/dim]")
 
     return ret
 
