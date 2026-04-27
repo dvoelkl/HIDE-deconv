@@ -14,12 +14,7 @@ from InquirerPy.base.control import Choice
 from InquirerPy.validator import PathValidator
 
 from ..constants import MSG_SUCCESS, MSG_FAILURE
-from ..utils import (
-    get_deconvolution_results,
-    sample_ids_valid,
-    load_project_bulk,
-    filter_sample_sheet,
-)
+from ..utils import get_deconvolution_results, sample_ids_valid, load_project_bulk, filter_sample_sheet
 from ..statistic import (
     run_mann_whitney_u,
     print_mwu_summary,
@@ -725,7 +720,6 @@ def survival_analysis(hidedeconv_path: Path) -> int:
         console.print(
             f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
         )
-        # Hinweis auf HIDEOUT entfernt
         ret = MSG_FAILURE
 
     return ret

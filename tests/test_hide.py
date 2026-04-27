@@ -327,3 +327,90 @@ class TestHIDEPrediction:
 
         expected_samples = [f"sample_{i}" for i in range(1, 51)]
         assert list(result.columns) == expected_samples
+
+
+class TestHIDEModel:
+    """
+    Tests for the HIDE deconvolution model.
+    """
+
+    def simulate_data(self, p=100, k=5, n=500, seed=42):
+        """
+        Create simulated data:
+        - p genes, k cell types, n samples
+        - X: reference profiles with ct-specific blocks
+        - C_true: dirichlet compositions
+        - Y = X @ C_true
+        - A_l: list with identity for single hierarchy level
+        """
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+        genes = [f"g{i}" for i in range(p)]
+        cts = [f"ct{i}" for i in range(k)]
+        samples = [f"s{i}" for i in range(n)]
+
+        X = np.random.rand(p, k) * 1.0
+        block = max(1, p // k)
+        for i in range(k):
+            start = i * block
+            end = min(p, start + block)
+            X[start:end, i] += 3.0
+
+        X_df = pd.DataFrame(X, index=genes, columns=cts)
+
+        # true compositions
+        C = np.random.dirichlet([2.0] * k, size=n).T
+        C_df = pd.DataFrame(C, index=cts, columns=samples)
+
+        # bulks
+        Y = X_df.to_numpy() @ C_df.to_numpy()
+        Y_df = pd.DataFrame(Y, index=genes, columns=samples)
+
+        A_df = pd.DataFrame(np.eye(k), index=cts, columns=cts)
+
+        return [X_df], [A_df], Y_df, C_df
+
+    def test_hide_learns_and_predicts_correlated_composition(self):
+        """
+        Train HIDE on simulated data and require high correlation
+        between true and predicted compositions per cell type.
+        """
+        X_l, A_l, Y_df, C_true = self.simulate_data(p=100, k=5, n=500, seed=42)
+
+        model = HIDE(X_l, A_l, lambdaNMSE=0.0)
+
+        model.train(Y_df, C_true, iter=200)
+
+        pred = model.predict(Y_df, norm=True)["prediction"][0]
+
+        # shape checks
+        assert list(pred.index) == list(C_true.index)
+        assert list(pred.columns) == list(C_true.columns)
+
+        # non-negativity and normalization
+        assert (pred.values >= -1e-12).all()
+        col_sums = pred.sum(axis=0).to_numpy()
+        assert np.allclose(col_sums, 1.0, atol=1e-6)
+
+        # require good per-celltype Pearson correlation
+        for ct in C_true.index:
+            x = C_true.loc[ct].to_numpy()
+            y = pred.loc[ct].to_numpy()
+            corr = np.corrcoef(x, y)[0, 1]
+            assert corr > 0.85
+
+    def test_predict_properties_without_norm(self):
+        """
+        Test that predict(..., norm=False) returns non-negative values
+        and correct shape.
+        """
+        X_l, A_l, Y_df, C_true = self.simulate_data(p=100, k=5, n=500, seed=7)
+
+        model = HIDE(X_l, A_l, lambdaNMSE=0.0)
+        model.train(Y_df, C_true, iter=120)
+
+        pred = model.predict(Y_df, norm=False)["prediction"][0]
+
+        assert pred.shape == C_true.shape
+        assert (pred.values >= -1e-12).all()
