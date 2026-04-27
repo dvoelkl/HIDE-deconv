@@ -58,6 +58,7 @@ def show_help():
         "[bold]hide-deconv analyze benchmark[/bold] Benchmarkes results vs known ground truth\n"
         "[bold]hide-deconv analyze diff[/bold]      Analyze differences between cohorts\n"
         "[bold]hide-deconv analyze pca[/bold]       Plots compositions as PCA plot\n"
+        "[bold]hide-deconv analyze umap[/bold]      Plots compositions as UMAP plot\n"
         "[bold]hide-deconv analyze survival[/bold]  Runs Cox regression\n"
         "[bold]hide-deconv download[/bold]          Download example AnnData Single Cells\n"
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"

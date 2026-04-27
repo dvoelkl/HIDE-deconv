@@ -10,6 +10,7 @@ from .analyze_command import (
     benchmark_result,
     create_pca_plot,
     survival_analysis,
+    create_umap_plot,
 )
 from .download_command import download_single_cells
 from .anndata_command import preprocess_anndata
@@ -33,4 +34,5 @@ __all__ = [
     "download_single_cells",
     "preprocess_anndata",
     "survival_analysis",
+    "create_umap_plot",
 ]

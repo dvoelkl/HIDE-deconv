@@ -32,15 +32,15 @@ def setup_config(hidedeconv_path: Path, fAdv: bool = False) -> int:
     ret = config_genes(hidedeconv_path)
     if ret != MSG_SUCCESS:
         return ret
-    
+
     ret = config_train_bulks(hidedeconv_path)
     if ret != MSG_SUCCESS:
         return ret
-    
+
     ret = config_cells_per_bulk(hidedeconv_path)
     if ret != MSG_SUCCESS:
         return ret
-    
+
     ret = config_hide_iter(hidedeconv_path)
     if ret != MSG_SUCCESS:
         return ret

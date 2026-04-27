@@ -30,6 +30,7 @@ from .cli_commands import (
     download_single_cells,
     preprocess_anndata,
     survival_analysis,
+    create_umap_plot,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -535,6 +536,30 @@ def cli_analyze_pca(hidedeconv_path: Path) -> None:
     """
 
     create_pca_plot(hidedeconv_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_analyze.command("umap")
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_umap(hidedeconv_path: Path) -> None:
+    """
+    Perform a principal component analysis and uniform manifold projection on the deconvoluted bulk and save the resulting scatter plot.
+    """
+
+    create_umap_plot(hidedeconv_path)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
