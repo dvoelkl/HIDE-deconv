@@ -34,6 +34,7 @@ from .cli_commands import (
     create_bulk_pca_plot,
     create_bulk_umap_plot,
     inspect_anndata,
+    subset_anndata,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -639,6 +640,18 @@ def cli_anndata_inspect() -> None:
     """
 
     inspect_anndata()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("subset")
+def cli_anndata_subset() -> None:
+    """
+    Subsets a AnnData file to certain values in its observation column.
+    """
+
+    subset_anndata()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -19,7 +19,12 @@ from rich import box
 from rich.text import Text
 
 from ..constants import MSG_FAILURE, MSG_SUCCESS
-from ..utils import get_adata_var_info, get_adata_obs_info, get_adata_uns_info
+from ..utils import (
+    get_adata_var_info,
+    get_adata_obs_info,
+    get_adata_uns_info,
+    subset_adata_obs,
+)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -294,5 +299,75 @@ def inspect_anndata() -> int:
             box=box.ROUNDED,
         )
     )
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def subset_anndata() -> int:
+    """
+    Subsets an AnnData object.
+    """
+    console.print("[bold blue]AnnData Subsetting[/bold blue]")
+
+    ad_path = Path(
+        inquirer.filepath(
+            message="Enter path to anndata single cell file:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="An AnnData file (.h5ad) must be selected to continue setup.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+    )
+
+    try:
+        with console.status(
+            "[bold blue]Loading AnnData File...[/bold blue]", spinner="dots"
+        ):
+            adata = ad.read_h5ad(ad_path)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    adata_obs_info = get_adata_obs_info(adata)
+
+    obs_col = inquirer.select(
+        message="Select the observation column for subsetting:",
+        choices=sorted(adata_obs_info.keys()),
+        max_height=5,
+    ).execute()
+
+    values = inquirer.checkbox(
+        message="Select the values to keep:",
+        choices=[str(value) for value in adata.obs[obs_col].dropna().unique()],
+        max_height=5,
+        mandatory=True,
+        mandatory_message="Please select at least one entry.",
+    ).execute()
+
+    if len(values) == 0:
+        console.print("[yellow]Please select at least one value.[/yellow]")
+        return MSG_FAILURE
+
+    try:
+        with console.status(
+            "[bold blue]Subsetting AnnData File...[/bold blue]", spinner="dots"
+        ):
+            subset_adata = subset_adata_obs(adata, obs_col, values)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    subset_path = ad_path.with_name(f"{ad_path.stem}_{obs_col}_subset.h5ad")
+
+    with console.status(
+        "[bold blue]Saving subsetted file...[/bold blue]",
+        spinner="dots",
+    ):
+        subset_adata.write_h5ad(subset_path)
+
+    console.print(f"[bold green]Saved subsetted file to {subset_path}[/bold green]")
 
     return MSG_SUCCESS

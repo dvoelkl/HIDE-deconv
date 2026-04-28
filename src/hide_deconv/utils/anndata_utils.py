@@ -103,3 +103,30 @@ def get_adata_uns_info(adata: ad.AnnData) -> dict[str, str]:
         uns_dict[key] = adata.uns[key]
 
     return uns_dict
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def subset_adata_obs(adata: ad.AnnData, obs_col: str, values: list) -> ad.AnnData:
+    """
+    Subset a AnnData dataframe, such that a specified observation column only contains certain values.
+
+    Parameters
+    ----------
+    adata : ad.AnnData
+        AnnData dataframe, that should be subsetted.
+    obs_col : str
+        Name of observation that should be subsetted.
+    values : str
+        List of values, that should be kept in observation.
+
+    Returns
+    -------
+    ad.AnnData
+        Subsetted AnnData dataframe.
+    """
+
+    adata = adata[adata.obs[obs_col].isin(values)]
+
+    return adata

@@ -12,7 +12,12 @@ from .sample_sheet_utils import (
     filter_sample_sheet,
 )
 from .download_utils import get_downloadable_projects
-from .anndata_utils import get_adata_obs_info, get_adata_uns_info, get_adata_var_info
+from .anndata_utils import (
+    get_adata_obs_info,
+    get_adata_uns_info,
+    get_adata_var_info,
+    subset_adata_obs,
+)
 
 __all__ = [
     "get_project_init_status",
@@ -28,4 +33,5 @@ __all__ = [
     "get_adata_obs_info",
     "get_adata_uns_info",
     "get_adata_var_info",
+    "subset_adata_obs",
 ]
