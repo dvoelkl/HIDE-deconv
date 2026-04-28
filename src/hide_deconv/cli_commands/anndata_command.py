@@ -13,8 +13,13 @@ from ..pipelines import preprocess_anndata_file
 
 from InquirerPy import inquirer, prompt
 from InquirerPy.validator import PathValidator
+from rich.table import Table
+from rich.panel import Panel
+from rich import box
+from rich.text import Text
 
 from ..constants import MSG_FAILURE, MSG_SUCCESS
+from ..utils import get_adata_var_info, get_adata_obs_info, get_adata_uns_info
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -201,5 +206,93 @@ def preprocess_anndata() -> int:
         adata.write_h5ad(processed_path)
 
     console.print(f"[bold green]Saved processed file to {processed_path}[/bold green]")
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def inspect_anndata() -> int:
+    """
+    Shows information on an AnnData object.
+    """
+    console.print("[bold blue]AnnData Info[/bold blue]")
+
+    ad_path = Path(
+        inquirer.filepath(
+            message="Enter path to anndata single cell file:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="An AnnData file (.h5ad) must be selected to continue setup.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+    )
+
+    try:
+        with console.status(
+            "[bold blue]Loading AnnData File...[/bold blue]", spinner="dots"
+        ):
+            adata_info = get_adata_info(ad_path)
+            adata = ad.read_h5ad(ad_path)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    adata_var_info = get_adata_var_info(adata)
+    adata_obs_info = get_adata_obs_info(adata)
+    adata_uns_info = get_adata_uns_info(adata)
+
+    summary = Table.grid(padding=(0, 2))
+    summary.add_column(justify="right", style="bold")
+    summary.add_column()
+    summary.add_row("Genes:", str(adata_info["n_genes"]))
+    summary.add_row("Cells:", str(adata_info["n_cells"]))
+    console.print(
+        Panel(summary, title="[bold]AnnData Summary[/bold]", subtitle=ad_path.name)
+    )
+
+    if adata_uns_info:
+        uns_table = Table(box=box.MINIMAL_DOUBLE_HEAD, show_lines=False)
+        uns_table.add_column("Key", style="cyan", no_wrap=True)
+        uns_table.add_column("Value", overflow="fold")
+
+        for key, val in adata_uns_info.items():
+            if len(val) > 300:
+                val = val[:300] + "..."
+            uns_table.add_row(key, Text(val))
+        console.print(Panel(uns_table, title="[bold]Unstructured Metadata[/bold]"))
+    else:
+        console.print(
+            Panel(
+                "[dim]No entries in adata.uns[/dim]",
+                title="[bold]Unstructured Metadata[/bold]",
+            )
+        )
+
+    var_table = Table(box=box.SIMPLE)
+    var_table.add_column("Column", style="magenta", no_wrap=True)
+    var_table.add_column("Unique", justify="right")
+    var_table.add_column("Examples", overflow="fold")
+    for col in adata_var_info.keys():
+        info = adata_var_info[col]
+        var_table.add_row(col, info[0], info[1])
+    console.print(Panel(var_table, title="[bold]Variables[/bold]", box=box.ROUNDED))
+
+    obs_table = Table(box=box.SIMPLE)
+    obs_table.add_column("Column", style="green", no_wrap=True)
+    obs_table.add_column("Unique", justify="right")
+    obs_table.add_column("Examples", overflow="fold")
+
+    for col in sorted(adata_obs_info.keys()):
+        info = adata_obs_info[col]
+        obs_table.add_row(col, info[0], info[1])
+    console.print(
+        Panel(
+            obs_table,
+            title="[bold]Observations[/bold]",
+            box=box.ROUNDED,
+        )
+    )
 
     return MSG_SUCCESS

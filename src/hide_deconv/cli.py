@@ -33,6 +33,7 @@ from .cli_commands import (
     create_umap_plot,
     create_bulk_pca_plot,
     create_bulk_umap_plot,
+    inspect_anndata,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -626,6 +627,18 @@ def cli_anndata_preprocess() -> None:
     """
 
     preprocess_anndata()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("inspect")
+def cli_anndata_inspect() -> None:
+    """
+    Opens a AnnData file and summarizes its content.
+    """
+
+    inspect_anndata()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

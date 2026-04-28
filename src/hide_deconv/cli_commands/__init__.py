@@ -13,7 +13,7 @@ from .analyze_command import (
     create_umap_plot,
 )
 from .download_command import download_single_cells
-from .anndata_command import preprocess_anndata
+from .anndata_command import preprocess_anndata, inspect_anndata
 from .bulk_command import create_bulk_pca_plot, create_bulk_umap_plot
 
 __all__ = [
@@ -38,4 +38,5 @@ __all__ = [
     "create_umap_plot",
     "create_bulk_pca_plot",
     "create_bulk_umap_plot",
+    "inspect_anndata",
 ]
