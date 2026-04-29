@@ -54,6 +54,7 @@ def deconvolve_hide_pipeline(
         results_name = "HIDE"
     else:
         Y_bulk = pd.read_csv(alternative_bulk_path, index_col=0)
+        Y_bulk = (Y_bulk * 1e6) / Y_bulk.sum(axis=0)
         Y_bulk = Y_bulk.loc[X_sub.index, :]
         results_name = f"HIDE_{Path(alternative_bulk_path).stem}"
 

@@ -52,7 +52,7 @@ def preprocessing_pipeline(
 
     # Convert to TPM
     bulk = (bulk * 1e6) / bulk.sum(axis=0)
-    sc.pp.normalize_total(adata, target_sum=1e6)
+    sc.pp.normalize_total(adata, target_sum=1e4)
 
     # Subset anndata file
     adata = adata[:, common_genes]

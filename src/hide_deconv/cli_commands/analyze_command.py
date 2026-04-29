@@ -222,7 +222,7 @@ def analyze_differences(hidedeconv_path: Path) -> int:
         console.print(
             f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
         )
-        # Hinweis auf HIDEOUT entfernt
+
         ret = MSG_FAILURE
 
     return ret

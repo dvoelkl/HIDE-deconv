@@ -94,7 +94,6 @@ def create_simulation(
         ):
             dict = get_adata_info(str(ad_path.expanduser()))
             adata = ad.read_h5ad(ad_path)
-
         obs_levels = sorted(dict["obs"])
 
         message_subtype = {

@@ -140,7 +140,6 @@ def run_cox_regression(
 
             except Exception:
                 console.print(f"[yellow]Failed to fit CoxPH model for {ct}.[/yellow]")
-                console.print_exception()
                 results.append(
                     {
                         "celltype": ct,

@@ -16,7 +16,6 @@ from InquirerPy.validator import PathValidator
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
-from rich.text import Text
 
 from ..constants import MSG_FAILURE, MSG_SUCCESS
 from ..utils import (
@@ -265,7 +264,7 @@ def inspect_anndata() -> int:
         for key, val in adata_uns_info.items():
             if len(val) > 300:
                 val = val[:300] + "..."
-            uns_table.add_row(key, Text(val))
+            uns_table.add_row(key, str(val))
         console.print(Panel(uns_table, title="[bold]Unstructured Metadata[/bold]"))
     else:
         console.print(
