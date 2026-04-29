@@ -43,7 +43,7 @@ def run_kruskal_wallis(
     samples = sample_list[[sample_id_col, cohort_col]].set_index(sample_id_col)
 
     # Subset samples, as sample list might have more samples, than in deconvolution
-    samples = samples.loc[bulks.columns]
+    samples = samples.reindex(bulks.columns)
     samples = samples.dropna(subset=[cohort_col])
     cohorts = samples[cohort_col].unique()
     bulks = bulks.loc[:, samples.index]

@@ -61,7 +61,7 @@ def run_cox_regression(
     """
 
     samples = sample_sheet.set_index(sample_id_col)
-    samples = samples.loc[bulks.columns]
+    samples = samples.reindex(bulks.columns)
 
     # Remove entries with missing time or event
     non_none_samples = samples[[time_col, event_col]].notna().all(axis=1)

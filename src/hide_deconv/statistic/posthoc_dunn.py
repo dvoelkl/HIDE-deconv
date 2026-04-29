@@ -51,7 +51,7 @@ def run_dunn(
     """
 
     samples = sample_list[[sample_id_col, cohort_col]].set_index(sample_id_col)
-    samples = samples.loc[bulks.columns]
+    samples = samples.reindex(bulks.columns)
 
     # get significant results
     sig_celltypes = kruskal_results.index[kruskal_results["p_adj"] < sign_level]

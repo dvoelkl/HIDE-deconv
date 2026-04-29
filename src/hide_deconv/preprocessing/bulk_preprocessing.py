@@ -61,8 +61,8 @@ def get_domain_transfer_factor(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.Serie
     """
     # \sum_g df1_g = \alpha \sum_g df2_g
 
-    mean_df1 = df1.mean(axis=1)
-    mean_df2 = df2.mean(axis=1)
+    mean_df1 = df1.median(axis=1)
+    mean_df2 = df2.median(axis=1)
 
     alpha = mean_df1 / mean_df2
 

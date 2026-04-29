@@ -58,7 +58,7 @@ def plot_kaplan_meier(
     samples = sample_sheet[[sample_id_col, time_col, event_col]].set_index(
         sample_id_col
     )
-    samples = samples.loc[bulks.columns]
+    samples = samples.reindex(bulks.columns)
 
     # Remove entries with missing time or event
     non_none_samples = samples[[time_col, event_col]].notna().all(axis=1)
