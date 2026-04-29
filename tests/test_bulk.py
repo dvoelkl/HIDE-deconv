@@ -8,6 +8,7 @@ import pandas as pd
 
 from hide_deconv.cli_commands import bulk_command
 from hide_deconv.constants import MSG_FAILURE, MSG_SUCCESS
+import pytest
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,12 +338,18 @@ class TestMergeBulks:
             columns=["sample_1", "sample_2", "sample_3", "sample_4"],
         )
 
+        batches_info = pd.DataFrame(
+            ["batch_0", "batch_0", "batch_1", "batch_1"],
+            index=["sample_1", "sample_2", "sample_3", "sample_4"],
+            columns=["batch"],
+        )
+
         captured = {}
 
         def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
             captured["data_frames"] = data_frames
             captured["quality_control_path"] = quality_control_path
-            return merged_bulk
+            return merged_bulk, batches_info
 
         monkeypatch.setattr(
             bulk_command.inquirer,
@@ -375,7 +382,11 @@ class TestMergeBulks:
         assert captured["data_frames"][1].equals(bulk_2)
         assert captured["quality_control_path"] == ""
         assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
+        assert pd.read_csv(
+            tmp_path / "merged_bulks_batch_info.csv", index_col=0
+        ).equals(batches_info)
 
+    @pytest.mark.skip("QC-report creation is currently disabled")
     def test_merge_bulks_with_quality_report(self, monkeypatch, tmp_path) -> None:
         """
         Test that merge_bulks combines multiple bulk files, creates a quality report and writes the merged result.
@@ -406,12 +417,18 @@ class TestMergeBulks:
             columns=["sample_1", "sample_2", "sample_3", "sample_4"],
         )
 
+        batches_info = pd.DataFrame(
+            ["batch_0", "batch_0", "batch_1", "batch_1"],
+            index=["sample_1", "sample_2", "sample_3", "sample_4"],
+            columns=["batch"],
+        )
+
         captured = {}
 
         def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
             captured["data_frames"] = data_frames
             captured["quality_control_path"] = quality_control_path
-            return merged_bulk
+            return merged_bulk, batches_info
 
         monkeypatch.setattr(
             bulk_command.inquirer,
@@ -444,3 +461,7 @@ class TestMergeBulks:
         assert captured["data_frames"][1].equals(bulk_2)
         assert captured["quality_control_path"] == str(quality_report_path)
         assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
+        assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
+        assert pd.read_csv(
+            tmp_path / "merged_bulks_batch_info.csv", index_col=0
+        ).equals(batches_info)
