@@ -17,7 +17,9 @@ def sample_ids_valid(sample_ids: list[str], bulk_names: list[str]) -> bool:
         True, if bulk_names are subset of sample_ids.
     """
 
-    return len(set(bulk_names).intersection(set(sample_ids))) > 0 # set(bulk_names).issubset(set(sample_ids))
+    return (
+        len(set(bulk_names).intersection(set(sample_ids))) > 0
+    )  # set(bulk_names).issubset(set(sample_ids))
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

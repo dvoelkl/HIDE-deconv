@@ -64,6 +64,7 @@ def show_help():
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"
         "[bold]hide-deconv bulk pca[/bold]          Plots bulk RNA-seq data as PCA plot\n"
         "[bold]hide-deconv bulk umap[/bold]         Plots bulk RNA-seq data as UMAP plot\n"
+        "[bold]hide-deconv bulk merge[/bold]        Merges multiple RNA-seq data sources\n"
         "[bold]hide-deconv anndata inspect[/bold]   Summarizes an AnnData file\n"
         "[bold]hide-deconv anndata subset[/bold]    Subsets AnnData file to certain subsets in observations\n"
         "[bold]hide-deconv anndata preprocess[/bold] Preprocesses an AnnData file\n\n"

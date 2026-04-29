@@ -298,3 +298,149 @@ class TestCreateBulkUmapPlot:
         result = bulk_command.create_bulk_umap_plot()
 
         assert result == MSG_FAILURE
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+class TestMergeBulks:
+    """
+    Tests for merge_bulks command logic.
+    """
+
+    def test_merge_bulks_without_quality_report(self, monkeypatch, tmp_path) -> None:
+        """
+        Test that merge_bulks combines multiple bulk files and writes the merged result.
+        """
+
+        bulk_path_1 = tmp_path / "bulk_1.csv"
+        bulk_path_2 = tmp_path / "bulk_2.csv"
+        merged_path = tmp_path / "merged_bulks.csv"
+
+        bulk_1 = pd.DataFrame(
+            [[10, 20], [5, 15]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2"],
+        )
+        bulk_2 = pd.DataFrame(
+            [[7, 9], [3, 8]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_3", "sample_4"],
+        )
+
+        bulk_1.to_csv(bulk_path_1)
+        bulk_2.to_csv(bulk_path_2)
+
+        merged_bulk = pd.DataFrame(
+            [[1, 2, 3, 4], [5, 6, 7, 8]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2", "sample_3", "sample_4"],
+        )
+
+        captured = {}
+
+        def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
+            captured["data_frames"] = data_frames
+            captured["quality_control_path"] = quality_control_path
+            return merged_bulk
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            select_sequence([str(bulk_path_1), str(bulk_path_2)]),
+        )
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "text",
+            select_sequence([str(merged_path)]),
+        )
+        confirm_values = iter([True, False, False])
+
+        monkeypatch.setattr(
+            bulk_command.Confirm,
+            "ask",
+            lambda *args, **kwargs: next(confirm_values),
+        )
+        monkeypatch.setattr(
+            bulk_command,
+            "combine_bulk_dataframes",
+            capture_combine_bulk_dataframes,
+        )
+
+        result = bulk_command.merge_bulks()
+
+        assert result == MSG_SUCCESS
+        assert len(captured["data_frames"]) == 2
+        assert captured["data_frames"][0].equals(bulk_1)
+        assert captured["data_frames"][1].equals(bulk_2)
+        assert captured["quality_control_path"] == ""
+        assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
+
+    def test_merge_bulks_with_quality_report(self, monkeypatch, tmp_path) -> None:
+        """
+        Test that merge_bulks combines multiple bulk files, creates a quality report and writes the merged result.
+        """
+
+        bulk_path_1 = tmp_path / "bulk_1.csv"
+        bulk_path_2 = tmp_path / "bulk_2.csv"
+        merged_path = tmp_path / "merged_bulks.csv"
+        quality_report_path = tmp_path / "qc_report.html"
+
+        bulk_1 = pd.DataFrame(
+            [[10, 20], [5, 15]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2"],
+        )
+        bulk_2 = pd.DataFrame(
+            [[7, 9], [3, 8]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_3", "sample_4"],
+        )
+
+        bulk_1.to_csv(bulk_path_1)
+        bulk_2.to_csv(bulk_path_2)
+
+        merged_bulk = pd.DataFrame(
+            [[1, 2, 3, 4], [5, 6, 7, 8]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2", "sample_3", "sample_4"],
+        )
+
+        captured = {}
+
+        def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
+            captured["data_frames"] = data_frames
+            captured["quality_control_path"] = quality_control_path
+            return merged_bulk
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            select_sequence([str(bulk_path_1), str(bulk_path_2)]),
+        )
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "text",
+            select_sequence([str(quality_report_path), str(merged_path)]),
+        )
+        confirm_values = iter([True, False, True])
+
+        monkeypatch.setattr(
+            bulk_command.Confirm,
+            "ask",
+            lambda *args, **kwargs: next(confirm_values),
+        )
+        monkeypatch.setattr(
+            bulk_command,
+            "combine_bulk_dataframes",
+            capture_combine_bulk_dataframes,
+        )
+
+        result = bulk_command.merge_bulks()
+
+        assert result == MSG_SUCCESS
+        assert len(captured["data_frames"]) == 2
+        assert captured["data_frames"][0].equals(bulk_1)
+        assert captured["data_frames"][1].equals(bulk_2)
+        assert captured["quality_control_path"] == str(quality_report_path)
+        assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)

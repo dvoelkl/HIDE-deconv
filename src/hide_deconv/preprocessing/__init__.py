@@ -7,7 +7,11 @@ from .train_preprocessing import (
     get_adata_info,
 )
 
-from .bulk_preprocessing import get_common_genes, get_domain_transfer_factor
+from .bulk_preprocessing import (
+    get_common_genes,
+    get_domain_transfer_factor,
+    combine_bulk_dataframes,
+)
 
 __all__ = [
     "reduce_genes",
@@ -18,4 +22,5 @@ __all__ = [
     "get_adata_info",
     "get_common_genes",
     "get_domain_transfer_factor",
+    "combine_bulk_dataframes",
 ]

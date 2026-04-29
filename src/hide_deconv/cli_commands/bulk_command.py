@@ -21,6 +21,7 @@ from rich.prompt import Confirm
 
 from ..visualization import plot_pca, plot_umap
 from ..utils import sample_ids_valid, filter_sample_sheet
+from ..preprocessing import combine_bulk_dataframes
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -237,3 +238,75 @@ def create_bulk_umap_plot() -> int:
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def merge_bulks() -> int:
+    """
+    Select multiple RNA-seq bulks, merge them and correct for batch effects using ComBat-Seq.
+
+    Returns
+    -------
+    int
+        Either MSG_SUCCESS or MSG_FAILURE
+    """
+    console.print("[bold blue]Bulk Merging[/bold blue]")
+
+    ret = MSG_SUCCESS
+    bulk_paths = []
+
+    try:
+        add_dataset = True
+        while add_dataset:
+            bulk_path = inquirer.filepath(
+                message="Select bulk RNA expression file:",
+                default=str(Path.cwd()),
+                mandatory=True,
+                mandatory_message="A bulk RNA expression file (.csv) must be selected to continue.",
+                validate=PathValidator(is_file=True, message="Input is not a file."),
+            ).execute()
+
+            bulk_paths.append(bulk_path)
+            add_dataset = Confirm.ask("Add another dataset?", default=True)
+
+        # create_quality_report = Confirm.ask("Create quality report?", default=False)
+        create_quality_report = False  # Disable for the moment
+
+        quality_control_path = ""
+        if create_quality_report:
+            quality_control_path = inquirer.text(
+                message="Enter path to quality report:",
+                default=str(Path.cwd()) + "/qc_report.html",
+                mandatory=True,
+            ).execute()
+
+        merged_bulk_path = inquirer.text(
+            message="Enter path, where merged bulk will be stored:",
+            default=str(Path.cwd()) + "/merged_bulks.csv",
+            mandatory=True,
+        ).execute()
+
+        with console.status(
+            "[bold blue]Merging bulk RNA expression files...[/bold blue]",
+            spinner="dots",
+        ):
+            data_frames = [pd.read_csv(path, index_col=0) for path in bulk_paths]
+            merged_bulk, batches_info = combine_bulk_dataframes(
+                data_frames, quality_control_path
+            )
+
+        merged_bulk.to_csv(merged_bulk_path)
+        batches_info.to_csv(
+            Path(merged_bulk_path).with_name(
+                Path(merged_bulk_path).stem + "_batch_info.csv"
+            )
+        )
+
+        console.print(f"[green]Merged bulk saved to {merged_bulk_path}[/green]")
+    except ValueError:
+        console.print("[red]No common gene subset was found![/red]")
+        return MSG_FAILURE
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    return ret

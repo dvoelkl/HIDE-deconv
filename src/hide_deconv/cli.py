@@ -35,6 +35,7 @@ from .cli_commands import (
     create_bulk_umap_plot,
     inspect_anndata,
     subset_anndata,
+    merge_bulks,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -676,6 +677,27 @@ def cli_bulk_umap() -> None:
     """
 
     create_bulk_umap_plot()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_bulk.command("merge")
+def cli_bulk_merge() -> None:
+    """
+    Combines a list of bulk RNA seq dataframes and corrects for domain transfer between them using ComBat-Seq using the python implementation of the inmoose package.
+
+    **Note**: Please ensure, that the dataframes contain raw count data.
+
+     References:
+
+    - Y. Zhang, G. Parmigiani, W. E. Johnson. 2020. ComBat-Seq: batch effect adjustment for RNASeq count data. NAR Genomics and Bioinformatics, 2(3). https://doi.org/10.1093/nargab/lqaa078.
+
+    - Colange M, Appé G, Meunier L, Weill S, Johnson WE, Nordor A, Behdenna A. (2025) Bridging the gap between R and Python in bulk transcriptomic data analysis with InMoose. Nature Scientific Reports 15;18104. https://doi.org/10.1038/s41598-025-03376-y.
+
+    """
+
+    merge_bulks()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
