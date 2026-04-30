@@ -72,11 +72,10 @@ def preprocess_anndata_file(
 
     # create filters
     cell_mask = np.ones(adata.n_obs, dtype=bool)
-
     cell_mask &= adata.obs["n_genes_by_counts"] >= min_gene_count
     cell_mask &= adata.obs["n_genes_by_counts"] < max_gene_count
-    cell_mask &= adata.obs["pct_counts_mt"] < mt_percentage_per_cell
-    cell_mask &= adata.obs["pct_counts_hb"] < hb_percentage_per_cell
+    cell_mask &= (adata.obs["pct_counts_mt"] / 100) < mt_percentage_per_cell
+    cell_mask &= (adata.obs["pct_counts_hb"] / 100) < hb_percentage_per_cell
 
     if "MALAT1" in adata.var_names:
         malat1_values = adata[:, "MALAT1"].X
