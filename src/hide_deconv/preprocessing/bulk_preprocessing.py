@@ -12,12 +12,14 @@ from inmoose.pycombat import pycombat_seq
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def get_common_genes(adata: ad.AnnData, bulk: pd.DataFrame) -> list[str]:
+def get_common_genes(adata: ad.AnnData, bulk: pd.DataFrame, remove_zero_median=True) -> list[str]:
     """
     Return genes present in both single-cell and bulk expression data.
 
     The function computes the intersection between gene names in adata.var_names
-    and the bulk expressions
+    and the bulk expressions.
+
+    Additionally remove genes, which have a median of 0 in the bulk, as these can influence domain transfer.
 
     Parameters
     ----------
@@ -34,6 +36,12 @@ def get_common_genes(adata: ad.AnnData, bulk: pd.DataFrame) -> list[str]:
         List of shared gene names
 
     """
+
+    if remove_zero_median:
+        bulk_med = bulk.median(axis=1)
+        zero_genes = bulk_med[bulk_med == 0].index
+        if len(zero_genes) > 0:
+            bulk = bulk.drop(index=zero_genes)
 
     genes_sc = set(adata.var_names)
     genes_bulk = set(bulk.index)
