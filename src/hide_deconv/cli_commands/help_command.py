@@ -67,6 +67,8 @@ def show_help():
         "[bold]hide-deconv bulk merge[/bold]        Merges multiple RNA-seq data sources\n"
         "[bold]hide-deconv anndata inspect[/bold]   Summarizes an AnnData file\n"
         "[bold]hide-deconv anndata subset[/bold]    Subsets AnnData file to certain subsets in observations\n"
+        "[bold]hide-deconv anndata add-annotation[/bold] Adds higher annotation layers to an AnnData file\n"
+        "[bold]hide-deconv anndata umap[/bold]      Plots AnnData cells as UMAP plot\n"
         "[bold]hide-deconv anndata preprocess[/bold] Preprocesses an AnnData file\n\n"
         "Run a command with the [i]--help[/i] flag for further information.",
         title="Commands",

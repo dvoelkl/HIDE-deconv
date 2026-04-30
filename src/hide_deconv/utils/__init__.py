@@ -16,6 +16,8 @@ from .anndata_utils import (
     get_adata_obs_info,
     get_adata_uns_info,
     get_adata_var_info,
+    create_annotation_template,
+    add_annotation_columns_from_template,
     subset_adata_obs,
 )
 
@@ -33,5 +35,7 @@ __all__ = [
     "get_adata_obs_info",
     "get_adata_uns_info",
     "get_adata_var_info",
+    "create_annotation_template",
+    "add_annotation_columns_from_template",
     "subset_adata_obs",
 ]

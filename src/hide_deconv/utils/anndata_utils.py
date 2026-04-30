@@ -5,6 +5,7 @@ Utility functions for anndata
 """
 
 import anndata as ad
+import pandas as pd
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,3 +131,85 @@ def subset_adata_obs(adata: ad.AnnData, obs_col: str, values: list) -> ad.AnnDat
     adata = adata[adata.obs[obs_col].isin(values)]
 
     return adata
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_annotation_template(
+    adata: ad.AnnData,
+    obs_col: str,
+    example_col_name: str = "new_cell_layer_example",
+) -> pd.DataFrame:
+    """
+    Create a template for adding higher annotation layers.
+
+    Parameters
+    ----------
+    adata : ad.AnnData
+        AnnData dataframe.
+    obs_col : str
+        Observation column with the sub cell types layer.
+    example_col_name : str, default="new_cell_layer_example"
+        Name of the example column that is initialized with the same values.
+
+    Returns
+    -------
+    pd.DataFrame
+        Template dataframe with the selected annotation layer and an example column.
+    """
+
+    template = pd.DataFrame(adata.obs[obs_col].drop_duplicates()).copy()
+    template[example_col_name] = template[obs_col]
+
+    return template
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def add_annotation_columns_from_template(
+    adata: ad.AnnData,
+    annotation_df: pd.DataFrame,
+    sub_ct_col: str,
+) -> tuple[ad.AnnData, list[str]]:
+    """
+    Add higher annotation layers from an edited template dataframe.
+
+    Parameters
+    ----------
+    adata : ad.AnnData
+        AnnData dataframe that should receive new observation columns.
+    annotation_df : pd.DataFrame
+        Edited annotation template.
+    sub_ct_col : str
+        Observation column that matches the original cell type layer.
+
+    Returns
+    -------
+    tuple[ad.AnnData, list[str]]
+        Updated AnnData object and a list with the newly added observation columns.
+    """
+
+    if sub_ct_col not in annotation_df.columns:
+        raise ValueError(
+            f"Cell type column '{sub_ct_col}' is missing from the annotation template."
+        )
+
+    template_sub_ct = annotation_df[sub_ct_col].astype(str)
+    if template_sub_ct.duplicated().any():
+        raise ValueError(
+            "The cell type column in the annotation template must contain each cell type only once."
+        )
+
+    added_columns = [col for col in annotation_df.columns if col != sub_ct_col]
+
+    updated_adata = adata.copy()
+    anchor_values = updated_adata.obs[sub_ct_col].astype(str)
+    template_index = annotation_df.set_index(sub_ct_col)
+
+    for column in added_columns:
+        mapping = template_index[column].to_dict()
+        updated_adata.obs[column] = anchor_values.map(mapping)
+
+    return updated_adata, added_columns

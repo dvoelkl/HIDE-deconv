@@ -9,7 +9,9 @@ import anndata as ad
 from pathlib import Path
 
 from ..preprocessing import get_adata_info
+import pandas as pd
 from ..pipelines import preprocess_anndata_file
+from ..visualization import plot_anndata_umap
 
 from InquirerPy import inquirer, prompt
 from InquirerPy.validator import PathValidator
@@ -19,6 +21,8 @@ from rich import box
 
 from ..constants import MSG_FAILURE, MSG_SUCCESS
 from ..utils import (
+    create_annotation_template,
+    add_annotation_columns_from_template,
     get_adata_var_info,
     get_adata_obs_info,
     get_adata_uns_info,
@@ -210,6 +214,152 @@ def preprocess_anndata() -> int:
         adata.write_h5ad(processed_path)
 
     console.print(f"[bold green]Saved processed file to {processed_path}[/bold green]")
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def add_annotation() -> int:
+    """
+    Creates an annotation template and adds edited higher-level labels to AnnData.
+    """
+    console.print("[bold blue]AnnData Annotation Layers[/bold blue]")
+
+    ad_path = Path(
+        inquirer.filepath(
+            message="Enter path to anndata single cell file:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="An AnnData file (.h5ad) must be selected to continue.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+    )
+
+    try:
+        with console.status(
+            "[bold blue]Loading AnnData File...[/bold blue]", spinner="dots"
+        ):
+            adata_info = get_adata_info(ad_path)
+            adata = ad.read_h5ad(ad_path)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    obs_levels = sorted(adata_info["obs"])
+
+    message_subtype = {
+        "type": "list",
+        "message": "Select the column of the sub cell type annotation level:",
+        "choices": obs_levels,
+        "mandatory": True,
+    }
+
+    celltype_col = str(prompt(message_subtype)[0])
+
+    template = create_annotation_template(adata, celltype_col)
+    template_path = ad_path.with_name(f"{ad_path.stem}_annotation_template.csv")
+
+    with console.status(
+        "[bold blue]Saving annotation template...[/bold blue]",
+        spinner="dots",
+    ):
+        template.to_csv(template_path, index=False)
+
+    console.print(
+        f"[bold green]Saved annotation template to {template_path}[/bold green]"
+    )
+    console.print(
+        "[bold blue]Edit the template file to add higher cell type layers.[/bold blue]"
+    )
+
+    if not inquirer.confirm(
+        message="Load edited annotation template now?", default=True
+    ).execute():
+        return MSG_SUCCESS
+
+    try:
+        with console.status(
+            "[bold blue]Loading edited annotation template...[/bold blue]",
+            spinner="dots",
+        ):
+            annotation_df = pd.read_csv(template_path)
+            adata, added_columns = add_annotation_columns_from_template(
+                adata, annotation_df, celltype_col
+            )
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    annotated_path = ad_path.with_name(f"{ad_path.stem}_annotated.h5ad")
+
+    with console.status(
+        "[bold blue]Saving annotated file...[/bold blue]",
+        spinner="dots",
+    ):
+        adata.write_h5ad(annotated_path)
+
+    if added_columns:
+        console.print(
+            f"[bold green]Added annotation layers: {', '.join(added_columns)}[/bold green]"
+        )
+    else:
+        console.print("[yellow]No additional annotation layers were found.[/yellow]")
+
+    console.print(f"[bold green]Saved annotated file to {annotated_path}[/bold green]")
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_anndata_umap_plot() -> int:
+    """
+    Plots an AnnData file as UMAP.
+    """
+    console.print("[bold blue]AnnData UMAP plotting[/bold blue]")
+
+    ad_path = Path(
+        inquirer.filepath(
+            message="Enter path to anndata single cell file:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="An AnnData file (.h5ad) must be selected to continue.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+    )
+
+    try:
+        with console.status(
+            "[bold blue]Loading AnnData File...[/bold blue]", spinner="dots"
+        ):
+            adata_info = get_adata_info(ad_path)
+            adata = ad.read_h5ad(ad_path)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    obs_levels = sorted(adata_info["obs"])
+
+    obs_col = inquirer.select(
+        message="Select the observation used to color the UMAP plot:",
+        choices=obs_levels,
+        max_height=5,
+    ).execute()
+
+    out_path = ad_path.with_name(f"{ad_path.stem}_{obs_col}_umap.png")
+
+    with console.status("[bold blue]Creating UMAP plot...[/bold blue]", spinner="dots"):
+        plot_anndata_umap(
+            adata,
+            out_path=str(out_path),
+            obs_col=obs_col,
+            title_suffix=" AnnData",
+        )
+
+    console.print(f"[bold green]Saved UMAP plot to {out_path}[/bold green]")
 
     return MSG_SUCCESS
 

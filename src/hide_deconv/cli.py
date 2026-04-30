@@ -29,6 +29,8 @@ from .cli_commands import (
     create_pca_plot,
     download_single_cells,
     preprocess_anndata,
+    add_annotation,
+    create_anndata_umap_plot,
     survival_analysis,
     create_umap_plot,
     create_bulk_pca_plot,
@@ -653,6 +655,30 @@ def cli_anndata_subset() -> None:
     """
 
     subset_anndata()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("add-annotation")
+def cli_anndata_add_annotation() -> None:
+    """
+    Creates a template for adding higher annotation layers and imports the edited result.
+    """
+
+    add_annotation()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("umap")
+def cli_anndata_umap() -> None:
+    """
+    Visualizes an AnnData file as UMAP plot. Annotates each dot for a selected observation.
+    """
+
+    create_anndata_umap_plot()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
