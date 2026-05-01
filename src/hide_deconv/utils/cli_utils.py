@@ -254,34 +254,33 @@ def get_deconvolution_results(hidedeconv_path: Path) -> list[str]:
     -------
     list[str]
         List of folder names of all deconvoluted results
-
     """
 
     ret = []
 
     try:
         hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
-        necessary_filenames = hconf.higher_ct_cols
-        necessary_filenames.append("sub")
-        necessary_filenames = set(necessary_filenames)
 
-        # Get all folders in results directory
+        necessary_filenames = set(list(hconf.higher_ct_cols) + ["sub"])
+
         result_folders = [
             f.path for f in os.scandir(str(hidedeconv_path) + "/results/") if f.is_dir()
         ]
 
         if len(result_folders) > 0:
-            # Check for each folder that all composition files are present (and that this is not a relict)
             for folder in result_folders:
-                compositions_filenames = [
-                    Path(f.path).stem for f in os.scandir(folder) if f.is_file()
-                ]
-                compositions_filenames = list(
-                    filter(lambda k: "C_" in k, compositions_filenames)
-                )
-                compositions_filenames = set([f[2:] for f in compositions_filenames])
+                composition_layers = set()
 
-                if compositions_filenames == necessary_filenames:
+                for entry in os.scandir(folder):
+                    if not entry.is_file():
+                        continue
+
+                    name = Path(entry.path).name
+                    if name.startswith("C_") and name.endswith(".csv"):
+                        layer = Path(name).stem[2:]
+                        composition_layers.add(layer)
+
+                if composition_layers == necessary_filenames:
                     ret.append(Path(folder).stem)
 
     except Exception:
