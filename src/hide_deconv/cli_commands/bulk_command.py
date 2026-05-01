@@ -242,7 +242,7 @@ def create_bulk_umap_plot() -> int:
 
 def merge_bulks() -> int:
     """
-    Select multiple RNA-seq bulks, merge them and correct for batch effects using ComBat-Seq.
+    Select multiple RNA-seq bulks, merge them and correct for batch effects using ComBat.
 
     Returns
     -------
@@ -268,17 +268,6 @@ def merge_bulks() -> int:
             bulk_paths.append(bulk_path)
             add_dataset = Confirm.ask("Add another dataset?", default=True)
 
-        # create_quality_report = Confirm.ask("Create quality report?", default=False)
-        create_quality_report = False  # Disable for the moment
-
-        quality_control_path = ""
-        if create_quality_report:
-            quality_control_path = inquirer.text(
-                message="Enter path to quality report:",
-                default=str(Path.cwd()) + "/qc_report.html",
-                mandatory=True,
-            ).execute()
-
         merged_bulk_path = inquirer.text(
             message="Enter path, where merged bulk will be stored:",
             default=str(Path.cwd()) + "/merged_bulks.csv",
@@ -290,9 +279,7 @@ def merge_bulks() -> int:
             spinner="dots",
         ):
             data_frames = [pd.read_csv(path, index_col=0) for path in bulk_paths]
-            merged_bulk, batches_info = combine_bulk_dataframes(
-                data_frames, quality_control_path
-            )
+            merged_bulk, batches_info = combine_bulk_dataframes(data_frames)
 
         merged_bulk.to_csv(merged_bulk_path)
         batches_info.to_csv(

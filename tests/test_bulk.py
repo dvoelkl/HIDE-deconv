@@ -8,7 +8,6 @@ import pandas as pd
 
 from hide_deconv.cli_commands import bulk_command
 from hide_deconv.constants import MSG_FAILURE, MSG_SUCCESS
-import pytest
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -309,7 +308,7 @@ class TestMergeBulks:
     Tests for merge_bulks command logic.
     """
 
-    def test_merge_bulks_without_quality_report(self, monkeypatch, tmp_path) -> None:
+    def test_merge_bulks(self, monkeypatch, tmp_path) -> None:
         """
         Test that merge_bulks combines multiple bulk files and writes the merged result.
         """
@@ -346,9 +345,8 @@ class TestMergeBulks:
 
         captured = {}
 
-        def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
+        def capture_combine_bulk_dataframes(data_frames):
             captured["data_frames"] = data_frames
-            captured["quality_control_path"] = quality_control_path
             return merged_bulk, batches_info
 
         monkeypatch.setattr(
@@ -380,87 +378,6 @@ class TestMergeBulks:
         assert len(captured["data_frames"]) == 2
         assert captured["data_frames"][0].equals(bulk_1)
         assert captured["data_frames"][1].equals(bulk_2)
-        assert captured["quality_control_path"] == ""
-        assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
-        assert pd.read_csv(
-            tmp_path / "merged_bulks_batch_info.csv", index_col=0
-        ).equals(batches_info)
-
-    @pytest.mark.skip("QC-report creation is currently disabled")
-    def test_merge_bulks_with_quality_report(self, monkeypatch, tmp_path) -> None:
-        """
-        Test that merge_bulks combines multiple bulk files, creates a quality report and writes the merged result.
-        """
-
-        bulk_path_1 = tmp_path / "bulk_1.csv"
-        bulk_path_2 = tmp_path / "bulk_2.csv"
-        merged_path = tmp_path / "merged_bulks.csv"
-        quality_report_path = tmp_path / "qc_report.html"
-
-        bulk_1 = pd.DataFrame(
-            [[10, 20], [5, 15]],
-            index=["gene_1", "gene_2"],
-            columns=["sample_1", "sample_2"],
-        )
-        bulk_2 = pd.DataFrame(
-            [[7, 9], [3, 8]],
-            index=["gene_1", "gene_2"],
-            columns=["sample_3", "sample_4"],
-        )
-
-        bulk_1.to_csv(bulk_path_1)
-        bulk_2.to_csv(bulk_path_2)
-
-        merged_bulk = pd.DataFrame(
-            [[1, 2, 3, 4], [5, 6, 7, 8]],
-            index=["gene_1", "gene_2"],
-            columns=["sample_1", "sample_2", "sample_3", "sample_4"],
-        )
-
-        batches_info = pd.DataFrame(
-            ["batch_0", "batch_0", "batch_1", "batch_1"],
-            index=["sample_1", "sample_2", "sample_3", "sample_4"],
-            columns=["batch"],
-        )
-
-        captured = {}
-
-        def capture_combine_bulk_dataframes(data_frames, quality_control_path=""):
-            captured["data_frames"] = data_frames
-            captured["quality_control_path"] = quality_control_path
-            return merged_bulk, batches_info
-
-        monkeypatch.setattr(
-            bulk_command.inquirer,
-            "filepath",
-            select_sequence([str(bulk_path_1), str(bulk_path_2)]),
-        )
-        monkeypatch.setattr(
-            bulk_command.inquirer,
-            "text",
-            select_sequence([str(quality_report_path), str(merged_path)]),
-        )
-        confirm_values = iter([True, False, True])
-
-        monkeypatch.setattr(
-            bulk_command.Confirm,
-            "ask",
-            lambda *args, **kwargs: next(confirm_values),
-        )
-        monkeypatch.setattr(
-            bulk_command,
-            "combine_bulk_dataframes",
-            capture_combine_bulk_dataframes,
-        )
-
-        result = bulk_command.merge_bulks()
-
-        assert result == MSG_SUCCESS
-        assert len(captured["data_frames"]) == 2
-        assert captured["data_frames"][0].equals(bulk_1)
-        assert captured["data_frames"][1].equals(bulk_2)
-        assert captured["quality_control_path"] == str(quality_report_path)
-        assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
         assert pd.read_csv(merged_path, index_col=0).equals(merged_bulk)
         assert pd.read_csv(
             tmp_path / "merged_bulks_batch_info.csv", index_col=0

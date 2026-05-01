@@ -6,13 +6,14 @@ Methods for loading and preprocessing of bulk data.
 
 import anndata as ad
 import pandas as pd
-from inmoose.cohort_qc import QCReport, CohortMetric
-from inmoose.pycombat import pycombat_seq
+import scanpy as sc
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def get_common_genes(adata: ad.AnnData, bulk: pd.DataFrame, remove_zero_median=True) -> list[str]:
+def get_common_genes(
+    adata: ad.AnnData, bulk: pd.DataFrame, remove_zero_median=True
+) -> list[str]:
     """
     Return genes present in both single-cell and bulk expression data.
 
@@ -83,19 +84,15 @@ def get_domain_transfer_factor(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.Serie
 
 
 def combine_bulk_dataframes(
-    data_frames: list[pd.DataFrame], quality_control_path: str = ""
+    data_frames: list[pd.DataFrame],
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Combines a list of bulk RNA seq dataframes and corrects for domain transfer between them using ComBat-Seq using the python implementation of the inmoose package.
+    Combines a list of bulk RNA seq dataframes and corrects for batch effects using ComBat via scanpy.
 
     Parameters
     ----------
     data_frames : list[pd.DataFrame]
         List of bulk RNA seq dataframes that should be combined.
-
-    quality_control_path : str = ""
-        If provided, creates a quality report using the inmoose quality control method and stores it as a html document under the given name.
-
     Returns
     -------
     tuple[pd.DataFrame, pd.DataFrame]
@@ -103,8 +100,7 @@ def combine_bulk_dataframes(
 
     References
     ----------
-    - Y. Zhang, G. Parmigiani, W. E. Johnson. 2020. ComBat-Seq: batch effect adjustment for RNASeq count data. NAR Genomics and Bioinformatics, 2(3). https://doi.org/10.1093/nargab/lqaa078.
-    - Colange M, Appé G, Meunier L, Weill S, Johnson WE, Nordor A, Behdenna A. (2025) Bridging the gap between R and Python in bulk transcriptomic data analysis with InMoose. Nature Scientific Reports 15;18104. https://doi.org/10.1038/s41598-025-03376-y.
+    - Wolf, F. A., Angerer, P., & Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. Genome biology, 19(1), 15. https://link.springer.com/article/10.1186/s13059-017-1382-0.
 
     """
     common_genes = data_frames[0].index
@@ -122,17 +118,18 @@ def combine_bulk_dataframes(
 
     batch_df = pd.DataFrame(batch, columns=["batch"], index=combined.columns)
 
-    combined_corrected = pycombat_seq(combined, batch=batch)
+    adata = ad.AnnData(
+        X=combined.values.T,
+        obs=batch_df,
+        var=pd.DataFrame(index=combined.index),
+    )
 
-    if quality_control_path:
-        cohort_metric = CohortMetric(
-            batch_df,
-            batch_column="batch",
-            data_expression_df=combined_corrected,
-            data_expression_df_before=combined,
-        )
-        cohort_metric.process()
-        cohort_report = QCReport(cohort_metric)
-        cohort_report.save_report(quality_control_path)
+    sc.pp.combat(adata, key="batch", inplace=True)
+
+    combined_corrected = pd.DataFrame(
+        adata.X.T,
+        index=combined.index,
+        columns=combined.columns,
+    )
 
     return combined_corrected, batch_df

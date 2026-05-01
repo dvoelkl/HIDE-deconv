@@ -711,15 +711,11 @@ def cli_bulk_umap() -> None:
 @cli_bulk.command("merge")
 def cli_bulk_merge() -> None:
     """
-    Combines a list of bulk RNA seq dataframes and corrects for domain transfer between them using ComBat-Seq using the python implementation of the inmoose package.
+    Combines a list of bulk RNA seq dataframes and corrects for batch effects using ComBat via scanpy.
 
-    **Note**: Please ensure, that the dataframes contain raw count data.
+    References:
 
-     References:
-
-    - Y. Zhang, G. Parmigiani, W. E. Johnson. 2020. ComBat-Seq: batch effect adjustment for RNASeq count data. NAR Genomics and Bioinformatics, 2(3). https://doi.org/10.1093/nargab/lqaa078.
-
-    - Colange M, Appé G, Meunier L, Weill S, Johnson WE, Nordor A, Behdenna A. (2025) Bridging the gap between R and Python in bulk transcriptomic data analysis with InMoose. Nature Scientific Reports 15;18104. https://doi.org/10.1038/s41598-025-03376-y.
+    - Wolf, F. A., Angerer, P., & Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. Genome biology, 19(1), 15. https://link.springer.com/article/10.1186/s13059-017-1382-0.
 
     """
 
