@@ -6,6 +6,7 @@ Methods for loading and preprocessing of bulk data.
 
 import anndata as ad
 import pandas as pd
+import numpy as np
 import scanpy as sc
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,7 +88,7 @@ def combine_bulk_dataframes(
     data_frames: list[pd.DataFrame],
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Combines a list of bulk RNA seq dataframes and corrects for batch effects using ComBat via scanpy.
+    Combines a list of bulk RNA seq dataframes and corrects for batch effects.
 
     Parameters
     ----------
@@ -97,39 +98,40 @@ def combine_bulk_dataframes(
     -------
     tuple[pd.DataFrame, pd.DataFrame]
         DataFrame, containing the bulk labels as columns and the merged genes as rows and DataFrame containing assignment to original batches.
-
-    References
-    ----------
-    - Wolf, F. A., Angerer, P., & Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. Genome biology, 19(1), 15. https://link.springer.com/article/10.1186/s13059-017-1382-0.
-
     """
+
+    for i in range(len(data_frames)):
+        data_frames[i] = data_frames[i] * 1e6 / data_frames[i].sum(axis=0) # CPM everything before reducing genes!
+    
+
     common_genes = data_frames[0].index
-    for df in data_frames[1:]:
-        common_genes = common_genes.intersection(df.index)
+    for i, df in enumerate(data_frames[1:]):
+        common_genes = common_genes.intersection(df[df.median(axis=1) > 0].index)
 
     if len(common_genes) == 0:
         raise ValueError("No shared genes found between input bulk dataframes.")
 
-    combined = pd.concat([df.loc[common_genes] for df in data_frames], axis=1)
+    data_frames = [df.loc[common_genes].copy() for df in data_frames]
 
     batch = []
     for i, df in enumerate(data_frames):
         batch.extend([f"batch_{i}" for _ in range(df.shape[1])])
+        
+
+    if len(data_frames) > 1:
+        ref = data_frames[0]
+        ref_median = ref.median(axis=1)
+
+        aligned = [ref]
+        for df in data_frames[1:]:
+            tgt_median = df.median(axis=1)
+            alpha = (ref_median) / (tgt_median)
+            aligned.append(df.mul(alpha, axis=0))
+
+        data_frames = aligned
+
+    combined = pd.concat([df for df in data_frames], axis=1)
 
     batch_df = pd.DataFrame(batch, columns=["batch"], index=combined.columns)
 
-    adata = ad.AnnData(
-        X=combined.values.T,
-        obs=batch_df,
-        var=pd.DataFrame(index=combined.index),
-    )
-
-    sc.pp.combat(adata, key="batch", inplace=True)
-
-    combined_corrected = pd.DataFrame(
-        adata.X.T,
-        index=combined.index,
-        columns=combined.columns,
-    )
-
-    return combined_corrected, batch_df
+    return combined, batch_df

@@ -711,12 +711,7 @@ def cli_bulk_umap() -> None:
 @cli_bulk.command("merge")
 def cli_bulk_merge() -> None:
     """
-    Combines a list of bulk RNA seq dataframes and corrects for batch effects using ComBat via scanpy.
-
-    References:
-
-    - Wolf, F. A., Angerer, P., & Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. Genome biology, 19(1), 15. https://link.springer.com/article/10.1186/s13059-017-1382-0.
-
+    Combines a list of bulk RNA seq dataframes and corrects for batch effects.
     """
 
     merge_bulks()

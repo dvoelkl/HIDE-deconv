@@ -242,7 +242,7 @@ def create_bulk_umap_plot() -> int:
 
 def merge_bulks() -> int:
     """
-    Select multiple RNA-seq bulks, merge them and correct for batch effects using ComBat.
+    Select multiple RNA-seq bulks, merge them and correct for batch effects.
 
     Returns
     -------
