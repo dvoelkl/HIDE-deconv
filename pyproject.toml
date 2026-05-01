@@ -1,6 +1,6 @@
 [project]
 name = "hide-deconv"
-version = "0.1.3"
+version = "0.1.3post1"
 description = "HIDE-Deconv - Hierarchical Cell Type Deconvolution"
 authors = [
     {name = "Dennis Voelkl",email = "dennis.k.volkl@uib.no"},
