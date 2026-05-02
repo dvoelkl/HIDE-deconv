@@ -17,8 +17,8 @@ from ..preprocessing import (
     create_reference,
     create_hierarchy,
     create_bulks,
-    get_domain_transfer_factor,
 )
+import warnings
 
 
 def preprocessing_pipeline(
@@ -82,26 +82,18 @@ def preprocessing_pipeline(
         adata, hconf.n_train_bulks, hconf.n_cells_per_bulk, hconf.sub_ct_col
     )
 
-    if f_domainTransfer:
-        Y_domTra, _ = create_bulks(
-            adata,
-            hconf.n_train_bulks,
-            hconf.n_cells_per_bulk,
-            hconf.sub_ct_col,
-            seed=2304,
-        )
-        alpha = get_domain_transfer_factor(Y_domTra, bulk)
-        alpha_inv = 1.0 / alpha
-        alpha_inv.replace([np.inf, -np.inf], 0, inplace=True)
-
-        Y_train = Y_train.mul(alpha_inv, axis=0)
-        X_sub = X_sub.mul(alpha_inv, axis=0)
-
-        for l2 in range(len(hconf.higher_ct_cols)):
-            X_ls[l2] = X_ls[l2].mul(alpha_inv, axis=0)
-
-        if fSave:
-            alpha_inv.to_csv(str(hidedeconv_path) + "/data/alpha_inv.csv")
+    if hconf.domainTransfer:
+        n_observed_bulks = bulk.shape[1]
+        if n_observed_bulks < hconf.alpha_window + hconf.preds_per_bulk:
+            warnings.warn(
+                (
+                    "Domain-transfer can not be automatically performed as there are not enough samples that "
+                    f"satisfy alpha_window={hconf.alpha_window} and preds_per_bulk={hconf.preds_per_bulk}. "
+                    "Disabling domainTransfer in configuration."
+                )
+            )
+            hconf.domainTransfer = False
+            hconf.save(str(hidedeconv_path) + "/config.json")
 
     # Save files
     if fSave:

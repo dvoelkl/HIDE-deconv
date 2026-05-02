@@ -31,6 +31,10 @@ class hidedeconv_config:
         self.domainTransfer = True
         self.trained = False
 
+        # Parameters for domain transfer, currently only set in code. Cannot be set by user (yet!)
+        self.preds_per_bulk = 5
+        self.alpha_window = 25
+
     def to_dict(self) -> dict[str, type]:
         """
         Get representation of configuration as dictionary.
@@ -52,6 +56,8 @@ class hidedeconv_config:
             "n_hide_iter": self.n_hide_iter,
             "preprocessed": self.preprocessed,
             "domainTransfer": self.domainTransfer,
+            "preds_per_bulk": self.preds_per_bulk,
+            "alpha_window": self.alpha_window,
             "trained": self.trained,
         }
 
@@ -85,6 +91,8 @@ class hidedeconv_config:
         hconf.n_hide_iter = int(d["n_hide_iter"])
         hconf.preprocessed = d["preprocessed"]
         hconf.domainTransfer = d["domainTransfer"]
+        hconf.preds_per_bulk = int(d.get("preds_per_bulk", 5))
+        hconf.alpha_window = int(d.get("alpha_window", 25))
         hconf.trained = d["trained"]
 
         return hconf

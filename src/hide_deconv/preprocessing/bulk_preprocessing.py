@@ -6,8 +6,6 @@ Methods for loading and preprocessing of bulk data.
 
 import anndata as ad
 import pandas as pd
-import numpy as np
-import scanpy as sc
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -101,8 +99,9 @@ def combine_bulk_dataframes(
     """
 
     for i in range(len(data_frames)):
-        data_frames[i] = data_frames[i] * 1e6 / data_frames[i].sum(axis=0) # CPM everything before reducing genes!
-    
+        data_frames[i] = (
+            data_frames[i] * 1e6 / data_frames[i].sum(axis=0)
+        )  # CPM everything before reducing genes!
 
     common_genes = data_frames[0].index
     for i, df in enumerate(data_frames[1:]):
@@ -116,7 +115,6 @@ def combine_bulk_dataframes(
     batch = []
     for i, df in enumerate(data_frames):
         batch.extend([f"batch_{i}" for _ in range(df.shape[1])])
-        
 
     if len(data_frames) > 1:
         ref = data_frames[0]

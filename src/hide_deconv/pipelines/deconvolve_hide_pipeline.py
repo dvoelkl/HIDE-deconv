@@ -11,6 +11,10 @@ import os
 
 from ..config import hidedeconv_config
 from ..models import HIDE
+from ..preprocessing import create_bulks, get_domain_transfer_factor
+import anndata as ad
+import numpy as np
+import scanpy as sc
 
 
 def deconvolve_hide_pipeline(
@@ -51,6 +55,8 @@ def deconvolve_hide_pipeline(
         Y_bulk = pd.read_csv(
             str(hidedeconv_path) + "/processed/Y_bulk.csv", index_col=0
         )
+        # ensure bulk uses the same genes as the trained model references
+        Y_bulk = Y_bulk.loc[X_sub.index, :]
         results_name = "HIDE"
     else:
         Y_bulk = pd.read_csv(alternative_bulk_path, index_col=0)
@@ -95,20 +101,117 @@ def deconvolve_hide_pipeline(
             g_l[:, 0], dtype=float32
         )  # manually set type, otherwise torch might be unhappy!
 
-    # Deconvolve and save estimated compositions
-    deconv_res = hide_model.predict(Y_bulk, norm=True)["prediction"]
+    if hconf.domainTransfer:
+        # Load anndata for preparing bulks for domain transfer (follows the same logic as in preprocess)
+        adata = ad.read_h5ad(hconf.sc_file_name)
+        common_sc_genes = [gene for gene in X_sub.index if gene in adata.var_names]
+        adata = adata[:, common_sc_genes].copy()
+        sc.pp.normalize_total(adata, target_sum=1e4)
 
-    for layer in range(hide_model.L):
-        C_l = deconv_res[layer]
+        Y_domTra, _ = create_bulks(
+            adata, 1000, hconf.n_cells_per_bulk, hconf.sub_ct_col, seed=2304
+        )
 
-        if layer == 0:
-            C_l.to_csv(
-                str(hidedeconv_path) + f"/results/{results_name}/C_sub.csv",
-            )
-        else:
-            C_l.to_csv(
-                str(hidedeconv_path)
-                + f"/results/{results_name}/C_{hconf.higher_ct_cols[layer - 1]}.csv",
-            )
+        bulk_names = Y_bulk.columns.tolist()
+        n_bulks = len(bulk_names)
 
-    return deconv_res
+        # Calculate slicing window for cross validation
+        preds_per_bulk = int(hconf.preds_per_bulk)
+        alpha_window = int(hconf.alpha_window)
+        window_step = max(1, int(round((n_bulks - alpha_window) / preds_per_bulk)))
+
+        starts = list(range(0, n_bulks, window_step))
+
+        common_genes = Y_domTra.index.intersection(Y_bulk.index).intersection(
+            X_sub.index
+        )
+        Y_domTra = Y_domTra.loc[common_genes]
+
+        # Bulk names must be stored as dictionary, in order for correct assignment of results later
+        accum = [{bn: [] for bn in bulk_names} for _ in range(hide_model.L)]
+
+        for s in starts:
+            alpha_idx = [(s + offset) % n_bulks for offset in range(alpha_window)]
+            alpha_cols = [bulk_names[i] for i in alpha_idx]
+
+            # Bulk for alpha calculation must not be used for deconvolution
+            Y_alpha = Y_bulk.loc[common_genes, alpha_cols]
+
+            alpha = get_domain_transfer_factor(Y_alpha, Y_domTra)
+            alpha = alpha.loc[common_genes]
+
+            alpha_inv = 1.0 / alpha
+            alpha_inv.replace([np.inf, -np.inf], 0, inplace=True)
+            alpha_inv.fillna(1.0, inplace=True)
+
+            # "test_bulks" for used for deconvolution
+            test_cols = [bn for bn in bulk_names if bn not in alpha_cols]
+            Y_test = Y_bulk.loc[common_genes, test_cols]
+            Y_test_adj = Y_test.mul(alpha_inv, axis=0)
+
+            preds = hide_model.predict(Y_test_adj, norm=True)["prediction"]
+
+            for layer in range(hide_model.L):
+                C_pred = preds[layer]
+                for col in C_pred.columns:
+                    accum[layer][col].append(C_pred[[col]])
+
+        # mean and std for each bulk
+        deconv_res = []
+        for layer in range(hide_model.L):
+            #
+            cols = []
+            errs = []
+            for bn in bulk_names:
+                lst = accum[layer][bn]
+
+                stacked = pd.concat(lst, axis=1)
+
+                mean_s = stacked.mean(axis=1)
+                std_s = stacked.std(axis=1, ddof=0)
+
+                cols.append(mean_s)
+                errs.append(std_s)
+
+            C_mean = pd.concat(cols, axis=1)
+            C_mean.columns = bulk_names
+            C_std = pd.concat(errs, axis=1)
+            C_std.columns = bulk_names
+
+            if layer == 0:
+                C_mean.to_csv(
+                    str(hidedeconv_path) + f"/results/{results_name}/C_sub.csv"
+                )
+                C_std.to_csv(
+                    str(hidedeconv_path) + f"/results/{results_name}/err_C_sub.csv"
+                )
+            else:
+                C_mean.to_csv(
+                    str(hidedeconv_path)
+                    + f"/results/{results_name}/C_{hconf.higher_ct_cols[layer - 1]}.csv",
+                )
+                C_std.to_csv(
+                    str(hidedeconv_path)
+                    + f"/results/{results_name}/err_C_{hconf.higher_ct_cols[layer - 1]}.csv",
+                )
+
+            deconv_res.append(C_mean)
+
+        return deconv_res
+    else:
+        deconv_res = hide_model.predict(Y_bulk, norm=True)["prediction"]
+
+        for layer in range(hide_model.L):
+            C_l = deconv_res[layer]
+
+            if layer == 0:
+                C_l.to_csv(
+                    str(hidedeconv_path) + f"/results/{results_name}/C_sub.csv",
+                )
+            else:
+                C_l.to_csv(
+                    str(hidedeconv_path)
+                    + f"/results/{results_name}/C_{hconf.higher_ct_cols[layer - 1]}.csv",
+                )
+
+        return deconv_res
