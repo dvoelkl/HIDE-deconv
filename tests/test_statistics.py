@@ -194,9 +194,25 @@ class TestPosthocDunn:
             "cohort_1",
             "cohort_2",
             "p_adj",
+            "mean[cohort_1]",
+            "mean[cohort_2]",
         }
         assert (dunn_results["celltype"] == "ct_shifted").all()
         assert np.all((dunn_results["p_adj"] >= 0) & (dunn_results["p_adj"] <= 1))
+
+        expected_means = {
+            "A": 0.20,
+            "B": 0.442,
+            "C": 0.73,
+        }
+
+        for _, row in dunn_results.iterrows():
+            assert row["mean[cohort_1]"] == pytest.approx(
+                expected_means[row["cohort_1"]]
+            )
+            assert row["mean[cohort_2]"] == pytest.approx(
+                expected_means[row["cohort_2"]]
+            )
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

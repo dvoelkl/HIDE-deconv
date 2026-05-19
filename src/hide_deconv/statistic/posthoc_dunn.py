@@ -9,6 +9,7 @@ import numpy as np
 import scikit_posthocs as sp
 
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,17 +76,31 @@ def run_dunn(
         dunn.index.name = "cohort_1"
         dunn.columns.name = "cohort_2"
 
+        cohort_means = df.groupby("cohort")["value"].mean()
+
         long_df = (
             dunn.where(np.triu(np.ones(dunn.shape, dtype=bool), k=1))
             .stack()
             .reset_index(name="p_adj")
         )
 
+        long_df["mean[cohort_1]"] = long_df["cohort_1"].map(cohort_means)
+        long_df["mean[cohort_2]"] = long_df["cohort_2"].map(cohort_means)
+
         long_df.insert(0, "celltype", ct)
         rows.append(long_df)
 
     if len(rows) == 0:
-        return pd.DataFrame(columns=["celltype", "cohort_1", "cohort_2", "p_adj"])
+        return pd.DataFrame(
+            columns=[
+                "celltype",
+                "cohort_1",
+                "cohort_2",
+                "p_adj",
+                "mean[cohort_1]",
+                "mean[cohort_2]",
+            ]
+        )
     return pd.concat(rows, ignore_index=True)
 
 
@@ -112,7 +127,7 @@ def print_dunn_summary(results: pd.DataFrame, sign_level: float = 0.05) -> None:
         )
 
         for col in results.columns:
-            table.add_column(col)
+            table.add_column(escape(col))
 
         significant = significant.sort_values("p_adj")
 

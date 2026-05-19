@@ -9,6 +9,7 @@ import numpy as np
 from scipy.stats import mannwhitneyu, false_discovery_control
 
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,7 +120,7 @@ def print_mwu_summary(results: pd.DataFrame, sign_level: float = 0.05) -> None:
         table.add_column("Cell Type")
 
         for col in results.columns:
-            table.add_column(col)
+            table.add_column(escape(col))
 
         significant = significant.sort_values("p_adj")
 
