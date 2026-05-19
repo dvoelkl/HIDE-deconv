@@ -182,7 +182,10 @@ def plot_pca(
         assert len(labeling) == len(C_est.columns)
         pca_df.loc[:, "labels"] = labeling
 
-        sns.scatterplot(x="PC1", y="PC2", data=pca_df, hue="labels", ax=ax)
+        labels = pca_df["labels"].dropna().unique()
+        palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+
+        sns.scatterplot(x="PC1", y="PC2", data=pca_df, hue="labels", ax=ax, palette=palette)
         ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
     else:
         sns.scatterplot(x="PC1", y="PC2", data=pca_df, ax=ax)
@@ -250,7 +253,10 @@ def plot_umap(
         assert len(labeling) == len(C_est.columns)
         umap_df.loc[:, "labels"] = labeling
 
-        sns.scatterplot(x="UMAP1", y="UMAP2", data=umap_df, hue="labels", ax=ax)
+        labels = umap_df["labels"].dropna().unique()
+        palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+
+        sns.scatterplot(x="UMAP1", y="UMAP2", data=umap_df, hue="labels", ax=ax, palette=palette)
         ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
     else:
         sns.scatterplot(x="UMAP1", y="UMAP2", data=umap_df, ax=ax)
