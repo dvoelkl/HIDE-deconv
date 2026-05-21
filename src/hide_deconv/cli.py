@@ -32,6 +32,7 @@ from .cli_commands import (
     add_annotation,
     create_anndata_umap_plot,
     survival_analysis,
+    leiden_clustering,
     create_umap_plot,
     create_bulk_pca_plot,
     create_bulk_umap_plot,
@@ -604,6 +605,30 @@ def cli_analyze_survival(hidedeconv_path: Path) -> None:
     """
 
     survival_analysis(hidedeconv_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_analyze.command("leiden")
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_leiden(hidedeconv_path: Path) -> None:
+    """
+    Performs a leiden clustering on selected results.
+    """
+
+    leiden_clustering(hidedeconv_path)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

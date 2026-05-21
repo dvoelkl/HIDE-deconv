@@ -11,6 +11,7 @@ from .analyze_command import (
     create_pca_plot,
     survival_analysis,
     create_umap_plot,
+    leiden_clustering,
 )
 from .download_command import download_single_cells
 from .anndata_command import (
@@ -49,4 +50,5 @@ __all__ = [
     "subset_anndata",
     "add_annotation",
     "create_anndata_umap_plot",
+    "leiden_clustering",
 ]

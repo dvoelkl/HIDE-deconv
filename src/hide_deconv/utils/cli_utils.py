@@ -293,6 +293,15 @@ def get_deconvolution_results(hidedeconv_path: Path) -> list[str]:
 
 
 def load_project_bulk(hidedeconv_path: Path) -> tuple[str, str, pd.DataFrame]:
+    """
+    Prompts the user to select deconvolution results at a specific cell type layer.
+
+    Returns
+    --------
+    tuple[str,str,pd.DataFrame]
+        Name of selected project, name of selected cell type layer and estimated composition dataframe
+
+    """
 
     hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
 

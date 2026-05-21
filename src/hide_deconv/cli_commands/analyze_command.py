@@ -26,6 +26,7 @@ from ..statistic import (
     run_kruskal_wallis,
     run_dunn,
     print_dunn_summary,
+    run_leiden,
 )
 from ..visualization import plot_eval, plot_pca, plot_umap
 
@@ -721,6 +722,92 @@ def survival_analysis(hidedeconv_path: Path) -> int:
             console.print("[dim]Please provide a valid sample sheet.[/dim]")
             console.print_exception()
             ret = MSG_FAILURE
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
+
+    return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def leiden_clustering(hidedeconv_path: Path) -> int:
+    """
+    Leiden Clusters the composition and saves both the assigned clusters in a sample sheet file and a annotated umap plotin the results folder.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+
+    console.print("[bold blue]Leiden Clustering[/bold blue]")
+    ret = MSG_SUCCESS
+
+    # Select deconvoluted data
+    available_projects = get_deconvolution_results(hidedeconv_path)
+
+    if len(available_projects) > 0:
+        # Load project, ct_layer and bulk
+        selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+
+        cluster_ass = run_leiden(bulk)
+
+        if not os.path.exists(
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+        ):
+            os.mkdir(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+            )
+
+        cluster_ass.to_csv(
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+            + f"/leiden_clusters_{selected_ct_layer}.csv"
+        )
+
+        plot_pca(
+            bulk,
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+            + f"/leiden_clusters_PCA_{selected_ct_layer}.png",
+            labeling=cluster_ass["assigned_cluster"].to_list(),
+            group_name="leiden",
+        )
+
+        plot_umap(
+            bulk,
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+            + f"/leiden_clusters_UMAP_{selected_ct_layer}.png",
+            labeling=cluster_ass["assigned_cluster"].to_list(),
+            group_name="leiden",
+        )
     else:
         console.print(
             f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
