@@ -2,7 +2,7 @@ from .mann_whitney_u import run_mann_whitney_u, print_mwu_summary
 from .kruskal_wallis import run_kruskal_wallis
 from .posthoc_dunn import run_dunn, print_dunn_summary
 from .survival_analysis import run_cox_regression, print_cox_summary
-from .leiden import run_leiden
+from .leiden import run_clustering
 
 __all__ = [
     "run_mann_whitney_u",
@@ -12,5 +12,5 @@ __all__ = [
     "print_dunn_summary",
     "run_cox_regression",
     "print_cox_summary",
-    "run_leiden",
+    "run_clustering",
 ]

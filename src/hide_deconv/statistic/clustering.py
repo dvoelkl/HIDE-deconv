@@ -1,6 +1,6 @@
 """
 =====================================================
-Functions for Leiden Clustering
+Functions for Clustering
 =====================================================
 """
 
@@ -12,9 +12,9 @@ import scipy.sparse as sps
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def run_leiden(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
+def run_clustering(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
     """
-    Performs a leiden clustering of the entered bulk or composition data.
+    Performs a clustering of the entered bulk or composition data.
 
     Parameters
     ----------

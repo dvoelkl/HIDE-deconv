@@ -26,7 +26,7 @@ from ..statistic import (
     run_kruskal_wallis,
     run_dunn,
     print_dunn_summary,
-    run_leiden,
+    run_clustering,
 )
 from ..visualization import plot_eval, plot_pca, plot_umap
 
@@ -734,9 +734,9 @@ def survival_analysis(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def leiden_clustering(hidedeconv_path: Path) -> int:
+def cell_type_clustering(hidedeconv_path: Path) -> int:
     """
-    Leiden Clusters the composition and saves both the assigned clusters in a sample sheet file and a annotated umap plotin the results folder.
+    Clusters the composition and saves both the assigned clusters in a sample sheet file and a annotated umap plotin the results folder.
 
     Parameters
     ----------
@@ -749,7 +749,7 @@ def leiden_clustering(hidedeconv_path: Path) -> int:
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
 
-    console.print("[bold blue]Leiden Clustering[/bold blue]")
+    console.print("[bold blue]Clustering[/bold blue]")
     ret = MSG_SUCCESS
 
     # Select deconvoluted data
@@ -759,7 +759,7 @@ def leiden_clustering(hidedeconv_path: Path) -> int:
         # Load project, ct_layer and bulk
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
 
-        cluster_ass = run_leiden(bulk)
+        cluster_ass = run_clustering(bulk)
 
         if not os.path.exists(
             str(hidedeconv_path)
@@ -782,7 +782,7 @@ def leiden_clustering(hidedeconv_path: Path) -> int:
             + selected_project
             + "/"
             + selected_ct_layer
-            + f"/leiden_clusters_{selected_ct_layer}.csv"
+            + f"/clusters_{selected_ct_layer}.csv"
         )
 
         plot_pca(
@@ -792,7 +792,7 @@ def leiden_clustering(hidedeconv_path: Path) -> int:
             + selected_project
             + "/"
             + selected_ct_layer
-            + f"/leiden_clusters_PCA_{selected_ct_layer}.png",
+            + f"/clusters_PCA_{selected_ct_layer}.png",
             labeling=cluster_ass["assigned_cluster"].to_list(),
             group_name="leiden",
         )
@@ -804,7 +804,7 @@ def leiden_clustering(hidedeconv_path: Path) -> int:
             + selected_project
             + "/"
             + selected_ct_layer
-            + f"/leiden_clusters_UMAP_{selected_ct_layer}.png",
+            + f"/clusters_UMAP_{selected_ct_layer}.png",
             labeling=cluster_ass["assigned_cluster"].to_list(),
             group_name="leiden",
         )

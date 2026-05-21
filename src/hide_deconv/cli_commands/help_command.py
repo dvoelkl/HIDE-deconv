@@ -60,7 +60,7 @@ def show_help():
         "[bold]hide-deconv analyze pca[/bold]       Plots compositions as PCA plot\n"
         "[bold]hide-deconv analyze umap[/bold]      Plots compositions as UMAP plot\n"
         "[bold]hide-deconv analyze survival[/bold]  Runs Cox regression\n"
-        "[bold]hide-deconv analyze leiden[/bold]    Performs Leiden Clustering on estimated compositions\n"
+        "[bold]hide-deconv analyze cluster[/bold]   Performs Clustering on estimated compositions\n"
         "[bold]hide-deconv download[/bold]          Download example AnnData Single Cells\n"
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"
         "[bold]hide-deconv bulk pca[/bold]          Plots bulk RNA-seq data as PCA plot\n"

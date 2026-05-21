@@ -32,7 +32,7 @@ from .cli_commands import (
     add_annotation,
     create_anndata_umap_plot,
     survival_analysis,
-    leiden_clustering,
+    cell_type_clustering,
     create_umap_plot,
     create_bulk_pca_plot,
     create_bulk_umap_plot,
@@ -610,7 +610,7 @@ def cli_analyze_survival(hidedeconv_path: Path) -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-@cli_analyze.command("leiden")
+@cli_analyze.command("cluster")
 @click.option(
     "--path",
     "-p",
@@ -623,12 +623,12 @@ def cli_analyze_survival(hidedeconv_path: Path) -> None:
     help="Path, where the HIDE-Deconv project structure is located.",
 )
 @assert_trained
-def cli_analyze_leiden(hidedeconv_path: Path) -> None:
+def cli_analyze_cluster(hidedeconv_path: Path) -> None:
     """
-    Performs a leiden clustering on selected results.
+    Performs a clustering on selected results and returns estimated cluster annotations.
     """
 
-    leiden_clustering(hidedeconv_path)
+    cell_type_clustering(hidedeconv_path)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
