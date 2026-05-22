@@ -14,33 +14,7 @@ from rich.prompt import Confirm
 
 from .constants import MSG_SUCCESS, MSG_FAILURE, MSG_USER_ABORT
 from .utils import assert_init, assert_preprocessed, assert_trained
-from .cli_commands import (
-    setup_config,
-    show_config,
-    preprocess,
-    setup_project,
-    train_model,
-    show_help,
-    deconvolve_hide,
-    deconvolve_command,
-    create_simulation,
-    analyze_differences,
-    benchmark_result,
-    create_pca_plot,
-    download_single_cells,
-    preprocess_anndata,
-    add_annotation,
-    create_anndata_umap_plot,
-    survival_analysis,
-    cell_type_clustering,
-    create_umap_plot,
-    create_bulk_pca_plot,
-    create_bulk_umap_plot,
-    inspect_anndata,
-    subset_anndata,
-    merge_bulks,
-    create_bulk_clustering,
-)
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -115,6 +89,7 @@ def cli_deconvolve(ctx, hidedeconv_path: Path, alternative_bulk=None) -> None:
     """
     Commands related to deconvolution.
     """
+    from .cli_commands import deconvolve_command
 
     # Only open deconvolution menu if no other submodel is invoked
     if ctx.invoked_subcommand is None:
@@ -162,6 +137,8 @@ def cli_help_command():
     """
     Display a quick start guide for HIDE-Deconv.
     """
+    from .cli_commands import show_help
+
     show_help()
 
 
@@ -196,6 +173,7 @@ def cli_run_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> int
 
     Note: This is not an automation command, as constant user input is necessary.
     """
+    from .cli_commands import setup_project, preprocess, train_model, deconvolve_command
 
     hidedeconv_path = hidedeconv_path.expanduser().resolve()
 
@@ -256,6 +234,7 @@ def cli_init_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> in
     """
     Initialize the HIDE-Deconv project structure at a given path.
     """
+    from .cli_commands import setup_project
 
     hidedeconv_path = hidedeconv_path.expanduser().resolve()
 
@@ -288,6 +267,7 @@ def cli_config_edit(hidedeconv_path: Path, fAdv: bool = False) -> None:
     """
     Edits the parameters necessary for preprocessing.
     """
+    from .cli_commands import setup_config
 
     setup_config(hidedeconv_path, fAdv)
 
@@ -323,6 +303,7 @@ def cli_preprocess(hidedeconv_path: Path, fDomTransfer) -> None:
     creating reference/hierarchy matrices, generating training bulks and optionally
     accounting for domain transfer.
     """
+    from .cli_commands import preprocess, train_model
 
     preprocess(hidedeconv_path, fDomTransfer)
     console.print("[green]Preprocessing completed successfully[/green]")
@@ -354,6 +335,8 @@ def cli_train(hidedeconv_path: Path) -> None:
     """
     Train the model.
     """
+    from .cli_commands import train_model
+
     train_model(hidedeconv_path)
 
     console.print("[green]Model trained successfully.[/green]")
@@ -379,6 +362,8 @@ def cli_config_show(hidedeconv_path: Path) -> None:
     """
     Displays the current HIDE-Deconv configuration.
     """
+    from .cli_commands import show_config
+
     show_config(hidedeconv_path)
 
 
@@ -411,6 +396,7 @@ def cli_deconv_hide(hidedeconv_path: Path, alternative_bulk=None) -> None:
     """
     Runs the deconvolution with HIDE.
     """
+    from .cli_commands import deconvolve_hide
 
     deconvolve_hide(hidedeconv_path, alternative_bulk)
 
@@ -474,6 +460,7 @@ def cli_simulate(
     """
     Split an AnnData file into a train and test anndata file and create bulks with known ground truth for testing purposes.
     """
+    from .cli_commands import create_simulation
 
     create_simulation(ad_path, out_path, train_frac, n_bulks, n_cell_per_bulks)
 
@@ -504,6 +491,7 @@ def cli_analyze_diff(hidedeconv_path: Path) -> None:
     This command requires a sample sheet, where one column links the column names of the bulks
     with the metadata used for cohort splitting.
     """
+    from .cli_commands import analyze_differences
 
     analyze_differences(hidedeconv_path)
 
@@ -532,6 +520,7 @@ def cli_analyze_benchmark(hidedeconv_path: Path) -> None:
 
     The ground truth composition file must be on the same cell type layer as the compositions that should be benchmarked.
     """
+    from .cli_commands import benchmark_result
 
     benchmark_result(hidedeconv_path)
 
@@ -556,6 +545,7 @@ def cli_analyze_pca(hidedeconv_path: Path) -> None:
     """
     Perform a principal component analysis on the deconvoluted bulk and save the resulting scatter plot.
     """
+    from .cli_commands import create_pca_plot
 
     create_pca_plot(hidedeconv_path)
 
@@ -580,6 +570,7 @@ def cli_analyze_umap(hidedeconv_path: Path) -> None:
     """
     Perform a principal component analysis and uniform manifold projection on the deconvoluted bulk and save the resulting scatter plot.
     """
+    from .cli_commands import create_umap_plot
 
     create_umap_plot(hidedeconv_path)
 
@@ -604,6 +595,7 @@ def cli_analyze_survival(hidedeconv_path: Path) -> None:
     """
     Performs a survival analysis on selected results.
     """
+    from .cli_commands import survival_analysis
 
     survival_analysis(hidedeconv_path)
 
@@ -628,6 +620,7 @@ def cli_analyze_cluster(hidedeconv_path: Path) -> None:
     """
     Performs a clustering on selected results and returns estimated cluster annotations.
     """
+    from .cli_commands import cell_type_clustering
 
     cell_type_clustering(hidedeconv_path)
 
@@ -640,6 +633,7 @@ def cli_download() -> None:
     """
     Select and download an AnnData Single Cell file for certain pre-curated repositories.
     """
+    from .cli_commands import download_single_cells
 
     download_single_cells()
 
@@ -655,6 +649,7 @@ def cli_anndata_preprocess() -> None:
     Additionally excludes celltypes, that are below the min_cell threshold and removes genes that are either ribosomal, mitochondrial or have a very low expression level.\n
     **Note:** AnnData *var_names* must be Gene Names for this function.
     """
+    from .cli_commands import preprocess_anndata
 
     preprocess_anndata()
 
@@ -667,6 +662,7 @@ def cli_anndata_inspect() -> None:
     """
     Opens a AnnData file and summarizes its content.
     """
+    from .cli_commands import inspect_anndata
 
     inspect_anndata()
 
@@ -679,6 +675,7 @@ def cli_anndata_subset() -> None:
     """
     Subsets a AnnData file to certain values in its observation column.
     """
+    from .cli_commands import subset_anndata
 
     subset_anndata()
 
@@ -691,6 +688,7 @@ def cli_anndata_add_annotation() -> None:
     """
     Creates a template for adding higher annotation layers and imports the edited result.
     """
+    from .cli_commands import add_annotation
 
     add_annotation()
 
@@ -703,6 +701,7 @@ def cli_anndata_umap() -> None:
     """
     Visualizes an AnnData file as UMAP plot. Annotates each dot for a selected observation.
     """
+    from .cli_commands import create_anndata_umap_plot
 
     create_anndata_umap_plot()
 
@@ -715,6 +714,7 @@ def cli_bulk_pca() -> None:
     """
     Visualizes the RNA-seq bulk as PCA plot. Additionally allows to annotate each dot, if a sample sheet is provided.
     """
+    from .cli_commands import create_bulk_pca_plot
 
     create_bulk_pca_plot()
 
@@ -727,6 +727,7 @@ def cli_bulk_umap() -> None:
     """
     Visualizes the RNA-seq bulk as UMAP plot. Additionally allows to annotate each dot, if a sample sheet is provided.
     """
+    from .cli_commands import create_bulk_umap_plot
 
     create_bulk_umap_plot()
 
@@ -739,6 +740,7 @@ def cli_bulk_merge() -> None:
     """
     Combines a list of bulk RNA seq dataframes and corrects for batch effects.
     """
+    from .cli_commands import merge_bulks
 
     merge_bulks()
 
@@ -751,6 +753,7 @@ def cli_bulk_cluster() -> None:
     """
     Clusters selected RNA data and stores the determined cluster assignments.
     """
+    from .cli_commands import create_bulk_clustering
 
     create_bulk_clustering()
 
