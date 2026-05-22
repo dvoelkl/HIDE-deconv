@@ -12,9 +12,16 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm
 
+
 from .constants import MSG_SUCCESS, MSG_FAILURE, MSG_USER_ABORT
 from .utils import assert_init, assert_preprocessed, assert_trained
 
+from .cli_commands import (
+    preprocess,
+    setup_project,
+    train_model,
+    deconvolve_command,
+)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -173,7 +180,6 @@ def cli_run_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> int
 
     Note: This is not an automation command, as constant user input is necessary.
     """
-    from .cli_commands import setup_project, preprocess, train_model, deconvolve_command
 
     hidedeconv_path = hidedeconv_path.expanduser().resolve()
 
