@@ -25,6 +25,7 @@ from .bulk_command import (
     create_bulk_pca_plot,
     create_bulk_umap_plot,
     merge_bulks,
+    subset_bulk,
     create_bulk_clustering,
 )
 
@@ -51,6 +52,7 @@ __all__ = [
     "create_bulk_pca_plot",
     "create_bulk_umap_plot",
     "merge_bulks",
+    "subset_bulk",
     "inspect_anndata",
     "subset_anndata",
     "add_annotation",

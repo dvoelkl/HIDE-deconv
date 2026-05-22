@@ -66,6 +66,7 @@ def show_help():
         "[bold]hide-deconv bulk pca[/bold]          Plots bulk RNA-seq data as PCA plot\n"
         "[bold]hide-deconv bulk umap[/bold]         Plots bulk RNA-seq data as UMAP plot\n"
         "[bold]hide-deconv bulk merge[/bold]        Merges multiple RNA-seq data sources\n"
+        "[bold]hide-deconv bulk subset[/bold]       Subsets bulk RNA-seq samples by column\n"
         "[bold]hide-deconv bulk cluster[/bold]      Performs clustering on RNA-seq data\n"
         "[bold]hide-deconv anndata inspect[/bold]   Summarizes an AnnData file\n"
         "[bold]hide-deconv anndata subset[/bold]    Subsets AnnData file to certain subsets in observations\n"

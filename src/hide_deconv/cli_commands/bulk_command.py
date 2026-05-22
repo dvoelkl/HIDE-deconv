@@ -305,6 +305,118 @@ def merge_bulks() -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+def subset_bulk() -> int:
+    """
+    Subsets a bulk RNA-seq expression file.
+    """
+    console.print("[bold blue]Bulk Subsetting[/bold blue]")
+
+    bulk_path = inquirer.filepath(
+        message="Enter path to bulk RNA expression file:",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A bulk RNA expression file (.csv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        with console.status(
+            "[bold blue]Loading bulk RNA expression file...[/bold blue]", spinner="dots"
+        ):
+            bulk = pd.read_csv(bulk_path, index_col=0)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    try:
+        samplesheet_path = inquirer.filepath(
+            message="Select sample sheet:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="A sample sheet (.csv) must be selected to continue subsetting.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+
+        sample_sheet = pd.read_csv(samplesheet_path)
+
+        available_sample_cols = sample_sheet.columns.to_list()
+
+        sample_id_col = inquirer.select(
+            message="Select column that holds sample ids:",
+            choices=available_sample_cols,
+            default=available_sample_cols[0],
+            height=5,
+        ).execute()
+
+        if not sample_ids_valid(sample_sheet[sample_id_col], bulk.columns.to_list()):
+            console.print(
+                f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"
+            )
+            return MSG_FAILURE
+
+        available_sample_cols.remove(sample_id_col)
+
+        cohort_cols = [
+            Choice(
+                value=col,
+                name=f"{col} [Unique Cohorts: {len(sample_sheet[col].unique())}]",
+            )
+            for col in available_sample_cols
+            if len(sample_sheet[col].unique()) > 1
+        ]
+
+        if len(cohort_cols) == 0:
+            console.print("[red]No suitable sample sheet column was found for subsetting.[/red]")
+            return MSG_FAILURE
+
+        cohort_col = inquirer.select(
+            message="Select column that will be used to define the subset:",
+            choices=cohort_cols,
+            height=5,
+        ).execute()
+
+        values = inquirer.checkbox(
+            message="Select the cohort values to keep:",
+            choices=[str(value) for value in sample_sheet[cohort_col].dropna().unique()],
+            max_height=5,
+            mandatory=True,
+            mandatory_message="Please select at least one entry.",
+        ).execute()
+
+        if len(values) == 0:
+            console.print("[yellow]Please select at least one value.[/yellow]")
+            return MSG_FAILURE
+
+        ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+        selected_ids = sample_sheet[sample_sheet[cohort_col].isin(values)][
+            sample_id_col
+        ].astype(str)
+
+        with console.status(
+            "[bold blue]Subsetting bulk RNA expression file...[/bold blue]",
+            spinner="dots",
+        ):
+            subset_df = bulk.loc[:, [col for col in bulk.columns if col in selected_ids.to_list()]]
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    subset_path = Path(bulk_path).with_name(f"{Path(bulk_path).stem}_{cohort_col}_subset.csv")
+
+    with console.status(
+        "[bold blue]Saving subsetted file...[/bold blue]",
+        spinner="dots",
+    ):
+        subset_df.to_csv(subset_path)
+
+    console.print(f"[bold green]Saved subsetted file to {subset_path}[/bold green]")
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 def create_bulk_clustering() -> int:
     """
     Select a RNA-seq bulk and assign clusters to the samples.

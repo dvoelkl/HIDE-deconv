@@ -754,6 +754,19 @@ def cli_bulk_merge() -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_bulk.command("subset")
+def cli_bulk_subset() -> None:
+    """
+    Subsets a bulk RNA-seq file.
+    """
+    from .cli_commands import subset_bulk
+
+    subset_bulk()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli_bulk.command("cluster")
 def cli_bulk_cluster() -> None:
     """

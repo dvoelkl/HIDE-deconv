@@ -317,6 +317,73 @@ class TestCreateBulkUmapPlot:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+class TestSubsetBulk:
+    """
+    Tests for subset_bulk command logic.
+    """
+
+    def test_subset_bulk_writes_subsetted_csv(self, monkeypatch, tmp_path) -> None:
+        """
+        Test that subset_bulk keeps selected sample columns and writes the result.
+        """
+
+        bulk_path, bulk = create_bulk_file(tmp_path)
+        sample_sheet_path = create_sample_sheet(tmp_path)
+        captured = {}
+
+        def capture_checkbox(*args, **kwargs):
+            class MockCheckbox:
+                def execute(self):
+                    return ["B"]
+
+            captured["checkbox_kwargs"] = kwargs
+            return MockCheckbox()
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            select_sequence([str(bulk_path), str(sample_sheet_path)]),
+        )
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "select",
+            select_sequence(["SampleID", "Cohort"]),
+        )
+        monkeypatch.setattr(bulk_command.inquirer, "checkbox", capture_checkbox)
+
+        result = bulk_command.subset_bulk()
+
+        assert result == MSG_SUCCESS
+        subset_path = tmp_path / "bulk_Cohort_subset.csv"
+        assert subset_path.exists()
+        subset = pd.read_csv(subset_path, index_col=0)
+        assert subset.equals(bulk[["sample_2"]])
+        assert captured["checkbox_kwargs"]["choices"] == ["A", "B"]
+
+    def test_subset_bulk_returns_failure_on_invalid_bulk_file(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that subset_bulk returns MSG_FAILURE if bulk file cannot be read.
+        """
+
+        bulk_path = tmp_path / "missing_bulk.csv"
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            lambda **kwargs: prompt(str(bulk_path)),
+        )
+        monkeypatch.setattr(bulk_command, "console", bulk_command.console)
+
+        result = bulk_command.subset_bulk()
+
+        assert result == MSG_FAILURE
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 class TestMergeBulks:
     """
     Tests for merge_bulks command logic.
