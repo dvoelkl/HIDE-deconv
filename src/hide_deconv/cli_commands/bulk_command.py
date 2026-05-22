@@ -366,7 +366,9 @@ def subset_bulk() -> int:
         ]
 
         if len(cohort_cols) == 0:
-            console.print("[red]No suitable sample sheet column was found for subsetting.[/red]")
+            console.print(
+                "[red]No suitable sample sheet column was found for subsetting.[/red]"
+            )
             return MSG_FAILURE
 
         cohort_col = inquirer.select(
@@ -377,7 +379,9 @@ def subset_bulk() -> int:
 
         values = inquirer.checkbox(
             message="Select the cohort values to keep:",
-            choices=[str(value) for value in sample_sheet[cohort_col].dropna().unique()],
+            choices=[
+                str(value) for value in sample_sheet[cohort_col].dropna().unique()
+            ],
             max_height=5,
             mandatory=True,
             mandatory_message="Please select at least one entry.",
@@ -396,12 +400,16 @@ def subset_bulk() -> int:
             "[bold blue]Subsetting bulk RNA expression file...[/bold blue]",
             spinner="dots",
         ):
-            subset_df = bulk.loc[:, [col for col in bulk.columns if col in selected_ids.to_list()]]
+            subset_df = bulk.loc[
+                :, [col for col in bulk.columns if col in selected_ids.to_list()]
+            ]
     except Exception:
         console.print_exception()
         return MSG_FAILURE
 
-    subset_path = Path(bulk_path).with_name(f"{Path(bulk_path).stem}_{cohort_col}_subset.csv")
+    subset_path = Path(bulk_path).with_name(
+        f"{Path(bulk_path).stem}_{cohort_col}_subset.csv"
+    )
 
     with console.status(
         "[bold blue]Saving subsetted file...[/bold blue]",

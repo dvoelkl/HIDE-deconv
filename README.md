@@ -13,7 +13,7 @@
 - Usable via command line interface and Python API
 - Provides a guided workflow that allows users without programming experience to perform deconvolution
 
-
+For a detailed overview of all features and usage, please read the [Userguide](./docs/Userguide.md)
 
 ## Installation
 
