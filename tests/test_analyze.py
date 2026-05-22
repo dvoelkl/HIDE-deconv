@@ -294,11 +294,14 @@ class TestPcaAndUmap:
 
         captured = {}
 
-        def capture_plot_pca(data, out_path, labeling, group_name, title_suffix=""):
+        def capture_plot_pca(
+            data, out_path, labeling, group_name, title_suffix="", **kwargs
+        ):
             captured["labeling"] = labeling
             captured["group_name"] = group_name
             captured["out_path"] = out_path
             captured["title_suffix"] = title_suffix
+            captured["kwargs"] = kwargs
 
         monkeypatch.setattr(
             analyze_command, "get_deconvolution_results", lambda path: ["proj"]
@@ -326,7 +329,8 @@ class TestPcaAndUmap:
         assert result == MSG_SUCCESS
         assert captured["labeling"] == ["B", "A"]
         assert captured["group_name"] == "Cohort"
-        assert captured["out_path"].endswith("/results/proj/pca_sub_Cohort.png")
+        assert captured["kwargs"]["biplot"] is True
+        assert captured["out_path"].endswith("/results/proj/sub/pca_sub_Cohort.png")
 
     def test_create_umap_plot_uses_reindexed_labels(
         self, monkeypatch, tmp_path
@@ -384,7 +388,7 @@ class TestPcaAndUmap:
         assert result == MSG_SUCCESS
         assert captured["labeling"] == ["B", "A"]
         assert captured["group_name"] == "Cohort"
-        assert captured["out_path"].endswith("/results/proj/umap_sub_Cohort.png")
+        assert captured["out_path"].endswith("/results/proj/sub/umap_sub_Cohort.png")
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

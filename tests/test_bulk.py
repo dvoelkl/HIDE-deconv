@@ -101,12 +101,18 @@ class TestCreateBulkPcaPlot:
         captured = {}
 
         def capture_plot_pca(
-            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+            data,
+            out_path,
+            labeling=None,
+            group_name="Cohorts",
+            title_suffix="",
+            **kwargs,
         ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling
             captured["group_name"] = group_name
+            captured["kwargs"] = kwargs
 
         monkeypatch.setattr(
             bulk_command.inquirer,
@@ -123,6 +129,7 @@ class TestCreateBulkPcaPlot:
         assert captured["labeling"] is None
         assert captured["group_name"] == "Cohorts"
         assert captured["out_path"] == f"{bulk_path.parent}/{bulk_path.stem}_pca.png"
+        assert captured["kwargs"]["biplot"] is True
 
     def test_create_bulk_pca_plot_with_sample_sheet(
         self, monkeypatch, tmp_path
@@ -136,12 +143,18 @@ class TestCreateBulkPcaPlot:
         captured = {}
 
         def capture_plot_pca(
-            data, out_path, labeling=None, group_name="Cohorts", title_suffix=""
+            data,
+            out_path,
+            labeling=None,
+            group_name="Cohorts",
+            title_suffix="",
+            **kwargs,
         ):
             captured["data"] = data
             captured["out_path"] = out_path
             captured["labeling"] = labeling
             captured["group_name"] = group_name
+            captured["kwargs"] = kwargs
 
         monkeypatch.setattr(
             bulk_command.inquirer,
@@ -167,6 +180,7 @@ class TestCreateBulkPcaPlot:
             captured["out_path"]
             == f"{bulk_path.parent}/{bulk_path.stem}_Cohort_pca.png"
         )
+        assert captured["kwargs"]["biplot"] is True
 
     def test_create_bulk_pca_plot_returns_failure_on_invalid_bulk_file(
         self, monkeypatch, tmp_path
