@@ -22,6 +22,7 @@ from rich.prompt import Confirm
 from ..visualization import plot_pca, plot_umap
 from ..utils import sample_ids_valid, filter_sample_sheet
 from ..preprocessing import combine_bulk_dataframes
+from ..statistic import run_clustering
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -295,5 +296,56 @@ def merge_bulks() -> int:
     except Exception:
         console.print_exception()
         return MSG_FAILURE
+
+    return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_bulk_clustering() -> int:
+    """
+    Select a RNA-seq bulk and assign clusters to the samples.
+    """
+    console.print("[bold blue]Bulk Clustering[/bold blue]")
+
+    ret = MSG_SUCCESS
+
+    bulk_path = inquirer.filepath(
+        message="Enter path to bulk RNA expression file:",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A bulk RNA expression file (.csv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        with console.status(
+            "[bold blue]Loading bulk RNA expression file...[/bold blue]", spinner="dots"
+        ):
+            bulk = pd.read_csv(bulk_path, index_col=0)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    cluster_ass = run_clustering(bulk, is_bulk=True)
+
+    cluster_ass.to_csv(
+        f"{Path(bulk_path).parent}/clusters.csv",
+    )
+
+    plot_pca(
+        bulk,
+        f"{Path(bulk_path).parent}/clusters_pca.png",
+        labeling=cluster_ass["assigned_cluster"].to_list(),
+        group_name="cluster",
+    )
+
+    plot_umap(
+        bulk,
+        f"{Path(bulk_path).parent}/clusters_umap.png",
+        labeling=cluster_ass["assigned_cluster"].to_list(),
+        group_name="cluster",
+    )
 
     return ret

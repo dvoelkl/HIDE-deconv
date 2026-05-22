@@ -21,7 +21,12 @@ from .anndata_command import (
     add_annotation,
     create_anndata_umap_plot,
 )
-from .bulk_command import create_bulk_pca_plot, create_bulk_umap_plot, merge_bulks
+from .bulk_command import (
+    create_bulk_pca_plot,
+    create_bulk_umap_plot,
+    merge_bulks,
+    create_bulk_clustering,
+)
 
 __all__ = [
     "setup_config",
@@ -51,4 +56,5 @@ __all__ = [
     "add_annotation",
     "create_anndata_umap_plot",
     "cell_type_clustering",
+    "create_bulk_clustering",
 ]

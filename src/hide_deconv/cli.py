@@ -39,6 +39,7 @@ from .cli_commands import (
     inspect_anndata,
     subset_anndata,
     merge_bulks,
+    create_bulk_clustering,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -743,6 +744,19 @@ def cli_bulk_merge() -> None:
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_bulk.command("cluster")
+def cli_bulk_cluster() -> None:
+    """
+    Clusters selected RNA data and stores the determined cluster assignments.
+    """
+
+    create_bulk_clustering()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 if __name__ == "__main__":
     cli()

@@ -794,7 +794,7 @@ def cell_type_clustering(hidedeconv_path: Path) -> int:
             + selected_ct_layer
             + f"/clusters_PCA_{selected_ct_layer}.png",
             labeling=cluster_ass["assigned_cluster"].to_list(),
-            group_name="leiden",
+            group_name="cluster",
         )
 
         plot_umap(
@@ -806,7 +806,7 @@ def cell_type_clustering(hidedeconv_path: Path) -> int:
             + selected_ct_layer
             + f"/clusters_UMAP_{selected_ct_layer}.png",
             labeling=cluster_ass["assigned_cluster"].to_list(),
-            group_name="leiden",
+            group_name="cluster",
         )
     else:
         console.print(
