@@ -120,6 +120,7 @@ def create_bulk_pca_plot() -> int:
             bulk,
             out_path=f"{Path(bulk_path).parent}/{Path(bulk_path).stem}" + "_pca.png",
             title_suffix=" RNA-seq",
+            biplot=True,
         )
     else:
         plot_pca(
@@ -128,6 +129,7 @@ def create_bulk_pca_plot() -> int:
             labeling=labels,
             group_name=cohort_col,
             title_suffix=" RNA-seq",
+            biplot=True,
         )
 
     return ret

@@ -333,6 +333,22 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
         # Load project, ct_layer and bulk
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
 
+        # Create subfolder in results for storing each cell type layer independently
+        if not os.path.exists(
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+        ):
+            os.mkdir(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+            )
+
         samplesheet_path = inquirer.filepath(
             message="Select sample sheet:",
             default=str(hidedeconv_path.expanduser()),
@@ -383,10 +399,11 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                 plot_pca(
                     bulk,
                     out_path=str(hidedeconv_path)
-                    + f"/results/{selected_project}/pca_{selected_ct_layer}_{cohort_col}.png",
+                    + f"/results/{selected_project}/{selected_ct_layer}/pca_{selected_ct_layer}_{cohort_col}.png",
                     labeling=labels,
                     group_name=cohort_col,
                     title_suffix=" Composition",
+                    biplot=True,
                 )
             else:
                 console.print(
@@ -429,6 +446,22 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
     if len(available_projects) > 0:
         # Load project, ct_layer and bulk
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+
+        # Create subfolder in results for storing each cell type layer independently
+        if not os.path.exists(
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+        ):
+            os.mkdir(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+            )
 
         samplesheet_path = inquirer.filepath(
             message="Select sample sheet:",
@@ -481,7 +514,7 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                 plot_umap(
                     bulk,
                     out_path=str(hidedeconv_path)
-                    + f"/results/{selected_project}/umap_{selected_ct_layer}_{cohort_col}.png",
+                    + f"/results/{selected_project}/{selected_ct_layer}/umap_{selected_ct_layer}_{cohort_col}.png",
                     labeling=labels,
                     group_name=cohort_col,
                     title_suffix=" Composition",

@@ -9,6 +9,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import umap
+from pathlib import Path
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -148,6 +149,7 @@ def plot_pca(
     labeling: list = [],
     group_name: str = "Cohorts",
     title_suffix: str = "",
+    biplot: bool = False,
 ) -> None:
     """
     Performs a principal component analysis on the given composition and plots the result as a scatterplot.
@@ -165,6 +167,8 @@ def plot_pca(
         Name of the legend.
     title_suffix : str = ''
         Suffix displayed after the image title.
+    biplot : bool = False
+        If True saves a PCA biplot.
     """
 
     df = C_est.T
@@ -177,6 +181,7 @@ def plot_pca(
     pca_df = pd.DataFrame(X_pca, index=df.index, columns=["PC1", "PC2"])
 
     fig, ax = plt.subplots(figsize=(7, 5))
+    sns.set_theme(style="whitegrid", context="paper")
 
     if len(labeling) > 0:
         assert len(labeling) == len(C_est.columns)
@@ -195,12 +200,119 @@ def plot_pca(
     ax.set_title(f"PCA{title_suffix}")
     ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
     ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
+    ax.axhline(0, color="0.85", linewidth=1, zorder=0)
+    ax.axvline(0, color="0.85", linewidth=1, zorder=0)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_aspect("equal", adjustable="datalim")
 
-    if out_path is not None:
-        fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    pca_df.to_csv(out_path.removesuffix(".png") + ".csv")
+
+    if biplot:
+        plot_pca_biplot(
+            pca=pca,
+            X_pca=X_pca,
+            df=df,
+            pca_df=pca_df,
+            out_path=out_path,
+            labeling=labeling,
+            group_name=group_name,
+            title_suffix=title_suffix,
+        )
 
     plt.close(fig)
     # Save plot at out-path
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_pca_biplot(
+    pca: PCA,
+    X_pca: np.ndarray,
+    df: pd.DataFrame,
+    pca_df: pd.DataFrame,
+    out_path: str,
+    labeling: list = [],
+    group_name: str = "Cohorts",
+    title_suffix: str = "",
+) -> None:
+    """
+    Saves a PCA biplot for a PCA result.
+    """
+
+    loadings = pca.components_.T
+    loading_scale = np.max(np.abs(X_pca)) or 1.0
+    arrow_scale = 0.75 * loading_scale
+
+    biplot_fig, biplot_ax = plt.subplots(figsize=(7, 5))
+    sns.set_theme(style="whitegrid", context="paper")
+
+    if len(labeling) > 0:
+        labels = pca_df["labels"].dropna().unique()
+        palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+        sns.scatterplot(
+            x="PC1", y="PC2", data=pca_df, hue="labels", ax=biplot_ax, palette=palette
+        )
+        biplot_ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
+    else:
+        sns.scatterplot(x="PC1", y="PC2", data=pca_df, ax=biplot_ax)
+
+    feature_magnitudes = np.sqrt(np.sum(loadings[:, :2] ** 2, axis=1))
+    top_features = np.argsort(feature_magnitudes)[::-1][: min(10, len(df.columns))]
+    max_feature_magnitude = (
+        feature_magnitudes[top_features[0]] if len(top_features) > 0 else 1.0
+    )
+    max_feature_magnitude = max(max_feature_magnitude, 1e-8)
+
+    for idx in top_features:
+        x_loading = loadings[idx, 0] / max_feature_magnitude * arrow_scale
+        y_loading = loadings[idx, 1] / max_feature_magnitude * arrow_scale
+        feature_name = df.columns[idx]
+        angle = np.degrees(np.arctan2(y_loading, x_loading))
+        x_text = x_loading * 1.03
+        y_text = y_loading * 1.03
+
+        biplot_ax.arrow(
+            0,
+            0,
+            x_loading,
+            y_loading,
+            color="tab:red",
+            width=0.0,
+            head_width=0.04 * loading_scale,
+            length_includes_head=True,
+            alpha=0.8,
+        )
+        biplot_ax.text(
+            x_text,
+            y_text,
+            feature_name,
+            color="tab:red",
+            fontsize=9,
+            ha="left",
+            va="center",
+            rotation=angle,
+            rotation_mode="anchor",
+        )
+
+    biplot_ax.axhline(0, color="0.85", linewidth=1, zorder=0)
+    biplot_ax.axvline(0, color="0.85", linewidth=1, zorder=0)
+    biplot_ax.set_title(f"PCA Biplot{title_suffix}")
+    biplot_ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
+    biplot_ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
+    biplot_ax.spines["top"].set_visible(False)
+    biplot_ax.spines["right"].set_visible(False)
+    biplot_ax.set_aspect("equal", adjustable="datalim")
+
+    biplot_path = Path(out_path)
+    biplot_fig.savefig(
+        str(biplot_path.with_name(f"{biplot_path.stem}_biplot.png")),
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close(biplot_fig)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,6 +362,7 @@ def plot_umap(
     )
 
     fig, ax = plt.subplots(figsize=(7, 5))
+    sns.set_theme(style="whitegrid", context="paper")
 
     if len(labeling) > 0:
         assert len(labeling) == len(C_est.columns)
@@ -267,8 +380,8 @@ def plot_umap(
 
     ax.set_title(f"UMAP{title_suffix}")
 
-    if out_path is not None:
-        fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    umap_df.to_csv(out_path.removesuffix(".png") + ".csv")
 
     plt.close(fig)
     # Save plot at out-path
