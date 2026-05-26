@@ -584,6 +584,31 @@ def cli_analyze_umap(hidedeconv_path: Path) -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_analyze.command("plsda")
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_plsda(hidedeconv_path: Path) -> None:
+    """
+    Perform a partial least squares discriminant analysis and saves the resulting plots.
+    """
+    from .cli_commands import create_plsda_plot
+
+    create_plsda_plot(hidedeconv_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli_analyze.command("survival")
 @click.option(
     "--path",

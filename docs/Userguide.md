@@ -68,7 +68,10 @@ HIDE-Deconv provides a command that allows you to identify clusters of similar c
 
 To run the command, use the following syntax: `hide-deconv analyze cluster -p <PathToProject>`
 
-### 4.5 Benchmarking against known compositions
+### 4.5 Partial least squares discriminant analysis
+A common alternative to PCA and UMAP is PLS-DA, which is also included in HIDE-Deconv. The command `hide-deconv analyze plsda -p <PathToProject>` will perform a PLS-DA (to be more specific a PLS2-DA) and save the score, vip and loading plot.
+
+### 4.6 Benchmarking against known compositions
 If you have ground truth cell proportions, HIDE-Deconv offers a command that calculates various benchmarking metrics, such as correlation coefficients or RMSE estimates. The ground truth data must be provided as a CSV table, with column names representing sample names and row names representing cell types. It’s important to note that all models produce proportions, which naturally sum to 1. The resulting benchmark results are stored as both a table and a plot in the corresponding results directory. Ensure that the cell type names used in the ground truth data match those used in the deconvolution process.
 
 To invoke the command, use the following syntax: `hide-deconv analyze benchmark -p <PathToProject>`.

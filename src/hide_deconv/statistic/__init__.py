@@ -3,6 +3,7 @@ from .kruskal_wallis import run_kruskal_wallis
 from .posthoc_dunn import run_dunn, print_dunn_summary
 from .survival_analysis import run_cox_regression, print_cox_summary
 from .clustering import run_clustering
+from .plsda import run_plsda
 
 __all__ = [
     "run_mann_whitney_u",
@@ -13,4 +14,5 @@ __all__ = [
     "run_cox_regression",
     "print_cox_summary",
     "run_clustering",
+    "run_plsda",
 ]
