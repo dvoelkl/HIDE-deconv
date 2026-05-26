@@ -5,6 +5,7 @@ from .train_command import train_model
 from .help_command import show_help
 from .deconvolve_command import deconvolve_hide, deconvolve_command
 from .simulate_command import create_simulation
+from .cohort_command import combine_cohorts
 from .analyze_command import (
     analyze_differences,
     benchmark_result,
@@ -43,6 +44,7 @@ __all__ = [
     "deconvolve_hide",
     "deconvolve_command",
     "create_simulation",
+    "combine_cohorts",
     "analyze_differences",
     "benchmark_result",
     "create_pca_plot",

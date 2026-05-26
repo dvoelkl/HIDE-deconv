@@ -123,7 +123,7 @@ def analyze_differences(hidedeconv_path: Path) -> int:
                     )
 
                 # Decide wether Mann Whitney U or Kruskal-Wallis + Dunn Test
-                if len(sample_sheet[cohort_col].unique()) == 2:
+                if len(sample_sheet[cohort_col].dropna().unique()) == 2:
                     with console.status(
                         "[bold blue]Running Mann-Whitney-U Test...[/bold blue]",
                         spinner="dots",

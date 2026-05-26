@@ -139,6 +139,17 @@ def cli_bulk() -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli.group("cohort")
+def cli_cohort() -> None:
+    """
+    Commands related to sample sheets.
+    """
+    pass
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli.command("help")
 def cli_help_command():
     """
@@ -147,6 +158,28 @@ def cli_help_command():
     from .cli_commands import show_help
 
     show_help()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_cohort.command("combine")
+@click.option(
+    "--numerical",
+    "-n",
+    is_flag=True,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="If true, assume that cohort values are numerical values.",
+)
+def cli_cohort_combine(numerical: bool) -> None:
+    """
+    Combine cohort labels in sample sheet.
+    """
+    from .cli_commands import combine_cohorts
+
+    combine_cohorts(numerical=numerical)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,7 +201,7 @@ def cli_help_command():
     "--domain_transfer",
     "-dt",
     "fDomTransfer",
-    is_flag=False,
+    is_flag=True,
     default=True,
     show_default=True,
     help="Account for domain transfer between single cell and bulks",

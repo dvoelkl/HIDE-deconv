@@ -11,6 +11,11 @@ from .sample_sheet_utils import (
     remove_nan_sample_ids,
     filter_sample_sheet,
 )
+from .cohort_utils import (
+    get_cohort_choices,
+    combine_categorical_cohorts,
+    combine_numerical_cohorts,
+)
 from .download_utils import get_downloadable_projects
 from .anndata_utils import (
     get_adata_obs_info,
@@ -32,6 +37,9 @@ __all__ = [
     "get_downloadable_projects",
     "remove_nan_sample_ids",
     "filter_sample_sheet",
+    "get_cohort_choices",
+    "combine_categorical_cohorts",
+    "combine_numerical_cohorts",
     "get_adata_obs_info",
     "get_adata_uns_info",
     "get_adata_var_info",
