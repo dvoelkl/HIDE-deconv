@@ -11,7 +11,12 @@ import pandas as pd
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.preprocessing import StandardScaler
 
-from ..visualization import plot_plsda_loading, plot_plsda_score, plot_plsda_vip
+from ..visualization import (
+    plot_plsda_loading,
+    plot_plsda_score,
+    plot_plsda_vip,
+    plot_plsda_biplot,
+)
 
 
 def prepare_plsda_inputs(
@@ -138,10 +143,16 @@ def run_plsda(
     scores.to_csv(out_path.with_suffix(".csv"))
 
     vip = pd.Series(calculate_vip(model), index=data.index, name="VIP")
-    loading = pd.Series(model.x_loadings_[:, 0], index=data.index, name="Loading")
+
+    loadings = pd.DataFrame(
+        model.x_loadings_[:, :2], index=data.index, columns=["PLS1", "PLS2"]
+    )
 
     plot_plsda_score(scores, out_path.with_suffix(".png"), cohort_col)
     plot_plsda_vip(vip, out_path.with_name(f"{out_path.stem}_vip.png"))
-    plot_plsda_loading(loading, out_path.with_name(f"{out_path.stem}_loading.png"))
+    plot_plsda_loading(loadings, out_path.with_name(f"{out_path.stem}_loading.png"))
+    plot_plsda_biplot(
+        scores, loadings, out_path.with_name(f"{out_path.stem}_biplot.png"), cohort_col
+    )
 
     return scores
