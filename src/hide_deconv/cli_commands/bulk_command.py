@@ -392,7 +392,7 @@ def subset_bulk() -> int:
             return MSG_FAILURE
 
         ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
-        selected_ids = sample_sheet[sample_sheet[cohort_col].isin(values)][
+        selected_ids = sample_sheet[sample_sheet[cohort_col].astype(str).isin(values)][
             sample_id_col
         ].astype(str)
 

@@ -360,6 +360,50 @@ class TestSubsetBulk:
         assert subset.equals(bulk[["sample_2"]])
         assert captured["checkbox_kwargs"]["choices"] == ["A", "B"]
 
+    def test_subset_bulk_handles_non_string_cohort_values(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that subset_bulk filters cohort values even when they are not strings.
+        """
+
+        bulk_path, bulk = create_bulk_file(tmp_path)
+        sample_sheet_path = tmp_path / "sample_sheet_numeric.csv"
+        sample_sheet = pd.DataFrame(
+            {
+                "SampleID": ["sample_1", "sample_2", "sample_3"],
+                "Cohort": [1, 2, 1],
+                "Batch": ["X", "X", "Y"],
+            }
+        )
+        sample_sheet.to_csv(sample_sheet_path, index=False)
+
+        def capture_checkbox(*args, **kwargs):
+            class MockCheckbox:
+                def execute(self):
+                    return ["2"]
+
+            return MockCheckbox()
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            select_sequence([str(bulk_path), str(sample_sheet_path)]),
+        )
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "select",
+            select_sequence(["SampleID", "Cohort"]),
+        )
+        monkeypatch.setattr(bulk_command.inquirer, "checkbox", capture_checkbox)
+
+        result = bulk_command.subset_bulk()
+
+        assert result == MSG_SUCCESS
+        subset_path = tmp_path / "bulk_Cohort_subset.csv"
+        subset = pd.read_csv(subset_path, index_col=0)
+        assert subset.equals(bulk[["sample_2"]])
+
     def test_subset_bulk_returns_failure_on_invalid_bulk_file(
         self, monkeypatch, tmp_path
     ) -> None:

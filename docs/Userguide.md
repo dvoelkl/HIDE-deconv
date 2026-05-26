@@ -31,7 +31,7 @@ If you intend to conduct a survival analysis, the column indicating the event mu
 
 ## 3. Standard Workflow
 
-To automate deconvolution as much as possible, HIDE-Deconv offers a guided semi-automated workflow that can be executed using the command hide-deconv run -p <PathToProject>.
+To automate deconvolution as much as possible, HIDE-Deconv offers a guided semi-automated workflow that can be executed using the command `hide-deconv run -p <PathToProject>`.
 
 Running this command sets up the necessary configuration file and folder structure. After executing the command, the folder path where the project will be initialized will be displayed, and you’ll be prompted to confirm if you want to set up the project there. Subsequently, you’ll be asked to enter the path to the previously mentioned AnnData Single Cell file. Once the file is loaded, you’ll need to select the desired finest-level cell type annotation. These annotations are loaded from the observation entries in the AnnData file. If you want to add further coarser-grained annotations, you can do so in the next step.
 
@@ -56,22 +56,22 @@ To visualize the deconvolution results using either PCA or UMAP, execute the com
 ### 4.2 Statistical Differences
 HIDE-Deconv also provides an interface to test for statistical differences in the cellular composition of specific cohorts. Based on the number of available cohorts, HIDE-Deconv automatically determines whether to perform a Mann-Whitney-U test between two cohorts or a Kruskal-Wallis test with a post hoc Dunn test to identify the significantly different cohort among multiple cohorts. In all cases, the p-value is adjusted for multiple testing.
 
-To access this feature, you can run the command hide-deconv analyze diff -p <PathToProject>. The results will be stored in the corresponding results folder.
+To access this feature, you can run the command `hide-deconv analyze diff -p <PathToProject>`. The results will be stored in the corresponding results folder.
 
 ### 4.3 Survival Analysis and Cox Regression
 To investigate the impact of specific cell types on patient survival, HIDE-Deconv offers a survival analysis command. Before executing this command, it’s crucial to ensure that both the censoring time and the time to event are included in a single column in the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event. Additionally, the command allows for the inclusion of various covariates in the Cox Model. For cell types that significantly influence patient survival, a Kaplan Meier Curve is automatically generated. The user must first specify whether the patients should be divided into samples based on the mean, tertiary, or quartile cell type expression. Furthermore, p-values are corrected for multiple testing, and the resulting tables and plots are saved in the corresponding results folder.
 
-To execute the command, use the following syntax: hide-deconv analyze survival -p <PathToProject>
+To execute the command, use the following syntax: `hide-deconv analyze survival -p <PathToProject>`
 
 ### 4.4 Identification of compositional clusters
 HIDE-Deconv provides a command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded.
 
-To run the command, use the following syntax: hide-deconv analyze leiden -p <PathToProject>
+To run the command, use the following syntax: `hide-deconv analyze cluster -p <PathToProject>`
 
 ### 4.5 Benchmarking against known compositions
 If you have ground truth cell proportions, HIDE-Deconv offers a command that calculates various benchmarking metrics, such as correlation coefficients or RMSE estimates. The ground truth data must be provided as a CSV table, with column names representing sample names and row names representing cell types. It’s important to note that all models produce proportions, which naturally sum to 1. The resulting benchmark results are stored as both a table and a plot in the corresponding results directory. Ensure that the cell type names used in the ground truth data match those used in the deconvolution process.
 
-To invoke the command, use the following syntax: hide-deconv analyze benchmark -p <PathToProject>.
+To invoke the command, use the following syntax: `hide-deconv analyze benchmark -p <PathToProject>`.
 
 ## 5. Single Cell Related Commands
 HIDE-Deconv, which utilizes the AnnData file format for single-cell data, offers specific functions to enhance accessibility for non-programmers when working with this file type.
@@ -79,9 +79,11 @@ HIDE-Deconv, which utilizes the AnnData file format for single-cell data, offers
 ### 5.1 Inspect AnnData file
 This command provides an overview of a selected AnnData file. It displays the total number of genes and cells, as well as all entries in the observations and variables.
 
-To use this command, you can invoke it with the command line options hide-deconv anndata inspect. This will prompt you to select the desired AnnData file path and then show the information in the terminal.
+To use this command, you can invoke it with the command line options `hide-deconv anndata inspect`. This will prompt you to select the desired AnnData file path and then show the information in the terminal.
 
 ### 5.2 Subset AnnData file
 Single cells downloaded from large repositories often exhibit multiple phenotypes. This command enables you to subset the AnnData file to a specific observation. Select the desired observation and then input all the permissible values for it by separating them with spaces. Pressing enter will save the processed file at the same location as the original AnnData file.
 
-To execute the command, use the following syntax: hide-deconv anndata subset
+To execute the command, use the following syntax: `hide-deconv anndata subset`
+
+### 5.3 Add higher cell type Annotations
