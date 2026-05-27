@@ -507,3 +507,103 @@ class TestMergeBulks:
         assert pd.read_csv(
             tmp_path / "merged_bulks_batch_info.csv", index_col=0
         ).equals(batches_info)
+
+
+class TestCreateBulkDeg:
+    """
+    Tests for create_bulk_deg command logic.
+    """
+
+    def test_create_bulk_deg_filters_condition_columns_to_two_cohorts(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that only sample sheet columns with exactly two cohorts are shown.
+        """
+
+        bulk_path = tmp_path / "bulk.csv"
+        bulk = pd.DataFrame(
+            [[10, 11, 12], [5, 6, 7]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2", "sample_3"],
+        )
+        bulk.to_csv(bulk_path)
+
+        sample_sheet_path = tmp_path / "sample_sheet.csv"
+        sample_sheet = pd.DataFrame(
+            {
+                "SampleID": ["sample_1", "sample_2", "sample_3"],
+                "Condition": ["A", "A", "B"],
+                "ThreeCohorts": ["X", "Y", "Z"],
+                "OneCohort": ["K", "K", "K"],
+            }
+        )
+        sample_sheet.to_csv(sample_sheet_path, index=False)
+
+        captured = {}
+
+        def mock_select(*args, **kwargs):
+            captured.setdefault("select_calls", []).append(kwargs)
+
+            class MockSelect:
+                def execute(self_inner):
+                    if len(captured["select_calls"]) == 1:
+                        return "SampleID"
+                    if len(captured["select_calls"]) == 2:
+                        return "Condition"
+                    if len(captured["select_calls"]) == 3:
+                        return "A"
+                    return ""
+
+            return MockSelect()
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            select_sequence([str(bulk_path), str(sample_sheet_path)]),
+        )
+        monkeypatch.setattr(bulk_command.inquirer, "select", mock_select)
+        monkeypatch.setattr(bulk_command.Confirm, "ask", lambda *args, **kwargs: False)
+        monkeypatch.setattr(
+            bulk_command,
+            "pydeseq2_preprocess",
+            lambda *args, **kwargs: (bulk.T, sample_sheet.set_index("SampleID")),
+        )
+        monkeypatch.setattr(
+            bulk_command,
+            "run_pydeseq2",
+            lambda *args, **kwargs: pd.DataFrame({"padj": [0.01]}, index=["gene_1"]),
+        )
+
+        result = bulk_command.create_bulk_deg()
+
+        assert result == MSG_SUCCESS
+        condition_choices = [
+            choice.value for choice in captured["select_calls"][1]["choices"]
+        ]
+        assert condition_choices == ["Condition"]
+
+    def test_create_bulk_deg_returns_failure_for_non_raw_counts(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that create_bulk_deg aborts when the bulk file is not raw counts.
+        """
+
+        bulk_path = tmp_path / "bulk.csv"
+        bulk = pd.DataFrame(
+            [[10.5, 11.0], [5.0, 6.0]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_1", "sample_2"],
+        )
+        bulk.to_csv(bulk_path)
+
+        monkeypatch.setattr(
+            bulk_command.inquirer,
+            "filepath",
+            lambda **kwargs: prompt(str(bulk_path)),
+        )
+
+        result = bulk_command.create_bulk_deg()
+
+        assert result == MSG_FAILURE

@@ -22,11 +22,13 @@ from rich.prompt import Confirm
 from ..visualization import plot_pca, plot_umap
 from ..utils import sample_ids_valid, filter_sample_sheet
 from ..preprocessing import combine_bulk_dataframes
-from ..statistic import run_clustering
+from ..statistic import run_clustering, pydeseq2_preprocess, run_pydeseq2
+from ..utils import check_bulk_raw
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 console = Console()
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -471,3 +473,151 @@ def create_bulk_clustering() -> int:
     )
 
     return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_bulk_deg() -> int:
+    """
+    Run pydeseq2 on a selected bulk.
+    """
+    console.print("[bold blue]Bulk DEG Analysis[/bold blue]")
+
+    bulk_path = inquirer.filepath(
+        message="Enter path to bulk RNA expression file:",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A bulk RNA expression file (.csv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        with console.status(
+            "[bold blue]Loading bulk RNA expression file...[/bold blue]", spinner="dots"
+        ):
+            bulk = pd.read_csv(bulk_path, index_col=0)
+            bulk = bulk.apply(pd.to_numeric, errors="coerce")
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    if not check_bulk_raw(bulk):
+        console.print("[red]Bulk file must contain raw counts.[/red]")
+        return MSG_FAILURE
+
+    try:
+        samplesheet_path = inquirer.filepath(
+            message="Select sample sheet:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="A sample sheet (.csv) must be selected to continue.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+
+        sample_sheet = pd.read_csv(samplesheet_path)
+        available_sample_cols = sample_sheet.columns.to_list()
+
+        sample_id_col = inquirer.select(
+            message="Select column that holds sample ids:",
+            choices=available_sample_cols,
+            default=available_sample_cols[0],
+            height=5,
+        ).execute()
+
+        if not sample_ids_valid(sample_sheet[sample_id_col], bulk.columns.to_list()):
+            console.print(
+                f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"
+            )
+            return MSG_FAILURE
+
+        available_sample_cols.remove(sample_id_col)
+
+        condition_cols = [
+            Choice(
+                value=col,
+                name=f"{col} [Unique Cohorts: {len(sample_sheet[col].dropna().unique())}]",
+            )
+            for col in available_sample_cols
+            if len(sample_sheet[col].dropna().unique()) == 2
+        ]
+
+        if len(condition_cols) == 0:
+            console.print(
+                "[red]Sample sheet does not contain a column with exactly two conditions.[/red]"
+            )
+            return MSG_FAILURE
+
+        condition_col = inquirer.select(
+            message="Select column that holds the condition:",
+            choices=condition_cols,
+            height=5,
+        ).execute()
+
+        condition_values = (
+            sample_sheet[condition_col].dropna().astype(str).unique().tolist()
+        )
+        reference_condition = inquirer.select(
+            message="Select reference condition:",
+            choices=condition_values,
+            default=condition_values[0],
+            height=5,
+        ).execute()
+        tested_condition = [
+            value for value in condition_values if value != reference_condition
+        ][0]
+
+        include_covariates = Confirm.ask(
+            "Include additional covariates?", default=False
+        )
+        covariates = None
+        if include_covariates:
+            available_covariates = [
+                col for col in available_sample_cols if col != condition_col
+            ]
+            if len(available_covariates) > 0:
+                covariates = inquirer.checkbox(
+                    message="Select covariates:",
+                    choices=available_covariates,
+                    max_height=5,
+                    mandatory=True,
+                    mandatory_message="Please select at least one entry.",
+                ).execute()
+
+                if len(covariates) == 0:
+                    covariates = None
+
+        counts, metadata = pydeseq2_preprocess(
+            bulk,
+            sample_sheet,
+            sample_id_col,
+            condition_col,
+            covariates,
+        )
+
+        out_path = Path(bulk_path).with_name(
+            f"{Path(bulk_path).stem}_deg_{condition_col}_{tested_condition}_vs_{reference_condition}"
+        )
+
+        with console.status(
+            "[bold blue]Running PyDESeq2...[/bold blue]", spinner="dots"
+        ):
+            run_pydeseq2(
+                counts,
+                metadata,
+                condition_col,
+                tested_condition,
+                reference_condition,
+                covariates,
+                out_path,
+            )
+
+        console.print(f"[green]Saved DEG results to {out_path.parent}[/green]")
+
+    except Exception:
+        console.print_exception()
+        console.print("[red]Cannot open sample sheet.[/red]")
+        console.print("[dim]Please provide a valid sample sheet.[/dim]")
+        return MSG_FAILURE
+
+    return MSG_SUCCESS

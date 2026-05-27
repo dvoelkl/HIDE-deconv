@@ -838,5 +838,18 @@ def cli_bulk_cluster() -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_bulk.command("deg")
+def cli_bulk_deg() -> None:
+    """
+    Runs differential gene expression analysis on a bulk RNA-seq file using pyDeSeq2.
+    """
+    from .cli_commands import create_bulk_deg
+
+    create_bulk_deg()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 if __name__ == "__main__":
     cli()

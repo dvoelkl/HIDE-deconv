@@ -5,6 +5,7 @@ from .cli_utils import (
     assert_trained,
     get_deconvolution_results,
     load_project_bulk,
+    check_bulk_raw,
 )
 from .sample_sheet_utils import (
     sample_ids_valid,
@@ -46,4 +47,5 @@ __all__ = [
     "create_annotation_template",
     "add_annotation_columns_from_template",
     "subset_adata_obs",
+    "check_bulk_raw",
 ]

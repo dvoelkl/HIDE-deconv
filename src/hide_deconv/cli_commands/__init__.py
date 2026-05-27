@@ -29,6 +29,7 @@ from .bulk_command import (
     merge_bulks,
     subset_bulk,
     create_bulk_clustering,
+    create_bulk_deg,
 )
 
 __all__ = [
@@ -63,4 +64,5 @@ __all__ = [
     "create_anndata_umap_plot",
     "cell_type_clustering",
     "create_bulk_clustering",
+    "create_bulk_deg",
 ]

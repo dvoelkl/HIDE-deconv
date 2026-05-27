@@ -10,6 +10,7 @@ import os
 from functools import wraps
 from rich.console import Console
 import pandas as pd
+import numpy as np
 
 from InquirerPy import inquirer
 
@@ -336,3 +337,30 @@ def load_project_bulk(hidedeconv_path: Path) -> tuple[str, str, pd.DataFrame]:
     )
 
     return selected_project, selected_ct_layer, bulk
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def check_bulk_raw(bulk: pd.DataFrame) -> bool:
+    """
+    Checks if a bulk matrix are raw counts.
+
+    Parameters
+    ----------
+    bulk : pd.DataFrame
+        Bulk to check
+
+    Returns
+    -------
+    bool
+        True if bulks consists of raw counts, False otherwise
+    """
+
+    numeric_bulk = bulk.apply(pd.to_numeric, errors="coerce")
+
+    if numeric_bulk.isna().any().any():
+        return False
+
+    values = numeric_bulk.to_numpy()
+    return bool((values >= 0).all() and np.allclose(values, np.round(values)))

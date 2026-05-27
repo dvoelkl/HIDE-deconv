@@ -8,6 +8,7 @@ from .plsda import (
     plot_plsda_vip,
     plot_plsda_biplot,
 )
+from .deg import plot_volcano
 
 __all__ = [
     "plot_loss",
@@ -21,4 +22,5 @@ __all__ = [
     "plot_plsda_score",
     "plot_plsda_vip",
     "plot_plsda_biplot",
+    "plot_volcano",
 ]

@@ -14,7 +14,7 @@ import scipy.sparse as sps
 
 def run_clustering(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
     """
-    Performs a clustering of the entered bulk or composition data.
+    Performs a clustering using greedy modular communities of the entered bulk or composition data.
 
     Parameters
     ----------
@@ -30,7 +30,6 @@ def run_clustering(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
 
     """
 
-    # AnnData
     obs = pd.DataFrame(index=data.columns)
     obs["id"] = data.columns
     var = pd.DataFrame(index=data.index)
@@ -39,7 +38,9 @@ def run_clustering(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
     if is_bulk:
         sp.pp.neighbors(adata, metric="correlation")
     else:
-        sp.pp.neighbors(adata, metric="braycurtis")
+        sp.pp.neighbors(
+            adata, metric="braycurtis"
+        )  # braycurtis seems more approriate here
 
     # Sparse arrays have distances instead of connectivities property
     if "connectivities" in adata.obsp:
@@ -67,5 +68,4 @@ def run_clustering(data: pd.DataFrame, is_bulk: bool = False) -> pd.DataFrame:
             for node in comm:
                 labels[node] = i
 
-    # Return DataFrame with sample ids and assigned cluster
     return pd.DataFrame({"id": list(adata.obs_names), "assigned_cluster": labels})

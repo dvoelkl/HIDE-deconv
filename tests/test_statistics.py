@@ -7,12 +7,15 @@ Tests for statistic module
 import pytest
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from hide_deconv.statistic import (
     run_kruskal_wallis,
     run_mann_whitney_u,
     run_dunn as run_posthoc_dunn,
     run_cox_regression,
+    pydeseq2_preprocess,
+    run_pydeseq2,
 )
 
 
@@ -287,3 +290,107 @@ class TestCoxRegression:
         assert isinstance(result, pd.DataFrame)
         assert len(result) == len(bulks.index)
         assert "p_value_adj" in result.columns
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+class TestPyDESeq2:
+    """
+    Tests for PyDESeq2 based differential expression analysis.
+    """
+
+    def test_pydeseq2_preprocess_aligns_counts_and_metadata(self) -> None:
+        """
+        Test that preprocessing transposes the bulk matrix and aligns metadata.
+        """
+
+        bulk = pd.DataFrame(
+            [[10, 20, 30], [5, 15, 25]],
+            index=["gene_1", "gene_2"],
+            columns=["sample_3", "sample_1", "sample_2"],
+        )
+        sample_sheet = pd.DataFrame(
+            {
+                "SampleID": ["sample_1", "sample_2", "sample_3"],
+                "Condition": ["A", "B", "A"],
+                "Batch": ["X", "X", "Y"],
+            }
+        )
+
+        counts, metadata = pydeseq2_preprocess(
+            bulk,
+            sample_sheet,
+            sample_id_col="SampleID",
+            condition_col="Condition",
+            covariates=["Batch"],
+        )
+
+        assert list(counts.index) == ["sample_3", "sample_1", "sample_2"]
+        assert list(counts.columns) == ["gene_1", "gene_2"]
+        assert list(metadata.index) == ["sample_3", "sample_1", "sample_2"]
+        assert metadata.loc["sample_1", "Condition"] == "A"
+        assert metadata.loc["sample_2", "Batch"] == "X"
+
+    def test_run_pydeseq2_writes_results_and_plots(self, monkeypatch, tmp_path) -> None:
+        """
+        Test that run_pydeseq2 stores the DEG outputs using the PyDESeq2 wrapper.
+        """
+
+        counts = pd.DataFrame(
+            [[10, 11], [5, 6]],
+            index=["sample_1", "sample_2"],
+            columns=["gene_1", "gene_2"],
+        )
+        metadata = pd.DataFrame(
+            {"Condition": ["A", "B"]}, index=["sample_1", "sample_2"]
+        )
+
+        class DummyDDS:
+            def __init__(self, *args, **kwargs):
+                self.plot_calls = []
+
+            def deseq2(self):
+                return None
+
+            def plot_MA(self, save_path=None, **kwargs):
+                self.plot_calls.append(save_path)
+                Path(save_path).write_text("ma")
+
+        class DummyStats:
+            def __init__(self, dds, contrast, quiet=True):
+                self.results_df = pd.DataFrame(
+                    {
+                        "baseMean": [10.0],
+                        "log2FoldChange": [1.5],
+                        "lfcSE": [0.2],
+                        "stat": [2.0],
+                        "pvalue": [0.01],
+                        "padj": [0.02],
+                    },
+                    index=["gene_1"],
+                )
+
+            def summary(self):
+                return None
+
+            def plot_MA(self, save_path=None, **kwargs):
+                Path(save_path).write_text("ma")
+
+        monkeypatch.setattr("hide_deconv.statistic.pydeseq2.DeseqDataSet", DummyDDS)
+        monkeypatch.setattr("hide_deconv.statistic.pydeseq2.DeseqStats", DummyStats)
+
+        result = run_pydeseq2(
+            counts,
+            metadata,
+            condition_col="Condition",
+            tested_condition="B",
+            reference_condition="A",
+            covariates=None,
+            out_path=tmp_path / "bulk_deg",
+        )
+
+        assert result.loc["gene_1", "padj"] == 0.02
+        assert (tmp_path / "bulk_deg_results.csv").exists()
+        assert (tmp_path / "bulk_deg_ma.png").exists()
+        assert (tmp_path / "bulk_deg_volcano.png").exists()
