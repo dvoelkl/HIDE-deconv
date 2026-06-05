@@ -58,20 +58,25 @@ HIDE-Deconv also provides an interface to test for statistical differences in th
 
 To access this feature, you can run the command `hide-deconv analyze diff -p <PathToProject>`. The results will be stored in the corresponding results folder.
 
-### 4.3 Survival Analysis and Cox Regression
+### 4.3 Visualize differences between two cohorts
+For two cohorts, HIDE-deconv is able to run a Mann-Whitney-U test on all cell type layers and visualize them afterwards as a hierarchical heatmap. 
+
+The feature can be invoked by `hide-deconv analyze hdiff -p <PathToProject>`
+
+### 4.4 Survival Analysis and Cox Regression
 To investigate the impact of specific cell types on patient survival, HIDE-Deconv offers a survival analysis command. Before executing this command, it’s crucial to ensure that both the censoring time and the time to event are included in a single column in the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event. Additionally, the command allows for the inclusion of various covariates in the Cox Model. For cell types that significantly influence patient survival, a Kaplan Meier Curve is automatically generated. The user must first specify whether the patients should be divided into samples based on the mean, tertiary, or quartile cell type expression. Furthermore, p-values are corrected for multiple testing, and the resulting tables and plots are saved in the corresponding results folder.
 
 To execute the command, use the following syntax: `hide-deconv analyze survival -p <PathToProject>`
 
-### 4.4 Identification of compositional clusters
+### 4.5 Identification of compositional clusters
 HIDE-Deconv provides a command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded.
 
 To run the command, use the following syntax: `hide-deconv analyze cluster -p <PathToProject>`
 
-### 4.5 Partial least squares discriminant analysis
+### 4.6 Partial least squares discriminant analysis
 A common alternative to PCA and UMAP is PLS-DA, which is also included in HIDE-Deconv. The command `hide-deconv analyze plsda -p <PathToProject>` will perform a PLS-DA (to be more specific a PLS2-DA) and save the score, vip and loading plot.
 
-### 4.6 Benchmarking against known compositions
+### 4.7 Benchmarking against known compositions
 If you have ground truth cell proportions, HIDE-Deconv offers a command that calculates various benchmarking metrics, such as correlation coefficients or RMSE estimates. The ground truth data must be provided as a CSV table, with column names representing sample names and row names representing cell types. It’s important to note that all models produce proportions, which naturally sum to 1. The resulting benchmark results are stored as both a table and a plot in the corresponding results directory. Ensure that the cell type names used in the ground truth data match those used in the deconvolution process.
 
 To invoke the command, use the following syntax: `hide-deconv analyze benchmark -p <PathToProject>`.

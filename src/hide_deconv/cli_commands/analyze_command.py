@@ -13,6 +13,7 @@ from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import PathValidator
 
+from ..config import hidedeconv_config
 from ..constants import MSG_SUCCESS, MSG_FAILURE
 from ..utils import (
     get_deconvolution_results,
@@ -29,11 +30,174 @@ from ..statistic import (
     run_clustering,
 )
 from ..statistic import run_plsda
-from ..visualization import plot_eval, plot_pca, plot_umap
+from ..visualization import plot_eval, plot_pca, plot_umap, plot_hier_heat
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 console = Console()
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_hdiff_plot(hidedeconv_path: Path) -> int:
+    """
+    Create a hierarchical difference heatmap for two cohorts.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path, where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+
+    console.print("[bold blue]Hierarchical Difference Heatmap[/bold blue]")
+
+    available_projects = get_deconvolution_results(hidedeconv_path)
+
+    if len(available_projects) == 0:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        return MSG_FAILURE
+
+    selected_project = inquirer.select(
+        message="Select result folder:",
+        choices=available_projects,
+        default=available_projects[0],
+        mandatory=True,
+    ).execute()
+
+    try:
+        hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
+
+        samplesheet_path = inquirer.filepath(
+            message="Select sample sheet:",
+            default=str(hidedeconv_path.expanduser()),
+            mandatory=True,
+            mandatory_message="A sample sheet (.csv) must be selected to continue analysis.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+
+        sample_sheet = pd.read_csv(samplesheet_path)
+        available_sample_cols = sample_sheet.columns.to_list()
+
+        sample_id_col = inquirer.select(
+            message="Select column that holds sample ids:",
+            choices=available_sample_cols,
+            default=available_sample_cols[0],
+            height=5,
+        ).execute()
+
+        bulk = pd.read_csv(
+            Path(hidedeconv_path) / "results" / selected_project / "C_sub.csv",
+            index_col=0,
+        )
+
+        if not sample_ids_valid(sample_sheet[sample_id_col], bulk.columns.to_list()):
+            console.print(
+                f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"
+            )
+            return MSG_FAILURE
+
+        available_sample_cols.remove(sample_id_col)
+
+        cohort_cols = []
+
+        for col in available_sample_cols:
+            n_unique = sample_sheet[col].dropna().nunique()
+
+            if n_unique == 2:
+                cohort_cols.append(
+                    Choice(value=col, name=f"{col} [Unique Cohorts: {n_unique}]")
+                )
+
+        if len(cohort_cols) == 0:
+            console.print(
+                "[red]No sample sheet column was found with exactly two cohorts.[/red]"
+            )
+            return MSG_FAILURE
+
+        cohort_col = inquirer.select(
+            message="Select column that will be used to split in cohorts:",
+            choices=cohort_cols,
+            height=5,
+        ).execute()
+
+        _ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
+        results_dir = Path(hidedeconv_path) / "results" / selected_project / "hdiff"
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        layer_names = ["sub"] + list(hconf.higher_ct_cols)
+
+        projection_matrices = [
+            pd.read_csv(Path(hidedeconv_path) / "data" / "A_sub.csv", index_col=0)
+        ]
+
+        for layer_name in layer_names[1:]:
+            projection_matrices.append(
+                pd.read_csv(
+                    Path(hidedeconv_path) / "data" / f"A_{layer_name}.csv",
+                    index_col=0,
+                )
+            )
+
+        mwu_results = []
+        cohort_tag = str(cohort_col).replace(" ", "_")
+
+        with console.status(
+            "[bold blue]Running Mann-Whitney-U tests...[/bold blue]",
+            spinner="dots",
+        ):
+            for layer_name in layer_names:
+                bulk = pd.read_csv(
+                    Path(hidedeconv_path)
+                    / "results"
+                    / selected_project
+                    / f"C_{layer_name}.csv",
+                    index_col=0,
+                )
+
+                mwu_res = run_mann_whitney_u(
+                    bulk, sample_sheet, sample_id_col, cohort_col
+                )
+                mwu_res.to_csv(results_dir / f"mwu_{layer_name}_{cohort_tag}.csv")
+                mwu_results.append(mwu_res)
+
+        mean_columns = [
+            col for col in mwu_results[0].columns if col.startswith("mean[")
+        ]
+
+        cohort_1_name = mean_columns[0][5:-1]
+        cohort_2_name = mean_columns[1][5:-1]
+
+        plot_hier_heat(
+            mwu_results[0],
+            mwu_results[1:],
+            layer_names,
+            projection_matrices,
+            cohort_1_name,
+            cohort_2_name,
+            results_dir / f"hdiff_{cohort_tag}.png",
+        )
+
+        console.print(
+            f"[green]Saved hierarchical difference heatmap in {results_dir}[/green]"
+        )
+    except Exception:
+        console.print_exception()
+        console.print("[red]Cannot open sample sheet or project files.[/red]")
+        console.print(
+            "[dim]Please provide a valid sample sheet and deconvolution results.[/dim]"
+        )
+        return MSG_FAILURE
+
+    return MSG_SUCCESS
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

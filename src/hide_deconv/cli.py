@@ -538,6 +538,31 @@ def cli_analyze_diff(hidedeconv_path: Path) -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_analyze.command("hdiff")
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_hdiff(hidedeconv_path: Path) -> None:
+    """
+    Create a hierarchical difference heatmap for two cohorts.
+    """
+    from .cli_commands import create_hdiff_plot
+
+    create_hdiff_plot(hidedeconv_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli_analyze.command("benchmark")
 @click.option(
     "--path",

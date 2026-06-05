@@ -2,6 +2,7 @@ from .loss import plot_loss
 from .compositions import plot_eval, plot_pca, plot_umap
 from .anndata import plot_anndata_umap
 from .survival import plot_kaplan_meier, plot_cox_forest
+from .heatmaps import plot_hier_heat
 from .plsda import (
     plot_plsda_loading,
     plot_plsda_score,
@@ -23,4 +24,5 @@ __all__ = [
     "plot_plsda_vip",
     "plot_plsda_biplot",
     "plot_volcano",
+    "plot_hier_heat",
 ]

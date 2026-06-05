@@ -7,6 +7,7 @@ Tests for analyze module
 import pandas as pd
 
 from hide_deconv.cli_commands import analyze_command
+from hide_deconv.config import hidedeconv_config
 from hide_deconv.constants import MSG_FAILURE, MSG_SUCCESS
 
 
@@ -52,7 +53,20 @@ def create_mock_project_root(tmp_path):
     """
 
     hidedeconv_path = tmp_path / "project"
+    (hidedeconv_path / "data").mkdir(parents=True)
     (hidedeconv_path / "results" / "proj").mkdir(parents=True)
+
+    hconf = hidedeconv_config()
+    hconf.higher_ct_cols = ["layer_1"]
+    hconf.save(str(hidedeconv_path / "config.json"))
+
+    pd.DataFrame([[1]], index=["ct_a"], columns=["ct_a"]).to_csv(
+        hidedeconv_path / "data" / "A_sub.csv"
+    )
+    pd.DataFrame([[1]], index=["layer_1"], columns=["ct_a"]).to_csv(
+        hidedeconv_path / "data" / "A_layer_1.csv"
+    )
+
     return hidedeconv_path
 
 
@@ -157,6 +171,116 @@ class TestAnalyzeDifferences:
 
         assert result == MSG_SUCCESS
         assert expected_output.exists()
+
+    def test_create_hdiff_plot_runs_mwu_and_saves_plot(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that create_hdiff_plot runs MWU for all layers and writes output.
+        """
+
+        hidedeconv_path = create_mock_project_root(tmp_path)
+
+        sample_sheet = pd.DataFrame(
+            {
+                "SampleID": ["sample_1", "sample_2"],
+                "Cohort": ["A", "B"],
+            }
+        )
+        sample_sheet_path = hidedeconv_path / "sample_sheet.csv"
+        sample_sheet.to_csv(sample_sheet_path, index=False)
+
+        pd.DataFrame(
+            [[0.2, 0.8]],
+            index=["ct_a"],
+            columns=["sample_1", "sample_2"],
+        ).to_csv(hidedeconv_path / "results" / "proj" / "C_sub.csv")
+
+        pd.DataFrame(
+            [[0.4, 0.6]],
+            index=["layer_1"],
+            columns=["sample_1", "sample_2"],
+        ).to_csv(hidedeconv_path / "results" / "proj" / "C_layer_1.csv")
+
+        mwu_results = [
+            pd.DataFrame(
+                {
+                    "mean[A]": [0.2],
+                    "std[A]": [0.0],
+                    "mean[B]": [0.8],
+                    "std[B]": [0.0],
+                    "p": [0.01],
+                    "p_adj": [0.02],
+                },
+                index=["ct_a"],
+            ),
+            pd.DataFrame(
+                {
+                    "mean[A]": [0.4],
+                    "std[A]": [0.0],
+                    "mean[B]": [0.6],
+                    "std[B]": [0.0],
+                    "p": [0.03],
+                    "p_adj": [0.04],
+                },
+                index=["layer_1"],
+            ),
+        ]
+
+        captured = {}
+
+        def capture_plot_hier_heat(
+            mwu_sub,
+            mwu_higher,
+            layer_names,
+            A_matrix,
+            cohort_1_name,
+            cohort_2_name,
+            out_path,
+        ):
+            captured["mwu_sub"] = mwu_sub
+            captured["mwu_higher"] = mwu_higher
+            captured["layer_names"] = layer_names
+            captured["A_matrix"] = A_matrix
+            captured["cohort_1_name"] = cohort_1_name
+            captured["cohort_2_name"] = cohort_2_name
+            captured["out_path"] = out_path
+
+        monkeypatch.setattr(
+            analyze_command,
+            "get_deconvolution_results",
+            lambda path: ["proj"],
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "select",
+            select_sequence(["proj", "SampleID", "Cohort"]),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "filepath",
+            lambda **kwargs: prompt(str(sample_sheet_path)),
+        )
+        monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
+        monkeypatch.setattr(
+            analyze_command,
+            "run_mann_whitney_u",
+            lambda *args: mwu_results.pop(0),
+        )
+        monkeypatch.setattr(analyze_command, "plot_hier_heat", capture_plot_hier_heat)
+
+        result = analyze_command.create_hdiff_plot(hidedeconv_path)
+
+        expected_output = (
+            hidedeconv_path / "results" / "proj" / "hdiff" / "hdiff_Cohort.png"
+        )
+
+        assert result == MSG_SUCCESS
+        assert expected_output.parent.exists()
+        assert captured["layer_names"] == ["sub", "layer_1"]
+        assert captured["cohort_1_name"] == "A"
+        assert captured["cohort_2_name"] == "B"
+        assert captured["out_path"] == expected_output
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

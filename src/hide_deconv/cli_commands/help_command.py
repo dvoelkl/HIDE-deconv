@@ -58,6 +58,7 @@ def show_help():
         "\n"
         "[bold]hide-deconv analyze benchmark[/bold] Benchmarkes results vs known ground truth\n"
         "[bold]hide-deconv analyze diff[/bold]      Analyze differences between cohorts\n"
+        "[bold]hide-deconv analyze hdiff[/bold]     Analyze differences between two cohorts and visualize them over all cell type layers\n"
         "[bold]hide-deconv analyze pca[/bold]       Plots compositions as PCA plot\n"
         "[bold]hide-deconv analyze umap[/bold]      Plots compositions as UMAP plot\n"
         "[bold]hide-deconv analyze plsda[/bold]     Plots compositions as PLS-DA plot\n"

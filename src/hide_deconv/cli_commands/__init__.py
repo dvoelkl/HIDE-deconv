@@ -9,6 +9,7 @@ from .cohort_command import combine_cohorts
 from .analyze_command import (
     analyze_differences,
     benchmark_result,
+    create_hdiff_plot,
     create_pca_plot,
     create_plsda_plot,
     survival_analysis,
@@ -48,6 +49,7 @@ __all__ = [
     "combine_cohorts",
     "analyze_differences",
     "benchmark_result",
+    "create_hdiff_plot",
     "create_pca_plot",
     "create_plsda_plot",
     "download_single_cells",
