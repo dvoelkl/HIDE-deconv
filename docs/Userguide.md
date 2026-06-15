@@ -15,6 +15,8 @@ To activate the virtual environment, use `source .venv/bin/activate`.
 
 To install the package, use `pip install hide-deconv`.
 
+For installation on a Windows Computer, these commands can differ.
+
 ### 2.2 Necessary Input Data
 To perform deconvolution on bulk RNA-seq data, you need an annotated single-cell dataset, ideally from the same disease or phenotype you intend to deconvolve. The single-cell data should be an AnnData (.h5ad) file. We recommend providing the raw, unnormalized count data.
 
@@ -64,7 +66,7 @@ For two cohorts, HIDE-deconv is able to run a Mann-Whitney-U test on all cell ty
 The feature can be invoked by `hide-deconv analyze hdiff -p <PathToProject>`
 
 ### 4.4 Survival Analysis and Cox Regression
-To investigate the impact of specific cell types on patient survival, HIDE-Deconv offers a survival analysis command. Before executing this command, it’s crucial to ensure that both the censoring time and the time to event are included in a single column in the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event. Additionally, the command allows for the inclusion of various covariates in the Cox Model. For cell types that significantly influence patient survival, a Kaplan Meier Curve is automatically generated. The user must first specify whether the patients should be divided into samples based on the mean, tertiary, or quartile cell type expression. Furthermore, p-values are corrected for multiple testing, and the resulting tables and plots are saved in the corresponding results folder.
+To investigate the impact of specific cell types on patient survival, HIDE-Deconv offers a survival analysis command. Before executing this command, it’s crucial to ensure that both the censoring time and the time to event are included in a single column in the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event. Additionally, the command allows for the inclusion of various covariates (press space to select the covariates in the list, press enter to continue) in the Cox Model. For cell types that significantly influence patient survival, a Kaplan Meier Curve is automatically generated. The user must first specify whether the patients should be divided into samples based on the mean, tertiary, or quartile cell type expression. Furthermore, p-values are corrected for multiple testing, and the resulting tables and plots are saved in the corresponding results folder.
 
 To execute the command, use the following syntax: `hide-deconv analyze survival -p <PathToProject>`
 
@@ -95,3 +97,47 @@ Single cells downloaded from large repositories often exhibit multiple phenotype
 To execute the command, use the following syntax: `hide-deconv anndata subset`
 
 ### 5.3 Add higher cell type Annotations
+HIDE-Deconv enables users to run the deconvolution on multiple cell type hierarchies. To add these hierarchies, each single cell in the AnnData file needs annotations on all cell type levels. This can either be achieved by directly annotating the single cells on multiple resolutions in e.g. Seurat. However, it features a command, that allows you to easily group cell types together.
+
+To achieve this, first run the command `hide-deconv anndata add-annotation` and select the AnnData single cell file and the observation containing your finest grained cell type annotations. HIDE-deconv will then create a template csv table at the location of the AnnData file. Leave the terminal window open and separately open the created template file in an editor. 
+
+The file will look like this
+
+| celltype_sub | celltype_sub |
+| ------------ | ------------ |
+| CD4-T cell   | CD4-T cell   |
+| CD8-T cell   | CD8-T cell   |
+| B cell       | B cell       |
+
+The left column contains the cell type annotations at the finest level. Do not edit anything in this column, as HIDE-deconv uses this as a reference to. The right column can be edited to contain the hierarchy you want.
+
+| celltype_sub | celltype_minor |
+| ------------ | -------------- |
+| CD4-T cell   | T cell         |
+| CD8-T cell   | T cell         |
+| B cell       | B cell         |
+
+If you want to add more levels, just add them to the file.
+
+| celltype_sub | celltype_minor | celltype_major |
+| ------------ | -------------- | -------------- |
+| CD4-T cell   | T cell         | Lymphoid       |
+| CD8-T cell   | T cell         | Lymphoid       |
+| B cell       | B cell         | Lymphoid       |
+
+Save the file and switch back to the terminal window. After entering `y`, HIDE-deconv will load the edited hierarchy, create the corresponding observations in the AnnData file and save it at the same location as the original AnnData file.
+
+### 5.4 Visualization of single cells
+HIDE-Deconv provides a command line interface to scanpy's UMAP plot function. To execute this, type in the command `hide-deconv anndata umap`, select the AnnData file and the observation, that will be used for coloring the single cells. The plot will be stored at the same location as the AnnData file.
+
+### 5.5 Preprocessing of single cells
+Preprocessing single cell data often improves deconvolution results. Therefor HIDE-deconv offers a separate pipeline, that applies our standard preprocessing to a given AnnData file. It is important to note, that this pipeline was set up for raw count human single cell data and only works with Gene Names. The following steps are performed:
+1. Removal of celltypes with not enough single cells (Standard Threshold: 100 cells of one type)
+2. Removal of cells with low gene counts (Standard Threshold: 100 counts per cell)
+3. Removal of cells with extremely high gene counts (Standard Threshold: 5000 counts per cell)
+4. Removal of cells with high amounts of mitochondrial gene expression (Standard Threshold: cells with more than 5 percent mitochondrial gene expression)
+5. Removal of cells with high haemoglobine gene expression (Standard Threshold: cells with more than 5 percent haemoglobine gene expression)
+6. Removal of cells with high MALAT1 gene expression (Standard Threshold: MALAT1 expression over 99 percentile)
+7. Removal of genes that are only expressed in a few cells (Standard Threshold: gene must be expressed in at least 10 cells)
+
+Each of the thresholds can be adjusted before executing the preprocessing pipeline. Keep in mind, that these thresholds should be chosen depending on the specific dataset and
