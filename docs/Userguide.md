@@ -167,4 +167,19 @@ To invoke the command, run `hide-deconv bulk deg`
 
 ## 7. Sample Sheet related commands
 
-### 7.1 Merge cohorts
+### 7.1 Merging cohorts
+In case the sample metainformation is to fine grained, or you want to combine certain cohorts in one, HIDE-deconv provides a command, that enables merging them directly. Depending on the type of information you can either use `hide-deconv cohort combine` for categorical information or `hide-deconv cohort combine --numerical` for numerical data. 
+
+In both commands you first have to select the sample sheet and the column that should be merged. If it is categorical data you have to specify how many new cohorts should be assigned, name the column and name each cohort and select the merged values by pressing space. Accept the selection by pressing enter.
+For numerical data you can choose to either split the data by the mean or median value or by a fixed number. The merged columns will be labeled either as *high* or *low*.
+
+## 8. License
+HIDE-deconv is licensed under the MIT license. 
+
+## 9. Contributing, Bugs, Feature Requests
+If you found a bug or have specific feature requests, we encourage you to either contact us or read the [Contributing](../CONTRIBUTING.md) guide on GitHub.
+
+## 10. Contact
+For questions, support or scientific collaboration feel free to contact us per Email:
+- Dennis Voelkl: dennis.k.voelkl(at)uib.no
+- Franziska Goertler: Franziska.Gortler(at)uib.no
