@@ -121,8 +121,7 @@ def plot_hier_heat(
 
     for level_name, df in zip(level_names, level_dfs):
         ordered_index = sorted(
-            df.index,
-            key=lambda ct: (y_positions[level_name][ct], df.index.get_loc(ct))
+            df.index, key=lambda ct: (y_positions[level_name][ct], df.index.get_loc(ct))
         )
 
         ordered_level_dfs.append(df.loc[ordered_index])
@@ -197,7 +196,7 @@ def plot_hier_heat(
                     [y_parent, y_child],
                     color="lightgrey",
                     lw=1,
-                    zorder=1
+                    zorder=1,
                 )
 
     # Draw heatmaps
@@ -226,7 +225,7 @@ def plot_hier_heat(
                 facecolor=color_1,
                 edgecolor="white",
                 linewidth=0.5,
-                zorder=2
+                zorder=2,
             )
 
             rect2 = Rectangle(
@@ -236,7 +235,7 @@ def plot_hier_heat(
                 facecolor=color_2,
                 edgecolor="white",
                 linewidth=0.5,
-                zorder=2
+                zorder=2,
             )
 
             ax.add_patch(rect1)
@@ -260,7 +259,7 @@ def plot_hier_heat(
                     fontsize=8,
                     fontweight="bold",
                     c="r",
-                    zorder=3
+                    zorder=3,
                 )
 
                 ax.text(
@@ -272,7 +271,7 @@ def plot_hier_heat(
                     fontsize=8,
                     fontweight="bold",
                     c="r",
-                    zorder=3
+                    zorder=3,
                 )
 
     for level_name in level_names:
@@ -285,28 +284,18 @@ def plot_hier_heat(
             ha="center",
             va="bottom",
             fontsize=12,
-            fontweight="bold"
+            fontweight="bold",
         )
 
     for level_name in level_names:
         x0 = x_positions[level_name]
 
         ax.text(
-            x0 + 0.5,
-            bottom_label_y,
-            cohort_1_name,
-            ha="center",
-            va="top",
-            rotation=45
+            x0 + 0.5, bottom_label_y, cohort_1_name, ha="center", va="top", rotation=45
         )
 
         ax.text(
-            x0 + 1.5,
-            bottom_label_y,
-            cohort_2_name,
-            ha="center",
-            va="top",
-            rotation=45
+            x0 + 1.5, bottom_label_y, cohort_2_name, ha="center", va="top", rotation=45
         )
 
     left_level = level_names[0]
@@ -314,12 +303,7 @@ def plot_hier_heat(
     for ct in ordered_level_dfs[0].index:
         y = y_positions[left_level][ct]
         ax.text(
-            x_positions[left_level] - 0.2,
-            y,
-            ct,
-            ha="right",
-            va="center",
-            fontsize=9
+            x_positions[left_level] - 0.2, y, ct, ha="right", va="center", fontsize=9
         )
 
     right_level = layer_names[0]
@@ -327,12 +311,7 @@ def plot_hier_heat(
     for ct in ordered_level_dfs[-1].index:
         y = y_positions[right_level][ct]
         ax.text(
-            x_positions[right_level] + 2.2,
-            y,
-            ct,
-            ha="left",
-            va="center",
-            fontsize=9
+            x_positions[right_level] + 2.2, y, ct, ha="left", va="center", fontsize=9
         )
 
     sm = ScalarMappable(norm=norm, cmap=cmap)
@@ -353,7 +332,9 @@ def plot_hier_heat(
 
     ax.grid(False)
 
-    fig.text(0.5, 0.02, "* nominal p < 0.05 ** adjusted p < 0.05", ha="center", fontsize=10)
+    fig.text(
+        0.5, 0.02, "* nominal p < 0.05 ** adjusted p < 0.05", ha="center", fontsize=10
+    )
 
     plt.tight_layout(rect=(0, 0.05, 1, 1))
 

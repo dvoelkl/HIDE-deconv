@@ -91,7 +91,7 @@ def combine_cohorts(numerical: bool = False) -> int:
         else:
             n_groups = inquirer.number(
                 message="How many cohorts should be combined?",
-                min_allowed=2,
+                min_allowed=1,
                 max_allowed=len(sample_sheet[cohort_col].dropna().unique()),
                 default=2,
                 mandatory=True,
