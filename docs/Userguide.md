@@ -140,4 +140,31 @@ Preprocessing single cell data often improves deconvolution results. Therefor HI
 6. Removal of cells with high MALAT1 gene expression (Standard Threshold: MALAT1 expression over 99 percentile)
 7. Removal of genes that are only expressed in a few cells (Standard Threshold: gene must be expressed in at least 10 cells)
 
-Each of the thresholds can be adjusted before executing the preprocessing pipeline. Keep in mind, that these thresholds should be chosen depending on the specific dataset and
+Each of the thresholds can be adjusted before executing the preprocessing pipeline. Keep in mind, that these thresholds should be chosen depending on the specific dataset and can lead to worse results, if chosen incorrectly.
+
+To run the preprocessing pipeline, use the command `hide-deconv anndata preprocess`
+
+## 6. Bulk related commands
+HIDE-Deonv provides multiple commands to perform various operations on bulk RNA seq files without the need for writting code.
+
+### 6.1 Visualizing bulk data
+The package provides methods for visualizing the bulk RNA seq data as either UMAP or PCA plot. Additionally by providing a sample sheet, samples in the plots can be annotated by clinical metainformation.
+
+To invoke the command, type in `hide-deconv bulk <umap/pca>`
+
+### 6.2 Subsetting bulks
+In some cases you might want to exclude certain samples from the deconvolution. This can be the case, if the bulk data file for example contains measurements from multiple tissues. This can be done by using the `hide-deconv bulk subset` command. Here you need to first select the bulk data file to be subsetted and a sample sheet containing the cohort column, you want to use to subset. After selection of the cohort column, select the value you want to keep by pressing Space. To apply your selection, press Enter.
+
+### 6.3 Inspecting clusters in bulk data
+HIDE-Deconv provides a command that allows you to identify clusters of similar bulk samples. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded.
+
+To run the command, use the following syntax: `hide-deconv bulk cluster`
+
+### 6.4 Differential Gene Expression Analysis
+To further support analyses related to bulk deconvolution projects, HIDE-deconv implements an interface to the PyDeSeq2 implementation of DeSeq2.
+
+To invoke the command, run `hide-deconv bulk deg`
+
+## 7. Sample Sheet related commands
+
+### 7.1 Merge cohorts
