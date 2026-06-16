@@ -83,6 +83,10 @@ If you have ground truth cell proportions, HIDE-Deconv offers a command that cal
 
 To invoke the command, use the following syntax: `hide-deconv analyze benchmark -p <PathToProject>`.
 
+### 4.8 Visualizing relevant genes
+HIDE-Deconv also provides a command that visualizes the most relevant genes for deconvolution as a clustered heatmap. The command can be invoked by `hide-deconv analyze genes -p <PathToProject>`. After selecting the project, the cell type layer and the number of genes to display, the resulting markermap will be saved in the corresponding results folder.
+
+
 ## 5. Single Cell Related Commands
 HIDE-Deconv, which utilizes the AnnData file format for single-cell data, offers specific functions to enhance accessibility for non-programmers when working with this file type.
 

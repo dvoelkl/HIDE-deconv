@@ -717,6 +717,31 @@ def cli_analyze_cluster(hidedeconv_path: Path) -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_analyze.command("genes")
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_genes(hidedeconv_path: Path) -> None:
+    """
+    Plot genes relevant for deconvolution as heatmap.
+    """
+    from .cli_commands import gene_markerplot
+
+    gene_markerplot(hidedeconv_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli.command("download")
 def cli_download() -> None:
     """

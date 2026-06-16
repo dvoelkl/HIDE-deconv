@@ -21,16 +21,6 @@ from ..utils import (
     load_project_bulk,
     filter_sample_sheet,
 )
-from ..statistic import (
-    run_mann_whitney_u,
-    print_mwu_summary,
-    run_kruskal_wallis,
-    run_dunn,
-    print_dunn_summary,
-    run_clustering,
-)
-from ..statistic import run_plsda
-from ..visualization import plot_eval, plot_pca, plot_umap, plot_hier_heat
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -53,6 +43,8 @@ def create_hdiff_plot(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    from ..visualization import plot_hier_heat
+    from ..statistic import run_mann_whitney_u
 
     console.print("[bold blue]Hierarchical Difference Heatmap[/bold blue]")
 
@@ -220,6 +212,14 @@ def analyze_differences(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    from ..statistic import (
+        run_mann_whitney_u,
+        run_dunn,
+        run_kruskal_wallis,
+        print_mwu_summary,
+        print_dunn_summary,
+    )
+
     console.print("[bold blue]Composition Difference Analysis[/bold blue]")
 
     ret = MSG_SUCCESS
@@ -413,6 +413,8 @@ def benchmark_result(hidedeconv_path: Path) -> int:
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
 
     """
+    from ..visualization import plot_eval
+
     console.print("[bold blue]Benchmark Evaluation[/bold blue]")
     ret = MSG_SUCCESS
 
@@ -487,6 +489,8 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    from ..visualization import plot_pca
+
     console.print("[bold blue]Composition PCA Plotting[/bold blue]")
 
     ret = MSG_SUCCESS
@@ -601,6 +605,7 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    from ..visualization import plot_umap
 
     console.print("[bold blue]Composition UMAP Plotting[/bold blue]")
     ret = MSG_SUCCESS
@@ -704,6 +709,7 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
     """
     Create a PLS-DA plot of estimated compositions.
     """
+    from ..statistic import run_plsda
 
     console.print("[bold blue]Composition PLS-DA Plotting[/bold blue]")
 
@@ -1029,6 +1035,8 @@ def cell_type_clustering(hidedeconv_path: Path) -> int:
     int
         MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
     """
+    from ..visualization import plot_pca, plot_umap
+    from ..statistic import run_clustering
 
     console.print("[bold blue]Clustering[/bold blue]")
     ret = MSG_SUCCESS
@@ -1094,5 +1102,91 @@ def cell_type_clustering(hidedeconv_path: Path) -> int:
             f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
         )
         ret = MSG_FAILURE
+
+    return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def gene_markerplot(hidedeconv_path: Path) -> int:
+    """
+    Plot important genes as markermap.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+
+    from ..visualization import plot_genemap
+
+    console.print("[bold blue]Marker Gene Plotting[/bold blue]")
+    ret = MSG_SUCCESS
+
+    # Theoretically only training has to be done, but more convenient to reuse already existing methods
+    available_projects = get_deconvolution_results(hidedeconv_path)
+
+    if len(available_projects) > 0:
+        try:
+            selected_project, selected_ct_layer, bulk = load_project_bulk(
+                hidedeconv_path
+            )
+
+            hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
+            n_genes = hconf.n_genes
+
+            n_genes_to_display = inquirer.number(
+                message="Choose number of genes to be displayed.",
+                min_allowed=1,
+                max_allowed=n_genes,
+                default=50,
+                mandatory=True,
+                float_allowed=False,
+                mandatory_message="A number greater than 1 must be entered.",
+            ).execute()
+
+            # Load selected gene weights and reference profile
+            gene_weights = pd.read_csv(
+                str(hidedeconv_path)
+                + "/processed/"
+                + "/g_"
+                + selected_ct_layer
+                + ".csv",
+                index_col=0,
+            )
+
+            X = pd.read_csv(
+                str(hidedeconv_path) + "/data/" + "/X_" + selected_ct_layer + ".csv",
+                index_col=0,
+            )
+
+            relevant_genes_ordered = gene_weights.mul(
+                X.var(axis=1), axis=0
+            ).sort_values(by="0", ascending=False)
+
+            outpath = Path(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+                + "/markermap.png"
+            )
+
+            plot_genemap(
+                X,
+                relevant_genes_ordered.index[0 : int(n_genes_to_display)],
+                f"Most relevant genes of {selected_ct_layer} layer",
+                outpath,
+            )
+
+        except Exception:
+            ret = MSG_FAILURE
 
     return ret

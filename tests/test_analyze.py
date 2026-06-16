@@ -9,6 +9,8 @@ import pandas as pd
 from hide_deconv.cli_commands import analyze_command
 from hide_deconv.config import hidedeconv_config
 from hide_deconv.constants import MSG_FAILURE, MSG_SUCCESS
+import hide_deconv.statistic as statistic_module
+import hide_deconv.visualization as visualization_module
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,11 +156,11 @@ class TestAnalyzeDifferences:
         )
 
         monkeypatch.setattr(
-            analyze_command, "run_mann_whitney_u", lambda *args: mwu_result
+            statistic_module, "run_mann_whitney_u", lambda *args: mwu_result
         )
-        monkeypatch.setattr(analyze_command, "print_mwu_summary", lambda result: None)
+        monkeypatch.setattr(statistic_module, "print_mwu_summary", lambda result: None)
         monkeypatch.setattr(
-            analyze_command,
+            statistic_module,
             "run_kruskal_wallis",
             lambda *args: (_ for _ in ()).throw(AssertionError("Unexpected call")),
         )
@@ -263,11 +265,13 @@ class TestAnalyzeDifferences:
         )
         monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
         monkeypatch.setattr(
-            analyze_command,
+            statistic_module,
             "run_mann_whitney_u",
             lambda *args: mwu_results.pop(0),
         )
-        monkeypatch.setattr(analyze_command, "plot_hier_heat", capture_plot_hier_heat)
+        monkeypatch.setattr(
+            visualization_module, "plot_hier_heat", capture_plot_hier_heat
+        )
 
         result = analyze_command.create_hdiff_plot(hidedeconv_path)
 
@@ -328,7 +332,7 @@ class TestBenchmarkResult:
             lambda **kwargs: prompt(str(groundtruth_path)),
         )
         monkeypatch.setattr(
-            analyze_command,
+            visualization_module,
             "plot_eval",
             lambda C_true, bulk, out_path: benchmark_scores,
         )
@@ -380,7 +384,7 @@ class TestBenchmarkResult:
         def raise_key_error(*args, **kwargs):
             raise KeyError("mismatching labels")
 
-        monkeypatch.setattr(analyze_command, "plot_eval", raise_key_error)
+        monkeypatch.setattr(visualization_module, "plot_eval", raise_key_error)
 
         result = analyze_command.benchmark_result(hidedeconv_path)
 
@@ -446,7 +450,7 @@ class TestPcaAndUmap:
             select_sequence(["SampleID", "Cohort"]),
         )
         monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
-        monkeypatch.setattr(analyze_command, "plot_pca", capture_plot_pca)
+        monkeypatch.setattr(visualization_module, "plot_pca", capture_plot_pca)
 
         result = analyze_command.create_pca_plot(hidedeconv_path)
 
@@ -505,7 +509,7 @@ class TestPcaAndUmap:
             select_sequence(["SampleID", "Cohort"]),
         )
         monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
-        monkeypatch.setattr(analyze_command, "plot_umap", capture_plot_umap)
+        monkeypatch.setattr(visualization_module, "plot_umap", capture_plot_umap)
 
         result = analyze_command.create_umap_plot(hidedeconv_path)
 
@@ -606,9 +610,6 @@ class TestSurvivalAnalysis:
             lambda **kwargs: prompt(False),
         )
         monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
-
-        import hide_deconv.statistic as statistic_module
-        import hide_deconv.visualization as visualization_module
 
         monkeypatch.setattr(
             statistic_module,

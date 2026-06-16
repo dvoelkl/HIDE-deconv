@@ -15,6 +15,7 @@ from .analyze_command import (
     survival_analysis,
     create_umap_plot,
     cell_type_clustering,
+    gene_markerplot,
 )
 from .download_command import download_single_cells
 from .anndata_command import (
@@ -67,4 +68,5 @@ __all__ = [
     "cell_type_clustering",
     "create_bulk_clustering",
     "create_bulk_deg",
+    "gene_markerplot",
 ]

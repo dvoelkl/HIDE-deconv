@@ -15,13 +15,15 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 
+from scipy.cluster.hierarchy import linkage
+
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 def order_subtypes(mwu_sub: pd.DataFrame, A_matrix: list[pd.DataFrame]) -> list[str]:
     """
-    Derive a stable leaf order from the hierarchy instead of sorting alphabetically.
+    Order subtypes according to hierarchy.
     """
 
     if len(A_matrix) <= 1:
@@ -63,7 +65,7 @@ def plot_hier_heat(
     cohort_1_name: str,
     cohort_2_name: str,
     out_path: Path,
-):
+) -> None:
     """
     Plots Man Whitney U results as hierarchical heatmap connected by the relationship between the celltypes.
 
@@ -347,3 +349,51 @@ def plot_hier_heat(
     )
 
     plt.close()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_genemap(X: pd.DataFrame, gene_series, title: str, out_path: Path) -> None:
+    """
+    Plot subset of genes of reference profile as heatmap and cluster them.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        Reference profile
+    gene_series : list
+        List of genes to plot
+    title : str
+        Title of plot
+    out_path : str
+        Path, where plot will be saved
+    """
+
+    # Normalize genes, such that sum over each gene = 1
+    X_standardized = (X.T / X.T.sum(axis=0)).T.loc[gene_series]
+    n_celltypes = X_standardized.shape[1]
+    n_genes = X_standardized.shape[0]
+
+    row_linkage = linkage(X_standardized.T, method="single")
+    col_linkage = linkage(X_standardized, method="single")
+
+    clustermap = sns.clustermap(
+        X_standardized.T,
+        row_cluster=True,
+        col_cluster=True,
+        figsize=(max(25, n_genes * 0.45), max(6, n_celltypes * 0.35)),
+        row_linkage=row_linkage,
+        col_linkage=col_linkage,
+        # cmap="coolwarm",
+        # linewidths=0.8,
+        cbar_kws={"label": "Expression Level"},
+        xticklabels=True,
+        yticklabels=True,
+        # cbar_pos=(0.05, 0.8, 0.03, 0.15),
+    )
+    clustermap.ax_heatmap.tick_params(axis="x", labelrotation=90, labelsize=8)
+    clustermap.ax_heatmap.tick_params(axis="y", labelsize=8)
+    plt.title(f"{title}")
+
+    clustermap.savefig(out_path)
