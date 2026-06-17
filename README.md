@@ -62,6 +62,11 @@ This displays a short introduction to the command line interface and gives an ov
 
 ---
 
+### Tutorials
+[![Basic Usage Tutorial](https://img.youtube.com/vi/bB4dcJt_WCw/0.jpg)](https://www.youtube.com/watch?v=bB4dcJt_WCw)
+
+---
+
 ## API Example
 
 ```python
