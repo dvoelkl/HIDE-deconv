@@ -87,7 +87,7 @@ To invoke the command, use the following syntax: `hide-deconv analyze benchmark 
 HIDE-Deconv also provides a command that visualizes the most relevant genes for deconvolution as a clustered heatmap. The command can be invoked by `hide-deconv analyze genes -p <PathToProject>`. After selecting the project, the cell type layer and the number of genes to display, the resulting markermap will be saved in the corresponding results folder.
 
 ### 4.9 K-means clustering of compositions
-HIDE-Deconv also provides a command that clusters the selected deconvolution layer with k-means and saves the cluster assignment as CSV together with a PCA plot. Optionally a sample sheet can be selected so that points are colored by a cohorts.
+HIDE-Deconv also provides a command that clusters the cellular compositions with k-means and saves the cluster assignment and a PCA plot. Optionally a sample sheet can be selected so that points are colored by cohorts.
 
 To run the command, use the following syntax: `hide-deconv analyze kmean -p <PathToProject>`.
 

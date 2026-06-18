@@ -565,6 +565,9 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
                 )
 
+                # Subset bulk to patients with corresponding metadata
+                bulk = bulk[ids]
+
                 plot_pca(
                     bulk,
                     out_path=str(hidedeconv_path)
@@ -681,6 +684,9 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
                 )
 
+                # Subset bulk to patients with corresponding metadata
+                bulk = bulk[ids]
+
                 plot_umap(
                     bulk,
                     out_path=str(hidedeconv_path)
@@ -758,7 +764,10 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
                     height=5,
                 ).execute()
 
-                _, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+                ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+
+                # Filter bulks
+                bulk = bulk[ids]
 
                 out_dir = (
                     Path(hidedeconv_path)
@@ -883,6 +892,9 @@ def create_kmean_plot(hidedeconv_path: Path) -> int:
                         .to_list()
                     )
                     group_name = cohort_col
+
+                    # Filter bulks to only hold samples with metainfo
+                    bulk = bulk[ids]
                 else:
                     console.print(
                         "[red]No sample sheet column was found with more than one cohort.[/red]"
