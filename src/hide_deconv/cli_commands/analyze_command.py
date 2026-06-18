@@ -789,6 +789,135 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+def create_kmean_plot(hidedeconv_path: Path) -> int:
+    """
+    Create a k-means PCA plot of deconvolved compositions.
+    """
+
+    from ..visualization import plot_kmeans_pca
+
+    console.print("[bold blue]K-means PCA Plotting[/bold blue]")
+
+    ret = MSG_SUCCESS
+
+    available_projects = get_deconvolution_results(hidedeconv_path)
+
+    if len(available_projects) > 0:
+        selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+
+        results_dir = (
+            Path(hidedeconv_path) / "results" / selected_project / selected_ct_layer
+        )
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        n_clusters = inquirer.number(
+            message="Enter number of clusters:",
+            min_allowed=2,
+            max_allowed=len(bulk.columns),
+            default=min(3, len(bulk.columns)),
+            mandatory=True,
+            float_allowed=False,
+            mandatory_message="A number greater than 1 must be entered.",
+        ).execute()
+
+        use_samplesheet = inquirer.confirm(
+            message="Select additional sample sheet for cohort annotation?",
+            default=False,
+        ).execute()
+
+        labels = []
+        group_name = "Cluster"
+
+        try:
+            if use_samplesheet:
+                samplesheet_path = inquirer.filepath(
+                    message="Select sample sheet:",
+                    default=str(hidedeconv_path.expanduser()),
+                    mandatory=True,
+                    mandatory_message="A sample sheet (.csv) must be selected.",
+                    validate=PathValidator(
+                        is_file=True, message="Input is not a file."
+                    ),
+                ).execute()
+
+                sample_sheet = pd.read_csv(samplesheet_path)
+                available_sample_cols = sample_sheet.columns.to_list()
+
+                sample_id_col = inquirer.select(
+                    message="Select column that holds sample ids:",
+                    choices=available_sample_cols,
+                    default=available_sample_cols[0],
+                    height=5,
+                ).execute()
+
+                if not sample_ids_valid(
+                    sample_sheet[sample_id_col], bulk.columns.to_list()
+                ):
+                    console.print(
+                        f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"
+                    )
+                    return MSG_FAILURE
+
+                available_sample_cols.remove(sample_id_col)
+                cohort_cols = [
+                    Choice(
+                        value=col,
+                        name=f"{col} [Unique Cohorts: {len(sample_sheet[col].dropna().unique())}]",
+                    )
+                    for col in available_sample_cols
+                    if sample_sheet[col].dropna().nunique() > 1
+                ]
+
+                if len(cohort_cols) > 0:
+                    cohort_col = inquirer.select(
+                        message="Select column that will be used to split in cohorts:",
+                        choices=cohort_cols,
+                        height=5,
+                    ).execute()
+
+                    ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
+                    cohorts = sample_sheet[cohort_col]
+                    labels = (
+                        pd.Series(cohorts.values, index=ids)
+                        .reindex(bulk.columns)
+                        .to_list()
+                    )
+                    group_name = cohort_col
+                else:
+                    console.print(
+                        "[red]No sample sheet column was found with more than one cohort.[/red]"
+                    )
+
+            cluster_ass = plot_kmeans_pca(
+                bulk,
+                out_path=str(results_dir / f"kmean_PCA_{selected_ct_layer}.png"),
+                n_clusters=int(n_clusters),
+                labeling=labels,
+                group_name=group_name,
+                title_suffix="",
+                biplot=True,
+            )
+
+            cluster_ass.to_csv(results_dir / "kmean_cluster.csv", index=False)
+
+        except Exception:
+            console.print_exception()
+            console.print("[red]Cannot open sample sheet.[/red]")
+            console.print("[dim]Please provide a valid sample sheet.[/dim]")
+            return MSG_FAILURE
+
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
+
+    return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 def survival_analysis(hidedeconv_path: Path) -> int:
     """
     Perform survival analysis using Cox Proportional Hazards regression.

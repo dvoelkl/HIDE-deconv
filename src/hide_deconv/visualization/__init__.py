@@ -1,5 +1,11 @@
 from .loss import plot_loss
-from .compositions import plot_eval, plot_pca, plot_umap
+from .compositions import (
+    plot_eval,
+    plot_pca,
+    plot_umap,
+    plot_kmeans_pca,
+    plot_kmeans_pca_biplot,
+)
 from .anndata import plot_anndata_umap
 from .survival import plot_kaplan_meier, plot_cox_forest
 from .heatmaps import plot_hier_heat, plot_genemap
@@ -17,6 +23,8 @@ __all__ = [
     "plot_umap",
     "plot_anndata_umap",
     "plot_pca",
+    "plot_kmeans_pca",
+    "plot_kmeans_pca_biplot",
     "plot_kaplan_meier",
     "plot_cox_forest",
     "plot_plsda_loading",

@@ -5,6 +5,7 @@ Tests for analyze module
 """
 
 import pandas as pd
+from pathlib import Path
 
 from hide_deconv.cli_commands import analyze_command
 from hide_deconv.config import hidedeconv_config
@@ -407,8 +408,8 @@ class TestPcaAndUmap:
         hidedeconv_path = create_mock_project_root(tmp_path)
 
         bulk = pd.DataFrame(
-            [[0.3, 0.7]],
-            index=["ct_a"],
+            [[0.3, 0.7], [0.7, 0.3]],
+            index=["ct_a", "ct_b"],
             columns=["sample_2", "sample_1"],
         )
         sample_sheet = pd.DataFrame(
@@ -470,8 +471,8 @@ class TestPcaAndUmap:
         hidedeconv_path = create_mock_project_root(tmp_path)
 
         bulk = pd.DataFrame(
-            [[0.3, 0.7]],
-            index=["ct_a"],
+            [[0.3, 0.7], [0.7, 0.3]],
+            index=["ct_a", "ct_b"],
             columns=["sample_2", "sample_1"],
         )
         sample_sheet = pd.DataFrame(
@@ -517,6 +518,97 @@ class TestPcaAndUmap:
         assert captured["labeling"] == ["B", "A"]
         assert captured["group_name"] == "Cohort"
         assert captured["out_path"].endswith("/results/proj/sub/umap_sub_Cohort.png")
+
+    def test_create_kmean_plot_saves_assignments_and_uses_labels(
+        self, monkeypatch, tmp_path
+    ) -> None:
+        """
+        Test that create_kmean_plot writes cluster assignments and forwards cohort labels.
+        """
+
+        hidedeconv_path = create_mock_project_root(tmp_path)
+
+        bulk = pd.DataFrame(
+            [[0.3, 0.7], [0.7, 0.3]],
+            index=["ct_a", "ct_b"],
+            columns=["sample_2", "sample_1"],
+        )
+        bulk.to_csv(hidedeconv_path / "results" / "proj" / "C_sub.csv")
+
+        sample_sheet = pd.DataFrame(
+            {
+                "SampleID": ["sample_1", "sample_2"],
+                "Cohort": ["A", "B"],
+            }
+        )
+        sample_sheet_path = hidedeconv_path / "sample_sheet.csv"
+        sample_sheet.to_csv(sample_sheet_path, index=False)
+
+        captured = {}
+
+        def capture_plot_kmeans_pca(*args, **kwargs):
+            captured["plot_args"] = args
+            captured["plot_kwargs"] = kwargs
+            out_path = kwargs["out_path"]
+            Path(out_path).touch()
+            return pd.DataFrame(
+                {"id": ["sample_2", "sample_1"], "assigned_cluster": [0, 1]}
+            )
+
+        def capture_plot_kmeans_pca_biplot(*args, **kwargs):
+            captured["biplot_kwargs"] = kwargs
+            Path(kwargs["out_path"]).with_name(
+                f"{Path(kwargs['out_path']).stem}_biplot.png"
+            ).touch()
+
+        monkeypatch.setattr(
+            analyze_command, "get_deconvolution_results", lambda path: ["proj"]
+        )
+        monkeypatch.setattr(
+            analyze_command,
+            "load_project_bulk",
+            lambda path: ("proj", "sub", bulk),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "number",
+            lambda **kwargs: prompt(2),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "confirm",
+            select_sequence([True, True]),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "filepath",
+            lambda **kwargs: prompt(str(sample_sheet_path)),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
+            "select",
+            select_sequence(["SampleID", "Cohort"]),
+        )
+        monkeypatch.setattr(analyze_command, "sample_ids_valid", lambda a, b: True)
+        monkeypatch.setattr(
+            visualization_module, "plot_kmeans_pca", capture_plot_kmeans_pca
+        )
+        monkeypatch.setattr(
+            visualization_module,
+            "plot_kmeans_pca_biplot",
+            capture_plot_kmeans_pca_biplot,
+        )
+
+        result = analyze_command.create_kmean_plot(hidedeconv_path)
+
+        expected_output = (
+            hidedeconv_path / "results" / "proj" / "sub" / "kmean_cluster.csv"
+        )
+
+        assert result == MSG_SUCCESS
+        assert expected_output.exists()
+        assert captured["plot_kwargs"]["labeling"] == ["B", "A"]
+        assert captured["plot_kwargs"]["group_name"] == "Cohort"
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

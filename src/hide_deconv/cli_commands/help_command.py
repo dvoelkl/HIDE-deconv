@@ -64,6 +64,7 @@ def show_help():
         "[bold]hide-deconv analyze plsda[/bold]     Plots compositions as PLS-DA plot\n"
         "[bold]hide-deconv analyze survival[/bold]  Runs Cox regression\n"
         "[bold]hide-deconv analyze cluster[/bold]   Performs clustering on estimated compositions using Greedy Modularity Communities\n"
+        "[bold]hide-deconv analyze kmean[/bold]     Performs k-means clustering and plots PCA\n"
         "[bold]hide-deconv analyze genes[/bold]     Plots N most relevant genes for deconvolution as heatmap.\n"
         "\n"
         "[bold]hide-deconv cohort combine[/bold]    Combines cohort labels in sample sheets\n"

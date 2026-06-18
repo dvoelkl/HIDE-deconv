@@ -13,6 +13,7 @@ from pathlib import Path
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 from scipy.stats import spearmanr, pearsonr, kendalltau
 from numpy.linalg import norm
@@ -316,6 +317,303 @@ def plot_pca_biplot(
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_kmean_bgrd(
+    ax, kmeans: KMeans, x_values: np.ndarray, y_values: np.ndarray
+) -> None:
+    """
+    Plot k-means decision regions in scatter plot.
+    """
+
+    x_min, x_max = float(np.min(x_values)), float(np.max(x_values))
+    y_min, y_max = float(np.min(y_values)), float(np.max(y_values))
+
+    x_padding = (x_max - x_min) * 0.15 or 1.0
+    y_padding = (y_max - y_min) * 0.15 or 1.0
+
+    xx, yy = np.meshgrid(
+        np.linspace(x_min - x_padding, x_max + x_padding, 240),
+        np.linspace(y_min - y_padding, y_max + y_padding, 240),
+    )
+
+    grid = np.c_[xx.ravel(), yy.ravel()]
+    zz = kmeans.predict(grid).reshape(xx.shape)
+
+    ax.contourf(
+        xx,
+        yy,
+        zz,
+        levels=np.arange(kmeans.n_clusters + 1) - 0.5,
+        colors=sns.color_palette("hls", kmeans.n_clusters),
+        alpha=0.16,
+        zorder=0,
+    )
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_kmeans_pca(
+    C_est: pd.DataFrame,
+    out_path: str,
+    n_clusters: int,
+    labeling: list = [],
+    group_name: str = "Cohorts",
+    title_suffix: str = "",
+    biplot: bool = False,
+) -> pd.DataFrame:
+    """
+    Perform PCA, perform k-means and saves a scatter plot.
+
+    Parameters
+    ----------
+    C_est : pd.DataFrame
+        Composition dataframe (celltypes x bulks)
+    out_path : str
+        Filename + Path, where the plot will be stored.
+    n_clusters : int
+        Number of clusters to create.
+    labeling : list = []
+        List with labels for each bulk.
+    group_name : str = "Cohorts"
+        Name of the legend.
+    title_suffix : str = ''
+        Suffix displayed after the image title.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cluster assignments
+    """
+
+    df = C_est.T
+
+    if len(df.index) < n_clusters:
+        raise ValueError("Number of clusters must not exceed number of samples.")
+
+    df_scaled = StandardScaler().fit_transform(df)
+
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(df_scaled)
+
+    kmeans = KMeans(n_clusters=n_clusters, random_state=2304, n_init=10)
+    cluster_labels = kmeans.fit_predict(X_pca)
+
+    pca_df = pd.DataFrame(X_pca, index=df.index, columns=["PC1", "PC2"])
+    pca_df.loc[:, "cluster"] = cluster_labels
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    sns.set_theme(style="whitegrid", context="paper")
+
+    plot_kmean_bgrd(ax, kmeans, X_pca[:, 0], X_pca[:, 1])
+
+    if len(labeling) > 0:
+        assert len(labeling) == len(C_est.columns)
+        pca_df.loc[:, "labels"] = labeling
+
+        labels = pca_df["labels"].dropna().unique()
+        palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            hue="labels",
+            ax=ax,
+            palette=palette,
+            s=55,
+            edgecolor="white",
+            linewidth=0.4,
+        )
+        ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
+    else:
+        pca_df.loc[:, "cluster_label"] = pca_df["cluster"].astype(str)
+        cluster_palette = dict(
+            zip(
+                [str(i) for i in range(n_clusters)],
+                sns.color_palette("hls", n_clusters),
+            )
+        )
+
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            hue="cluster_label",
+            ax=ax,
+            palette=cluster_palette,
+            s=55,
+            edgecolor="white",
+            linewidth=0.4,
+        )
+        ax.legend(title="Cluster", bbox_to_anchor=(1.02, 1), loc="upper left")
+
+    ax.set_title(f"K-means PCA{title_suffix}")
+    ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
+    ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
+    ax.axhline(0, color="0.85", linewidth=1, zorder=0)
+    ax.axvline(0, color="0.85", linewidth=1, zorder=0)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_aspect("equal", adjustable="datalim")
+
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    pca_df.to_csv(Path(out_path).with_suffix(".csv"))
+
+    if biplot:
+        plot_kmeans_pca_biplot(
+            pca=pca,
+            X_pca=X_pca,
+            df=df,
+            pca_df=pca_df,
+            out_path=out_path,
+            kmeans=kmeans,
+            labeling=labeling,
+            group_name=group_name,
+            title_suffix=title_suffix,
+        )
+
+    plt.close(fig)
+
+    return pd.DataFrame({"id": list(df.index), "assigned_cluster": cluster_labels})
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_kmeans_pca_biplot(
+    pca: PCA,
+    X_pca: np.ndarray,
+    df: pd.DataFrame,
+    pca_df: pd.DataFrame,
+    out_path: str,
+    kmeans: KMeans,
+    labeling: list = [],
+    group_name: str = "Cohorts",
+    title_suffix: str = "",
+) -> None:
+    """
+    Save a PCA biplot with k-means background regions.
+    Parameters
+    ----------
+    pca : PCA
+    X_pca : np.ndarray
+    df : pd.DataFrame
+    pca_df : pd.DataFrame
+    out_path : str
+        Filename + Path, where the plot will be stored.
+    n_clusters : int
+        Number of clusters to create.
+    labeling : list = []
+        List with labels for each bulk.
+    group_name : str = "Cohorts"
+        Name of the legend.
+    title_suffix : str = ''
+        Suffix displayed after the image title.
+    """
+
+    loadings = pca.components_.T
+    loading_scale = np.max(np.abs(X_pca)) or 1.0
+    arrow_scale = 0.75 * loading_scale
+
+    n_clusters = kmeans.n_clusters
+
+    biplot_fig, biplot_ax = plt.subplots(figsize=(7, 5))
+    sns.set_theme(style="whitegrid", context="paper")
+
+    plot_kmean_bgrd(biplot_ax, kmeans, X_pca[:, 0], X_pca[:, 1])
+
+    if len(labeling) > 0 and "labels" in pca_df.columns:
+        labels = pca_df["labels"].dropna().unique()
+        palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            hue="labels",
+            ax=biplot_ax,
+            palette=palette,
+            s=55,
+            edgecolor="white",
+            linewidth=0.4,
+        )
+        biplot_ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
+    else:
+        pca_df.loc[:, "cluster_label"] = pca_df["cluster"].astype(str)
+        cluster_palette = dict(
+            zip(
+                [str(i) for i in range(n_clusters)],
+                sns.color_palette("hls", n_clusters),
+            )
+        )
+
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            hue="cluster_label",
+            ax=biplot_ax,
+            palette=cluster_palette,
+            s=55,
+            edgecolor="white",
+            linewidth=0.4,
+        )
+        biplot_ax.legend(title="Cluster", bbox_to_anchor=(1.02, 1), loc="upper left")
+
+    feature_magnitudes = np.sqrt(np.sum(loadings[:, :2] ** 2, axis=1))
+    top_features = np.argsort(feature_magnitudes)[::-1][: min(10, len(df.columns))]
+    max_feature_magnitude = (
+        feature_magnitudes[top_features[0]] if len(top_features) > 0 else 1.0
+    )
+    max_feature_magnitude = max(max_feature_magnitude, 1e-8)
+
+    for idx in top_features:
+        x_loading = loadings[idx, 0] / max_feature_magnitude * arrow_scale
+        y_loading = loadings[idx, 1] / max_feature_magnitude * arrow_scale
+        feature_name = df.columns[idx]
+        angle = np.degrees(np.arctan2(y_loading, x_loading))
+
+        biplot_ax.arrow(
+            0,
+            0,
+            x_loading,
+            y_loading,
+            color="tab:red",
+            width=0.0,
+            head_width=0.04 * loading_scale,
+            length_includes_head=True,
+            alpha=0.8,
+        )
+        biplot_ax.text(
+            x_loading * 1.03,
+            y_loading * 1.03,
+            feature_name,
+            color="tab:red",
+            fontsize=9,
+            ha="left",
+            va="center",
+            rotation=angle,
+            rotation_mode="anchor",
+        )
+
+    biplot_ax.axhline(0, color="0.85", linewidth=1, zorder=0)
+    biplot_ax.axvline(0, color="0.85", linewidth=1, zorder=0)
+    biplot_ax.set_title(f"K-means PCA Biplot{title_suffix}")
+    biplot_ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
+    biplot_ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
+    biplot_ax.spines["top"].set_visible(False)
+    biplot_ax.spines["right"].set_visible(False)
+    biplot_ax.set_aspect("equal", adjustable="datalim")
+
+    biplot_path = Path(out_path)
+    biplot_fig.savefig(
+        str(biplot_path.with_name(f"{biplot_path.stem}_biplot.png")),
+        dpi=300,
+        bbox_inches="tight",
+    )
+    plt.close(biplot_fig)
 
 
 def plot_umap(
