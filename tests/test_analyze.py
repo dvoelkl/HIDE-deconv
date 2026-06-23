@@ -456,7 +456,7 @@ class TestPcaAndUmap:
         result = analyze_command.create_pca_plot(hidedeconv_path)
 
         assert result == MSG_SUCCESS
-        assert captured["labeling"] == ["B", "A"]
+        assert captured["labeling"] == ["A", "B"]
         assert captured["group_name"] == "Cohort"
         assert captured["kwargs"]["biplot"] is True
         assert captured["out_path"].endswith("/results/proj/sub/pca_sub_Cohort.png")
@@ -515,7 +515,7 @@ class TestPcaAndUmap:
         result = analyze_command.create_umap_plot(hidedeconv_path)
 
         assert result == MSG_SUCCESS
-        assert captured["labeling"] == ["B", "A"]
+        assert captured["labeling"] == ["A", "B"]
         assert captured["group_name"] == "Cohort"
         assert captured["out_path"].endswith("/results/proj/sub/umap_sub_Cohort.png")
 

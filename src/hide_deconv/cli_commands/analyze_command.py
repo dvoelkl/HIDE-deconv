@@ -560,13 +560,13 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                 ids = sample_sheet[sample_id_col]
                 ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
 
+                # Subset bulk to patients with corresponding metadata
+                bulk = bulk[ids]
+
                 cohorts = sample_sheet[cohort_col]
                 labels = (
                     pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
                 )
-
-                # Subset bulk to patients with corresponding metadata
-                bulk = bulk[ids]
 
                 plot_pca(
                     bulk,
@@ -680,12 +680,13 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                 ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
 
                 cohorts = sample_sheet[cohort_col]
-                labels = (
-                    pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
-                )
 
                 # Subset bulk to patients with corresponding metadata
                 bulk = bulk[ids]
+
+                labels = (
+                    pd.Series(cohorts.values, index=ids).reindex(bulk.columns).to_list()
+                )
 
                 plot_umap(
                     bulk,
