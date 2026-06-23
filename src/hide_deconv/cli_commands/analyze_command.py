@@ -886,6 +886,10 @@ def create_kmean_plot(hidedeconv_path: Path) -> int:
 
                     ids, sample_sheet = filter_sample_sheet(sample_sheet, sample_id_col)
                     cohorts = sample_sheet[cohort_col]
+
+                    # Filter bulks to only hold samples with metainfo
+                    bulk = bulk[ids]
+
                     labels = (
                         pd.Series(cohorts.values, index=ids)
                         .reindex(bulk.columns)
@@ -893,8 +897,6 @@ def create_kmean_plot(hidedeconv_path: Path) -> int:
                     )
                     group_name = cohort_col
 
-                    # Filter bulks to only hold samples with metainfo
-                    bulk = bulk[ids]
                 else:
                     console.print(
                         "[red]No sample sheet column was found with more than one cohort.[/red]"

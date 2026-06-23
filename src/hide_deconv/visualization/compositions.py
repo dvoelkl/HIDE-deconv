@@ -345,7 +345,7 @@ def plot_kmean_bgrd(
         yy,
         zz,
         levels=np.arange(kmeans.n_clusters + 1) - 0.5,
-        colors=sns.color_palette("hls", kmeans.n_clusters),
+        colors=sns.color_palette("husl", kmeans.n_clusters),
         alpha=0.16,
         zorder=0,
     )

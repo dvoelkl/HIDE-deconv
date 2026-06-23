@@ -607,7 +607,7 @@ class TestPcaAndUmap:
 
         assert result == MSG_SUCCESS
         assert expected_output.exists()
-        assert captured["plot_kwargs"]["labeling"] == ["B", "A"]
+        assert captured["plot_kwargs"]["labeling"] == ["A", "B"]
         assert captured["plot_kwargs"]["group_name"] == "Cohort"
 
 
