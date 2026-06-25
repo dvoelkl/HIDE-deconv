@@ -167,6 +167,7 @@ def plot_kaplan_meier_cohort(
     time_col: str,
     event_col: str,
     out_path: str,
+    max_time: float = -1.0,
 ) -> None:
     """
     Plot Kaplan-Meier survival curves stratified by cohorts.
@@ -181,6 +182,8 @@ def plot_kaplan_meier_cohort(
         Name of column that links to event (0: censored, 1: event)
     out_path : str
         Path, where plot will be saved
+    max_time : float = -1.0
+        Maximum time interval to investigate, ignored set to -1.0
     """
 
     samples = sample_sheet[[cohort_strat_col, time_col, event_col]]
@@ -191,6 +194,21 @@ def plot_kaplan_meier_cohort(
     )
 
     samples = samples.loc[non_none_samples]
+
+    # Add censoring if max time is set
+    if max_time > 0:
+        samples[time_col] = samples[time_col].clip(upper=max_time)
+
+        samples[event_col] = np.where(
+            samples[time_col] < max_time,
+            samples[event_col],
+            np.where(
+                sample_sheet.loc[samples.index, time_col] > max_time,
+                0,
+                samples[event_col],
+            ),
+        )
+
     groups = samples[cohort_strat_col]
 
     sns.set_style("white")
@@ -231,6 +249,9 @@ def plot_kaplan_meier_cohort(
             va="bottom",
             fontsize=10,
         )
+
+    if max_time > 0:
+        ax.set_xlim(0, max_time)
 
     ax.set_xlabel(f"Time ({time_col})")
     ax.set_ylabel("Probability of Survival")

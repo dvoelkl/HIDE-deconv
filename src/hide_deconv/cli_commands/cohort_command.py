@@ -193,11 +193,24 @@ def plot_km_cohort() -> int:
             height=5,
         ).execute()
 
+        if inquirer.confirm(
+            message="Set maximum time interval for Kaplan-Meier curve?",
+            default=False,
+        ).execute():
+            max_time = inquirer.number(
+                "Enter maximum time point:",
+                min_allowed=1,
+                default=5,
+                mandatory=True,
+                mandatory_message="A number greater than 0 must be entered.",
+            ).execute()
+        else:
+            max_time = -1.0
+
         out_path = Path(samplesheet_path).with_name(
             f"{Path(samplesheet_path).stem}_KM_{stratification.replace(' ', '_')}.png"
         )
 
-        # Run Cox Regression
         from ..visualization import plot_kaplan_meier_cohort
 
         with console.status(
@@ -210,6 +223,7 @@ def plot_km_cohort() -> int:
                 time_col,
                 event_col,
                 out_path=str(out_path),
+                max_time=max_time,
             )
 
             console.print(f"[green]Saved Kaplan Meier plot to {str(out_path)}[/green]")
