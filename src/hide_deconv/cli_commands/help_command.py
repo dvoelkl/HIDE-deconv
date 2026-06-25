@@ -68,6 +68,7 @@ def show_help():
         "[bold]hide-deconv analyze genes[/bold]     Plots N most relevant genes for deconvolution as heatmap.\n"
         "\n"
         "[bold]hide-deconv cohort combine[/bold]    Combines cohort labels in sample sheets\n"
+        "[bold]hide-deconv cohort km[/bold]         Plot a Kaplan Meier curve based on pure sample sheet information.\n"
         "\n"
         "[bold]hide-deconv download[/bold]          Download example AnnData Single Cells\n"
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"
