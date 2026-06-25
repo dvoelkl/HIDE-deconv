@@ -197,13 +197,13 @@ def plot_km_cohort() -> int:
             message="Set maximum time interval for Kaplan-Meier curve?",
             default=False,
         ).execute():
-            max_time = inquirer.number(
+            max_time = float(inquirer.number(
                 "Enter maximum time point:",
                 min_allowed=1,
                 default=5,
                 mandatory=True,
                 mandatory_message="A number greater than 0 must be entered.",
-            ).execute()
+            ).execute())
         else:
             max_time = -1.0
 
