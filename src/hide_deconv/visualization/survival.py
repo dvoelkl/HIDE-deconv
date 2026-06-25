@@ -22,7 +22,7 @@ console = Console()
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def plot_kaplan_meier(
+def plot_kaplan_meier_comp(
     bulks: pd.DataFrame,
     sample_sheet: pd.DataFrame,
     sample_id_col: str,
@@ -150,6 +150,91 @@ def plot_kaplan_meier(
     ax.set_xlabel(f"Time ({time_col})")
     ax.set_ylabel("Probability of Survival")
     ax.set_title(f"Kaplan Meier: {celltype}")
+    ax.legend(loc="best", fontsize=10)
+    ax.grid(alpha=0.3)
+
+    fig.savefig(out_path, bbox_inches="tight", dpi=300)
+
+    plt.close(fig)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_kaplan_meier_cohort(
+    sample_sheet: pd.DataFrame,
+    cohort_strat_col: str,
+    time_col: str,
+    event_col: str,
+    out_path: str,
+) -> None:
+    """
+    Plot Kaplan-Meier survival curves stratified by cohorts.
+
+    Parameters
+    ----------
+    samples_sheet : pd.DataFrame
+        sample list (samples x clinical variables)
+    time_col : str
+        Name of the column that links to survival time
+    event_col : str
+        Name of column that links to event (0: censored, 1: event)
+    out_path : str
+        Path, where plot will be saved
+    """
+
+    samples = sample_sheet[[cohort_strat_col, time_col, event_col]]
+
+    # Remove entries with missing time or event
+    non_none_samples = (
+        samples[[cohort_strat_col, time_col, event_col]].notna().all(axis=1)
+    )
+
+    samples = samples.loc[non_none_samples]
+    groups = samples[cohort_strat_col]
+
+    sns.set_style("white")
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    kmf = KaplanMeierFitter()
+    group_labels = samples[cohort_strat_col].unique()
+
+    p_value = None
+
+    for group in sorted(group_labels):
+        mask = groups == group
+        T = samples.loc[mask, time_col].values
+        E = samples.loc[mask, event_col].values
+
+        kmf.fit(T, E, label=f"{group} (n={mask.sum()})")
+        kmf.plot_survival_function(ax=ax, linewidth=1)
+
+    # Log-rank test if two groups
+    if len(group_labels) == 2:
+        mask_group1 = groups == group_labels[0]
+        mask_group2 = groups == group_labels[1]
+
+        T1 = samples.loc[mask_group1, time_col].values
+        E1 = samples.loc[mask_group1, event_col].values
+        T2 = samples.loc[mask_group2, time_col].values
+        E2 = samples.loc[mask_group2, event_col].values
+
+        results = logrank_test(T1, T2, E1, E2)
+        p_value = results.p_value
+
+        ax.text(
+            0.98,
+            0.05,
+            f"Log-rank p={p_value:.2e}",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=10,
+        )
+
+    ax.set_xlabel(f"Time ({time_col})")
+    ax.set_ylabel("Probability of Survival")
+    ax.set_title(f"Kaplan Meier: {cohort_strat_col}")
     ax.legend(loc="best", fontsize=10)
     ax.grid(alpha=0.3)
 

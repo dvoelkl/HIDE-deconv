@@ -185,6 +185,19 @@ def cli_cohort_combine(numerical: bool) -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_cohort.command("km")
+def cli_cohort_km() -> None:
+    """
+    Create a Kaplan Meier Plot from sample metainformation
+    """
+    from .cli_commands import plot_km_cohort
+
+    plot_km_cohort()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli.command("run")
 @click.option(
     "--path",

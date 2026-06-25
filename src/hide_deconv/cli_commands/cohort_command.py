@@ -128,3 +128,96 @@ def combine_cohorts(numerical: bool = False) -> int:
         return MSG_FAILURE
 
     return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_km_cohort() -> int:
+    """
+    Perform survival analysis using Cox Proportional Hazards regression.
+    Guides through selecting a sample sheet with clinical survival information.
+
+    Parameters
+    ----------
+    hidedeconv_path : Path
+        Path where project is located.
+
+    Returns
+    -------
+    int
+        MSG_SUCCESS if no exception occured. MSG_FAILURE if an exception occured.
+    """
+    console.print("[bold blue]Kaplan Meier Plotting[/bold blue]")
+    ret = MSG_SUCCESS
+
+    # Load samplesheet
+    samplesheet_path = inquirer.filepath(
+        message="Select sample sheet:",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A sample sheet (.csv) must be selected.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        sample_sheet = pd.read_csv(samplesheet_path)
+
+        available_sample_cols = sample_sheet.columns.to_list()
+
+        # Select survival time column
+        time_col = inquirer.select(
+            message="Select column with survival time:",
+            choices=available_sample_cols,
+            height=5,
+        ).execute()
+
+        # Select event column
+        available_sample_cols_event = [
+            col for col in available_sample_cols if col != time_col
+        ]
+        event_col = inquirer.select(
+            message="Select column with event indicator (0=censored, 1=event):",
+            choices=available_sample_cols_event,
+            height=5,
+        ).execute()
+
+        # Select stratification
+        available_sample_cols_cov = [
+            col for col in available_sample_cols if col not in [time_col, event_col]
+        ]
+
+        stratification = inquirer.select(
+            message="Select stratification column for Kaplan-Meier curves:",
+            choices=available_sample_cols_cov,
+            height=5,
+        ).execute()
+
+        out_path = Path(samplesheet_path).with_name(
+            f"{Path(samplesheet_path).stem}_KM_{stratification.replace(' ', '_')}.png"
+        )
+
+        # Run Cox Regression
+        from ..visualization import plot_kaplan_meier_cohort
+
+        with console.status(
+            "[bold blue]Creating Kaplan-Meier plots...[/bold blue]",
+            spinner="dots",
+        ):
+            plot_kaplan_meier_cohort(
+                sample_sheet,
+                stratification,
+                time_col,
+                event_col,
+                out_path=str(out_path),
+            )
+
+            console.print(f"[green]Saved Kaplan Meier plot to {str(out_path)}[/green]")
+
+    except Exception:
+        console.print("[red]Cannot open sample sheet.[/red]")
+        console.print("[dim]Please provide a valid sample sheet.[/dim]")
+        console.print_exception()
+        ret = MSG_FAILURE
+
+    return ret

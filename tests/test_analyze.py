@@ -716,7 +716,7 @@ class TestSurvivalAnalysis:
         def capture_forest(*args, **kwargs):
             forest_calls.append(kwargs["out_path"])
 
-        monkeypatch.setattr(visualization_module, "plot_kaplan_meier", capture_km)
+        monkeypatch.setattr(visualization_module, "plot_kaplan_meier_comp", capture_km)
         monkeypatch.setattr(visualization_module, "plot_cox_forest", capture_forest)
 
         result = analyze_command.survival_analysis(hidedeconv_path)

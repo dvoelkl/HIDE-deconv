@@ -1042,7 +1042,7 @@ def survival_analysis(hidedeconv_path: Path) -> int:
 
                 # Run Cox Regression
                 from ..statistic import run_cox_regression, print_cox_summary
-                from ..visualization import plot_kaplan_meier, plot_cox_forest
+                from ..visualization import plot_kaplan_meier_comp, plot_cox_forest
 
                 with console.status(
                     "[bold blue]Running Cox Proportional Hazards Analysis...[/bold blue]",
@@ -1089,7 +1089,7 @@ def survival_analysis(hidedeconv_path: Path) -> int:
                         spinner="dots",
                     ):
                         for ct in significant_cts:
-                            plot_kaplan_meier(
+                            plot_kaplan_meier_comp(
                                 bulk,
                                 sample_sheet,
                                 sample_id_col,

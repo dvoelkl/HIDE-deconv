@@ -182,6 +182,11 @@ In case the sample metainformation is to fine grained, or you want to combine ce
 In both commands you first have to select the sample sheet and the column that should be merged. If it is categorical data you have to specify how many new cohorts should be assigned, name the column and name each cohort and select the merged values by pressing space. Accept the selection by pressing enter.
 For numerical data you can choose to either split the data by the mean or median value or by a fixed number. The merged columns will be labeled either as *high* or *low*.
 
+### 7.2 Plotting Kaplan Meier Curves
+HIDE-deconv contains a basic command for plotting Kaplan Meier curves for different cohorts based on the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event.
+
+To run the command, use the following syntax: `hide-deconv cohort km`. 
+
 ## 8. License
 HIDE-deconv is licensed under the MIT license. 
 
