@@ -219,7 +219,7 @@ def cli_cohort_km(censors: bool, risk_table: bool, median_surv: bool) -> None:
     """
     from .cli_commands import plot_km_cohort
 
-    plot_km_cohort()
+    plot_km_cohort(censors, risk_table, median_surv)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -783,7 +783,7 @@ def cli_analyze_survival(
     """
     from .cli_commands import survival_analysis
 
-    survival_analysis(hidedeconv_path)
+    survival_analysis(hidedeconv_path, censors, risk_table, median_surv)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
