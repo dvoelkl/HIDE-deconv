@@ -186,7 +186,34 @@ def cli_cohort_combine(numerical: bool) -> None:
 
 
 @cli_cohort.command("km")
-def cli_cohort_km() -> None:
+@click.option(
+    "--censors",
+    "-c",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show censors in Survival Plot.",
+)
+@click.option(
+    "--risk_table",
+    "-rt",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show risk table in Survival Plot.",
+)
+@click.option(
+    "--median_surv",
+    "-ms",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show median survival in Survival Plot.",
+)
+def cli_cohort_km(censors: bool, risk_table: bool, median_surv: bool) -> None:
     """
     Create a Kaplan Meier Plot from sample metainformation
     """
@@ -717,8 +744,40 @@ def cli_analyze_kmean(hidedeconv_path: Path) -> None:
     ),
     help="Path, where the HIDE-Deconv project structure is located.",
 )
+@click.option(
+    "--censors",
+    "-c",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show censors in Survival Plot.",
+)
+@click.option(
+    "--risk_table",
+    "-rt",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show risk table in Survival Plot.",
+)
+@click.option(
+    "--median_surv",
+    "-ms",
+    is_flag=False,
+    default=False,
+    type=bool,
+    show_default=True,
+    help="Show median survival in Survival Plot.",
+)
 @assert_trained
-def cli_analyze_survival(hidedeconv_path: Path) -> None:
+def cli_analyze_survival(
+    hidedeconv_path: Path,
+    censors: bool = False,
+    risk_table: bool = False,
+    median_surv: bool = False,
+) -> None:
     """
     Performs a survival analysis on selected results.
     """

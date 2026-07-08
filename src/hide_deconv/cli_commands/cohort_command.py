@@ -133,7 +133,9 @@ def combine_cohorts(numerical: bool = False) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def plot_km_cohort() -> int:
+def plot_km_cohort(
+    censors: bool = False, risk_table: bool = False, median_surv: bool = False
+) -> int:
     """
     Perform survival analysis using Cox Proportional Hazards regression.
     Guides through selecting a sample sheet with clinical survival information.
@@ -197,13 +199,15 @@ def plot_km_cohort() -> int:
             message="Set maximum time interval for Kaplan-Meier curve?",
             default=False,
         ).execute():
-            max_time = float(inquirer.number(
-                "Enter maximum time point:",
-                min_allowed=1,
-                default=5,
-                mandatory=True,
-                mandatory_message="A number greater than 0 must be entered.",
-            ).execute())
+            max_time = float(
+                inquirer.number(
+                    "Enter maximum time point:",
+                    min_allowed=1,
+                    default=5,
+                    mandatory=True,
+                    mandatory_message="A number greater than 0 must be entered.",
+                ).execute()
+            )
         else:
             max_time = -1.0
 
@@ -224,6 +228,9 @@ def plot_km_cohort() -> int:
                 event_col,
                 out_path=str(out_path),
                 max_time=max_time,
+                show_censors=censors,
+                show_median_lines=median_surv,
+                show_risk_table=risk_table,
             )
 
             console.print(f"[green]Saved Kaplan Meier plot to {str(out_path)}[/green]")

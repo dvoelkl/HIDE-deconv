@@ -933,7 +933,12 @@ def create_kmean_plot(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def survival_analysis(hidedeconv_path: Path) -> int:
+def survival_analysis(
+    hidedeconv_path: Path,
+    censors: bool = False,
+    risk_table: bool = False,
+    median_surv: bool = False,
+) -> int:
     """
     Perform survival analysis using Cox Proportional Hazards regression.
     Guides through selecting a deconvolution project and sample sheet with
@@ -1103,6 +1108,9 @@ def survival_analysis(hidedeconv_path: Path) -> int:
                                 + "/"
                                 + selected_ct_layer
                                 + f"/km_{ct.replace(' ', '_')}_{selected_ct_layer}.png",
+                                show_censors=censors,
+                                show_median_lines=median_surv,
+                                show_risk_table=risk_table,
                             )
 
                     console.print(

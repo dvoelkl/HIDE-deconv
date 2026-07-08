@@ -9,10 +9,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+from typing import List
+
 from rich.console import Console
 
 from lifelines import KaplanMeierFitter
 from lifelines.statistics import logrank_test
+from lifelines.plotting import add_at_risk_counts
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -31,6 +34,9 @@ def plot_kaplan_meier_comp(
     celltype: str,
     out_path: str,
     stratification: str = "median",
+    show_censors: bool = False,
+    show_risk_table: bool = False,
+    show_median_lines: bool = False,
 ) -> None:
     """
     Plot Kaplan-Meier survival curves by cell type composition.
@@ -39,20 +45,26 @@ def plot_kaplan_meier_comp(
     ----------
     bulks : pd.DataFrame
         Cell type composition (celltype x sample)
-    samples_sheet : pd.DataFrame
-        sample list (samples x clinical variables)
+    sample_sheet : pd.DataFrame
+        Sample list (samples x clinical variables)
     sample_id_col : str
-        Name of the column that links to bulks
+        Name of the column that links to bulks.
     time_col : str
-        Name of the column that links to survival time
+        Name of the survival time column.
     event_col : str
-        Name of column that links to event (0: censored, 1: event)
+        Name of the event column (0=censored, 1=event).
     celltype : str
-        Cell type to stratify by
+        Cell type to stratify by.
     out_path : str
-        Path, where plot will be saved
-    stratification : str = "median"
-        Method for stratification of patients: "median", "tertiles", "quartiles"
+        Output filename.
+    stratification : str, default="median"
+        One of {"median", "tertiles", "quartiles"}.
+    show_censors : bool, default=False
+        Draw censoring marks on the KM curves.
+    show_risk_table : bool, default=False
+        Add an at-risk table below the plot.
+    show_median_lines : bool, default=False
+        Draw horizontal line at survival=0.5 and vertical median survival lines.
     """
 
     samples = sample_sheet[[sample_id_col, time_col, event_col]].set_index(
@@ -60,10 +72,8 @@ def plot_kaplan_meier_comp(
     )
     samples = samples.reindex(bulks.columns)
 
-    # Remove entries with missing time or event
-    non_none_samples = samples[[time_col, event_col]].notna().all(axis=1)
-
-    samples = samples.loc[non_none_samples]
+    # Remove samples with missing survival information
+    samples = samples.dropna(subset=[time_col, event_col])
     bulks = bulks.loc[:, samples.index]
 
     ct_values = bulks.loc[celltype].values
@@ -71,8 +81,10 @@ def plot_kaplan_meier_comp(
     if stratification == "median":
         thresh = np.median(ct_values)
         groups = pd.Series(
-            ["Low" if x <= thresh else "High" for x in ct_values], index=bulks.columns
+            np.where(ct_values <= thresh, "Low", "High"),
+            index=bulks.columns,
         )
+
     elif stratification == "tertiles":
         thresh = np.percentile(ct_values, [33.33, 66.66])
         groups = pd.Series(
@@ -82,6 +94,7 @@ def plot_kaplan_meier_comp(
             ],
             index=bulks.columns,
         )
+
     elif stratification == "quartiles":
         thresh = np.percentile(ct_values, [25, 50, 75])
         groups = pd.Series(
@@ -93,67 +106,122 @@ def plot_kaplan_meier_comp(
             ],
             index=bulks.columns,
         )
+
     else:
         console.print("[red]Stratification Type not implemented![/red]")
         raise NotImplementedError(
-            f"Stratification {stratification} is not implemented."
+            f"Stratification '{stratification}' is not implemented."
         )
 
     sns.set_style("white")
-    fig, ax = plt.subplots(figsize=(8, 6))
 
-    kmf = KaplanMeierFitter()
-    group_labels = groups.unique()
+    if show_risk_table:
+        fig, ax = plt.subplots(figsize=(8, 8))
+    else:
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-    p_value = None
     colors = {
         "Low": "blue",
-        "High": "red",
         "Medium": "green",
+        "High": "red",
         "Q1": "blue",
         "Q2": "green",
-        "Q3": "yellow",
+        "Q3": "orange",
         "Q4": "red",
     }
 
-    for group in sorted(group_labels):
+    kmfs = []
+    group_labels = sorted(groups.unique())
+
+    # Kaplan-Meier curves
+    for group in group_labels:
         mask = groups == group
+
         T = samples.loc[mask, time_col].values
         E = samples.loc[mask, event_col].values
 
-        kmf.fit(T, E, label=f"{group} (n={mask.sum()})")
-        kmf.plot_survival_function(ax=ax, color=colors.get(group, None), linewidth=1)
+        kmf = KaplanMeierFitter()
+        kmf.fit(
+            T,
+            E,
+            label=f"{group} (n={mask.sum()})",
+        )
 
-    # Log-rank test if two groups
+        kmf.plot_survival_function(
+            ax=ax,
+            color=colors.get(group),
+            linewidth=1.5,
+            ci_show=False,
+            show_censors=show_censors,
+            censor_styles={
+                "marker": "|",
+                "ms": 8,
+                "mew": 1.2,
+            },
+        )
+
+        kmfs.append(kmf)
+
+    # Log-rank test (only for two groups)
     if len(group_labels) == 2:
-        mask_group1 = groups == group_labels[0]
-        mask_group2 = groups == group_labels[1]
+        mask1 = groups == group_labels[0]
+        mask2 = groups == group_labels[1]
 
-        T1 = samples.loc[mask_group1, time_col].values
-        E1 = samples.loc[mask_group1, event_col].values
-        T2 = samples.loc[mask_group2, time_col].values
-        E2 = samples.loc[mask_group2, event_col].values
-
-        results = logrank_test(T1, T2, E1, E2)
-        p_value = results.p_value
+        results = logrank_test(
+            samples.loc[mask1, time_col],
+            samples.loc[mask2, time_col],
+            event_observed_A=samples.loc[mask1, event_col],
+            event_observed_B=samples.loc[mask2, event_col],
+        )
 
         ax.text(
             0.98,
             0.05,
-            f"Log-rank p={p_value:.2e}",
+            f"Log-rank p = {results.p_value:.2e}",
             transform=ax.transAxes,
             ha="right",
             va="bottom",
             fontsize=10,
         )
 
+    if show_median_lines:
+        ax.axhline(
+            0.5,
+            color="gray",
+            linestyle="--",
+            linewidth=1,
+        )
+
+        for kmf in kmfs:
+            median = kmf.median_survival_time_
+            if np.isfinite(median):
+                ax.vlines(
+                    median,
+                    ymin=0,
+                    ymax=0.5,
+                    color="gray",
+                    linestyle="--",
+                    linewidth=1,
+                    alpha=0.7,
+                )
+
+    # Risk table
+    if show_risk_table:
+        add_at_risk_counts(*kmfs, ax=ax)
+
     ax.set_xlabel(f"Time ({time_col})")
     ax.set_ylabel("Probability of Survival")
-    ax.set_title(f"Kaplan Meier: {celltype}")
+    ax.set_title(f"Kaplan-Meier: {celltype}")
     ax.legend(loc="best", fontsize=10)
     ax.grid(alpha=0.3)
 
-    fig.savefig(out_path, bbox_inches="tight", dpi=300)
+    plt.tight_layout()
+
+    fig.savefig(
+        out_path,
+        bbox_inches="tight",
+        dpi=300,
+    )
 
     plt.close(fig)
 
@@ -168,6 +236,9 @@ def plot_kaplan_meier_cohort(
     event_col: str,
     out_path: str,
     max_time: float = -1.0,
+    show_censors: bool = False,
+    show_risk_table: bool = False,
+    show_median_lines: bool = False,
 ) -> None:
     """
     Plot Kaplan-Meier survival curves stratified by cohorts.
@@ -184,82 +255,136 @@ def plot_kaplan_meier_cohort(
         Path, where plot will be saved
     max_time : float = -1.0
         Maximum time interval to investigate, ignored set to -1.0
+    show_censors : bool, default=False
+        Draw censoring marks on the KM curves.
+    show_risk_table : bool, default=False
+        Add an "at risk" table below the plot.
+    show_median_lines : bool, default=False
+        Draw a horizontal line at survival=0.5 and vertical lines at the
+        median survival time of each cohort.
     """
 
-    samples = sample_sheet[[cohort_strat_col, time_col, event_col]]
+    samples = sample_sheet[[cohort_strat_col, time_col, event_col]].copy()
 
-    # Remove entries with missing time or event
-    non_none_samples = (
-        samples[[cohort_strat_col, time_col, event_col]].notna().all(axis=1)
-    )
+    # Remove entries with missing values
+    samples = samples.dropna(subset=[cohort_strat_col, time_col, event_col])
 
-    samples = samples.loc[non_none_samples]
-
-    # Add censoring if max time is set
     if max_time > 0:
+        original_time = samples[time_col].copy()
+
         samples[time_col] = samples[time_col].clip(upper=max_time)
 
         samples[event_col] = np.where(
-            samples[time_col] < max_time,
+            original_time > max_time,
+            0,
             samples[event_col],
-            np.where(
-                sample_sheet.loc[samples.index, time_col] > max_time,
-                0,
-                samples[event_col],
-            ),
         )
 
     groups = samples[cohort_strat_col]
+    group_labels = sorted(samples[cohort_strat_col].unique())
 
     sns.set_style("white")
-    fig, ax = plt.subplots(figsize=(8, 6))
 
-    kmf = KaplanMeierFitter()
-    group_labels = samples[cohort_strat_col].unique()
+    if show_risk_table:
+        fig, ax = plt.subplots(figsize=(8, 8))
+    else:
+        fig, ax = plt.subplots(figsize=(8, 6))
 
-    p_value = None
+    kmfs: List[KaplanMeierFitter] = []
 
-    for group in sorted(group_labels):
+    # Plot KM curves
+    for group in group_labels:
         mask = groups == group
+
         T = samples.loc[mask, time_col].values
         E = samples.loc[mask, event_col].values
 
-        kmf.fit(T, E, label=f"{group} (n={mask.sum()})")
-        kmf.plot_survival_function(ax=ax, linewidth=1)
+        kmf = KaplanMeierFitter()
+        kmf.fit(
+            durations=T,
+            event_observed=E,
+            label=f"{group} (n={mask.sum()})",
+        )
 
-    # Log-rank test if two groups
+        kmf.plot_survival_function(
+            ax=ax,
+            linewidth=1.5,
+            ci_show=False,
+            show_censors=show_censors,
+            censor_styles={
+                "marker": "|",
+                "ms": 8,
+                "mew": 1.2,
+            },
+        )
+
+        kmfs.append(kmf)
+
+    # Log-rank test for two groups
     if len(group_labels) == 2:
-        mask_group1 = groups == group_labels[0]
-        mask_group2 = groups == group_labels[1]
+        mask1 = groups == group_labels[0]
+        mask2 = groups == group_labels[1]
 
-        T1 = samples.loc[mask_group1, time_col].values
-        E1 = samples.loc[mask_group1, event_col].values
-        T2 = samples.loc[mask_group2, time_col].values
-        E2 = samples.loc[mask_group2, event_col].values
-
-        results = logrank_test(T1, T2, E1, E2)
-        p_value = results.p_value
+        results = logrank_test(
+            samples.loc[mask1, time_col],
+            samples.loc[mask2, time_col],
+            event_observed_A=samples.loc[mask1, event_col],
+            event_observed_B=samples.loc[mask2, event_col],
+        )
 
         ax.text(
             0.98,
             0.05,
-            f"Log-rank p={p_value:.2e}",
+            f"Log-rank p = {results.p_value:.2e}",
             transform=ax.transAxes,
             ha="right",
             va="bottom",
             fontsize=10,
         )
 
+    if show_median_lines:
+        ax.axhline(
+            0.5,
+            color="gray",
+            linestyle="--",
+            linewidth=1,
+        )
+
+        for kmf in kmfs:
+            median = kmf.median_survival_time_
+
+            if np.isfinite(median):
+                ax.vlines(
+                    median,
+                    ymin=0,
+                    ymax=0.5,
+                    color="gray",
+                    linestyle="--",
+                    linewidth=1,
+                    alpha=0.7,
+                )
+
+    # Risk table
+    if show_risk_table:
+        add_at_risk_counts(*kmfs, ax=ax)
+
     if max_time > 0:
         ax.set_xlim(0, max_time)
 
     ax.set_xlabel(f"Time ({time_col})")
     ax.set_ylabel("Probability of Survival")
-    ax.set_title(f"Kaplan Meier: {cohort_strat_col}")
-    ax.legend(loc="best", fontsize=10)
-    ax.grid(alpha=0.3)
+    ax.set_title(f"Kaplan-Meier: {cohort_strat_col}")
 
-    fig.savefig(out_path, bbox_inches="tight", dpi=300)
+    ax.grid(alpha=0.3)
+    ax.legend(loc="best", fontsize=10)
+
+    plt.tight_layout()
+
+    fig.savefig(
+        out_path,
+        dpi=300,
+        bbox_inches="tight",
+    )
 
     plt.close(fig)
 
