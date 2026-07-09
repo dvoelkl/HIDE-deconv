@@ -70,6 +70,11 @@ To investigate the impact of specific cell types on patient survival, HIDE-Decon
 
 To execute the command, use the following syntax: `hide-deconv analyze survival -p <PathToProject>`
 
+Additionally the command has certain flags, that can be turned on, that will change the resulting Kaplan Meier plots for significant cell types:
+- `--risk_table True` adds a risk table below the figure
+- `--censors True` will add marks for censored patients to the plot
+- `--median_surv True` will add dashed lines at 50% survival probability
+
 ### 4.5 Identification of compositional clusters
 HIDE-Deconv provides a command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded.
 
@@ -186,6 +191,11 @@ For numerical data you can choose to either split the data by the mean or median
 HIDE-deconv contains a basic command for plotting Kaplan Meier curves for different cohorts based on the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event.
 
 To run the command, use the following syntax: `hide-deconv cohort km`. 
+
+Additionally the command has certain flags, that can be turned on:
+- `--risk_table True` adds a risk table below the figure
+- `--censors True` will add marks for censored patients to the plot
+- `--median_surv True` will add dashed lines at 50% survival probability
 
 ## 8. License
 HIDE-deconv is licensed under the MIT license. 
