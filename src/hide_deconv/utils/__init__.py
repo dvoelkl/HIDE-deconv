@@ -26,6 +26,7 @@ from .anndata_utils import (
     add_annotation_columns_from_template,
     subset_adata_obs,
 )
+from .mtx_utils import mtx_to_adata, mtx_to_csv
 
 __all__ = [
     "get_project_init_status",
@@ -48,4 +49,6 @@ __all__ = [
     "add_annotation_columns_from_template",
     "subset_adata_obs",
     "check_bulk_raw",
+    "mtx_to_adata",
+    "mtx_to_csv",
 ]

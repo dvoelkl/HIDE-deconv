@@ -998,5 +998,31 @@ def cli_bulk_deg() -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli_bulk.command("mtx")
+def cli_bulk_mtx_convert() -> None:
+    """
+    Convert a mtx file to a csv table
+    """
+    from .cli_commands import convert_csv_from_mtx
+
+    convert_csv_from_mtx()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("mtx")
+def cli_adata_mtx_convert() -> None:
+    """
+    Convert a mtx file to an anndata file
+    """
+    from .cli_commands import convert_adata_from_mtx
+
+    convert_adata_from_mtx()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 if __name__ == "__main__":
     cli()

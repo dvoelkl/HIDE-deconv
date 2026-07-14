@@ -25,6 +25,7 @@ from .anndata_command import (
     subset_anndata,
     add_annotation,
     create_anndata_umap_plot,
+    convert_adata_from_mtx,
 )
 from .bulk_command import (
     create_bulk_pca_plot,
@@ -33,6 +34,7 @@ from .bulk_command import (
     subset_bulk,
     create_bulk_clustering,
     create_bulk_deg,
+    convert_csv_from_mtx,
 )
 
 __all__ = [
@@ -72,4 +74,6 @@ __all__ = [
     "create_bulk_clustering",
     "create_bulk_deg",
     "gene_markerplot",
+    "convert_csv_from_mtx",
+    "convert_adata_from_mtx",
 ]

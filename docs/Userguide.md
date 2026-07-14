@@ -158,6 +158,12 @@ Each of the thresholds can be adjusted before executing the preprocessing pipeli
 
 To run the preprocessing pipeline, use the command `hide-deconv anndata preprocess`
 
+### 5.6 Converting a MTX file to AnnDat file
+Some single cell experiments are stored as mtx files, to facilitate usage of this datatype, HIDE-Deconv provides a command, that converts the mtx file and the corresponding barcode and feature file to an AnnData file. Note: currently cell type annotations have to be done manually afterwards.
+
+To invoke the command, run `hide-deconv anndata mtx`
+
+
 ## 6. Bulk related commands
 HIDE-Deonv provides multiple commands to perform various operations on bulk RNA seq files without the need for writting code.
 
@@ -178,6 +184,11 @@ To run the command, use the following syntax: `hide-deconv bulk cluster`
 To further support analyses related to bulk deconvolution projects, HIDE-deconv implements an interface to the PyDeSeq2 implementation of DeSeq2.
 
 To invoke the command, run `hide-deconv bulk deg`
+
+### 6.5 Converting a MTX file to csv table
+Often bulk RNA files are not stored as csv tables, but rather as mtx files. Therefor HIDE-Deconv provides a command, that converts the mtx file and the corresponding barcode and feature file to a compatible csv table
+
+To invoke the command, run `hide-deconv bulk mtx`
 
 ## 7. Sample Sheet related commands
 

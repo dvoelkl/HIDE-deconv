@@ -79,12 +79,14 @@ def show_help():
         "[bold]hide-deconv bulk subset[/bold]       Subsets bulk RNA-seq samples by column\n"
         "[bold]hide-deconv bulk cluster[/bold]      Performs clustering on RNA-seq data using Greedy Modularity Communities\n"
         "[bold]hide-deconv bulk deg[/bold]          Runs a differential gene expression analysis using pyDESeq2\n"
+        "[bold]hide-deconv bulk mtx[/bold]          Converts a MTX file to a csv table\n"
         "\n"
         "[bold]hide-deconv anndata inspect[/bold]   Summarizes an AnnData file\n"
         "[bold]hide-deconv anndata subset[/bold]    Subsets AnnData file to certain subsets in observations\n"
         "[bold]hide-deconv anndata add-annotation[/bold] Adds higher annotation layers to an AnnData file\n"
         "[bold]hide-deconv anndata umap[/bold]      Plots AnnData cells as UMAP plot\n"
         "[bold]hide-deconv anndata preprocess[/bold] Preprocesses an AnnData file\n\n"
+        "[bold]hide-deconv anndata mtx[/bold]       Converts a MTX file to an AnnData file\n\n"
         "Run a command with the [i]--help[/i] flag for further information.",
         title="Commands",
         padding=(1, 2),

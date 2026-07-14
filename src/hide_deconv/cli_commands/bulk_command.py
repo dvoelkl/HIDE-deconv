@@ -621,3 +621,59 @@ def create_bulk_deg() -> int:
         return MSG_FAILURE
 
     return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def convert_csv_from_mtx() -> int:
+    """
+    Converts a selected mtx file to a csv table
+    """
+    from ..utils import mtx_to_csv
+
+    console.print("[bold blue]MTX Conversion[/bold blue]")
+
+    mtx_path = inquirer.filepath(
+        message="Enter path to matrix file (*_matrix.mtx):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A matrix file (.mtx) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    barcodes_path = inquirer.filepath(
+        message="Enter path to barcodes file (*_barcodes.csv / .tsv):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A barcode csv or tsv file (.csv / .tsv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    features_path = inquirer.filepath(
+        message="Enter path to features file (*_features.csv / .tsv):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A features csv or tsv file (.csv / .tsv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        with console.status(
+            "[bold blue]Converting MTX file...[/bold blue]", spinner="dots"
+        ):
+            df_converted = mtx_to_csv(mtx_path, barcodes_path, features_path)
+
+            df_converted.to_csv(Path(mtx_path).with_suffix(".csv"))
+
+        console.print(
+            f"[green]Saved converted file to {Path(mtx_path).with_suffix('.csv')}[/green]"
+        )
+
+    except Exception:
+        console.print_exception()
+        console.print("[red]Failed to convert mtx.[/red]")
+        console.print("[dim]Please provide valid mtx data.[/dim]")
+        return MSG_FAILURE
+
+    return MSG_SUCCESS

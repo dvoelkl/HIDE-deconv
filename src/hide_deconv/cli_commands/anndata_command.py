@@ -520,3 +520,59 @@ def subset_anndata() -> int:
     console.print(f"[bold green]Saved subsetted file to {subset_path}[/bold green]")
 
     return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def convert_adata_from_mtx() -> int:
+    """
+    Converts a selected mtx file to an anndata file
+    """
+    from ..utils import mtx_to_adata
+
+    console.print("[bold blue]MTX Conversion[/bold blue]")
+
+    mtx_path = inquirer.filepath(
+        message="Enter path to matrix file (*_matrix.mtx):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A matrix file (.mtx) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    barcodes_path = inquirer.filepath(
+        message="Enter path to barcodes file (*_barcodes.csv / .tsv):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A barcode csv or tsv file (.csv / .tsv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    features_path = inquirer.filepath(
+        message="Enter path to features file (*_features.csv / .tsv):",
+        default=str(Path.cwd()),
+        mandatory=True,
+        mandatory_message="A features csv or tsv file (.csv / .tsv) must be selected to continue.",
+        validate=PathValidator(is_file=True, message="Input is not a file."),
+    ).execute()
+
+    try:
+        with console.status(
+            "[bold blue]Converting MTX file...[/bold blue]", spinner="dots"
+        ):
+            adata_converted = mtx_to_adata(mtx_path, barcodes_path, features_path)
+
+            adata_converted.write_h5ad(Path(mtx_path).with_suffix(".h5ad"))
+
+        console.print(
+            f"[green]Saved converted file to {Path(mtx_path).with_suffix('.h5ad')}[/green]"
+        )
+
+    except Exception:
+        console.print_exception()
+        console.print("[red]Failed to convert mtx.[/red]")
+        console.print("[dim]Please provide valid mtx data.[/dim]")
+        return MSG_FAILURE
+
+    return MSG_SUCCESS
