@@ -21,6 +21,8 @@ def get_common_genes(
 
     Additionally remove genes, which have a median of 0 in the bulk, as these can influence domain transfer.
 
+    Gene Symbols that are duplicate will be added together (Preferentably to use EnsemblIDs).
+
     Parameters
     ----------
     adata : ad.AnnData
@@ -30,12 +32,19 @@ def get_common_genes(
     bulk : pd.DataFrame
         Bulk expression profiles with genes as index and samples as columns
 
+    remove_zero_median : bool = True
+        Remove genes that have a median expression of zero
+
     Returns
     -------
     list[str]
         List of shared gene names
 
     """
+
+    # Handle duplicate Gene Symbols, appear sometimes after converting from EnsemblIDs to GeneSymbol
+    if bulk.index.has_duplicates:
+        bulk = bulk.groupby(level=0).sum()
 
     if remove_zero_median:
         bulk_med = bulk.median(axis=1)
