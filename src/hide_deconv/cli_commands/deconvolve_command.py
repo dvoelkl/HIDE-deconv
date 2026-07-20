@@ -44,7 +44,7 @@ def deconvolve_command(
     deconv_model = inquirer.select(
         message="Select deconvolution model:",
         choices=[
-            Choice(value=MODEL_HIDE, name="HIDE"),
+            Choice(value=MODEL_HIDE, name="Hierarchical Deconvolution"),
             Choice(value=MSG_USER_ABORT, name="Abort"),
         ],
         default=None,
@@ -90,7 +90,7 @@ def lambda_validator(val) -> bool:
 
 def deconvolve_hide(hidedeconv_path: Path, alternative_bulk_path=None) -> int:
     """
-    Run HIDE deconvolution on bulk.
+    Run hierarchical deconvolution on bulk.
 
     Parameters
     ----------
@@ -109,7 +109,7 @@ def deconvolve_hide(hidedeconv_path: Path, alternative_bulk_path=None) -> int:
 
     try:
         with console.status(
-            "[bold blue]Running HIDE Deconvolution on bulk RNA seq data...[/bold blue]",
+            "[bold blue]Running Hierarchical Deconvolution on bulk RNA seq data...[/bold blue]",
             spinner="dots",
         ):
             deconvolve_hide_pipeline(hidedeconv_path, alternative_bulk_path)
@@ -131,7 +131,7 @@ def deconvolve_hide(hidedeconv_path: Path, alternative_bulk_path=None) -> int:
     else:
         results_name = f"HIDE_{Path(alternative_bulk_path).stem}"
 
-    console.print("[green]HIDE Deconvolution successful.[/green]")
+    console.print("[green]Hierarchical Deconvolution successful.[/green]")
     console.print(
         f"[dim]Results stored in {str(hidedeconv_path) + f'/results/{results_name}/'}[/dim]"
     )

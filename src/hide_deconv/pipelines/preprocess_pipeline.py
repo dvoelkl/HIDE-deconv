@@ -44,6 +44,7 @@ def preprocessing_pipeline(
         (X_sub, A_sub, Y_train, C_train, X_ls, A_ls)
     """
     hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
+    hconf.domainTransfer = f_domainTransfer
 
     adata = ad.read_h5ad(hconf.sc_file_name)
     bulk = pd.read_csv(hconf.bulk_file_name, index_col=0)
@@ -93,7 +94,7 @@ def preprocessing_pipeline(
                 )
             )
             hconf.domainTransfer = False
-            hconf.save(str(hidedeconv_path) + "/config.json")
+    hconf.save(str(hidedeconv_path) + "/config.json")
 
     # Save files
     if fSave:

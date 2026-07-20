@@ -473,7 +473,7 @@ def cli_config_show(hidedeconv_path: Path) -> None:
 @assert_trained
 def cli_deconv_hide(hidedeconv_path: Path, alternative_bulk=None) -> None:
     """
-    Runs the deconvolution with HIDE.
+    Runs the hierarchical deconvolution.
     """
     from .cli_commands import deconvolve_hide
 

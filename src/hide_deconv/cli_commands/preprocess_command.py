@@ -38,7 +38,6 @@ def preprocess(hidedeconv_path: Path, fDomTransfer) -> int:
 
     hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
     hconf.preprocessed = True
-    hconf.domainTransfer = fDomTransfer
     hconf.save(str(hidedeconv_path) + "/config.json")
 
     console.print("[green]Finished preprocessing[/green]")
