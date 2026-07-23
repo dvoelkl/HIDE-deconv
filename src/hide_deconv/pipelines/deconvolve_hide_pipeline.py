@@ -18,17 +18,17 @@ from torch import float32, tensor
 
 from ..config import hidedeconv_config
 from ..models import HIDE
-from ..preprocessing import create_bulks
-
-
-DOMAIN_TRANSFER_BULK_COUNT = 1000
-DOMAIN_TRANSFER_PREDS_PER_BULK = 5
-DOMAIN_TRANSFER_ALPHA_WINDOW = 25
-DOMAIN_TRANSFER_SEED = 2304
+from ..preprocessing import create_bulks, get_domain_transfer_factor
+from ..constants import (
+    DOMAIN_TRANSFER_ALPHA_WINDOW,
+    DOMAIN_TRANSFER_BULK_COUNT,
+    DOMAIN_TRANSFER_PREDS_PER_BULK,
+    DOMAIN_TRANSFER_SEED,
+)
 
 
 def normalize_bulk_to_cpm(bulk: pd.DataFrame) -> pd.DataFrame:
-    bulk = bulk.copy()
+    bulk = bulk
     if bulk.index.has_duplicates:
         bulk = bulk.groupby(level=0).sum()
 
@@ -64,10 +64,10 @@ def predict_deconvolution_results(
         raise ValueError("adata is required when domain_transfer is enabled.")
 
     common_genes = [gene for gene in model.gene_labels if gene in adata.var_names]
-    adata = adata[:, common_genes].copy()
+    adata = adata[:, common_genes]
     sc.pp.normalize_total(adata, target_sum=1e4)
 
-    y_domain, _ = create_bulks(
+    Y_domain, _ = create_bulks(
         adata,
         domain_transfer_bulk_count,
         n_cells_per_bulk,
@@ -83,10 +83,10 @@ def predict_deconvolution_results(
     )
     starts = list(range(0, n_bulks, window_step))
 
-    common_genes = y_domain.index.intersection(bulk.index).intersection(
+    common_genes = Y_domain.index.intersection(bulk.index).intersection(
         model.gene_labels
     )
-    y_domain = y_domain.loc[common_genes]
+    Y_domain = Y_domain.loc[common_genes]
     bulk = bulk.loc[common_genes]
 
     accum = [{bulk_name: [] for bulk_name in bulk_names} for _ in range(model.L)]
@@ -95,9 +95,13 @@ def predict_deconvolution_results(
         alpha_idx = [(start + offset) % n_bulks for offset in range(alpha_window)]
         alpha_cols = [bulk_names[idx] for idx in alpha_idx]
 
-        y_alpha = bulk.loc[common_genes, alpha_cols]
-        alpha = y_alpha.median(axis=1) / y_domain.median(axis=1)
-        alpha = alpha.replace([np.inf, -np.inf], 0).fillna(1.0).loc[common_genes]
+        Y_alpha = bulk.loc[common_genes, alpha_cols]
+
+        alpha = get_domain_transfer_factor(Y_alpha, Y_domain)
+        alpha = alpha.loc[common_genes]
+        alpha_inv = 1.0 / alpha
+        alpha_inv.replace([np.inf, -np.inf], 0, inplace=True)
+        alpha_inv.fillna(1.0, inplace=True)
 
         test_cols = [
             bulk_name for bulk_name in bulk_names if bulk_name not in alpha_cols
@@ -105,15 +109,15 @@ def predict_deconvolution_results(
         if not test_cols:
             continue
 
-        y_test = bulk.loc[common_genes, test_cols]
-        y_test_adj = y_test.mul(1.0 / alpha, axis=0)
+        Y_test = bulk.loc[common_genes, test_cols]
+        Y_test_adj = Y_test.mul(alpha_inv, axis=0)
 
-        preds = model.predict(y_test_adj, norm=True)["prediction"]
+        preds = model.predict(Y_test_adj, norm=True)["prediction"]
 
         for layer in range(model.L):
-            c_pred = preds[layer]
-            for col in c_pred.columns:
-                accum[layer][col].append(c_pred[[col]])
+            C_est = preds[layer]
+            for col in C_est.columns:
+                accum[layer][col].append(C_est[[col]])
 
     deconv_res: list[pd.DataFrame] = []
     deconv_errs: list[pd.DataFrame] = []
@@ -126,14 +130,14 @@ def predict_deconvolution_results(
             if return_errors:
                 errors.append(stacked.std(axis=1, ddof=0))
 
-        c_mean = pd.concat(means, axis=1)
-        c_mean.columns = bulk_names
-        deconv_res.append(c_mean)
+        C_mean = pd.concat(means, axis=1)
+        C_mean.columns = bulk_names
+        deconv_res.append(C_mean)
 
         if return_errors:
-            c_std = pd.concat(errors, axis=1)
-            c_std.columns = bulk_names
-            deconv_errs.append(c_std)
+            C_std = pd.concat(errors, axis=1)
+            C_std.columns = bulk_names
+            deconv_errs.append(C_std)
 
     if return_errors:
         return deconv_res, deconv_errs
@@ -228,7 +232,7 @@ def deconvolve_hide_pipeline(
     if hconf.domainTransfer:
         adata = ad.read_h5ad(hconf.sc_file_name)
         common_sc_genes = [gene for gene in X_sub.index if gene in adata.var_names]
-        adata = adata[:, common_sc_genes].copy()
+        adata = adata[:, common_sc_genes]
 
         deconv_res, deconv_errs = predict_deconvolution_results(
             hide_model,

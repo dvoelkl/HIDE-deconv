@@ -147,7 +147,7 @@ def deconvolution(
     if len(common_genes) == 0:
         raise ValueError("No shared genes found between adata and bulk.")
 
-    adata = adata[:, common_genes].copy()
+    adata = adata[:, common_genes]
 
     model, adata = setup_model(
         adata,
@@ -159,7 +159,7 @@ def deconvolution(
         seed,
     )
 
-    bulk = bulk.loc[model.gene_labels].copy()
+    bulk = bulk.loc[model.gene_labels]
 
     predictions, _ = predict_deconvolution_results(
         model,
