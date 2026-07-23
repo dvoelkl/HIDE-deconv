@@ -64,7 +64,7 @@ def predict_deconvolution_results(
         raise ValueError("adata is required when domain_transfer is enabled.")
 
     common_genes = [gene for gene in model.gene_labels if gene in adata.var_names]
-    adata = adata[:, common_genes]
+    adata = adata[:, common_genes].copy()
     sc.pp.normalize_total(adata, target_sum=1e4)
 
     Y_domain, _ = create_bulks(
