@@ -67,7 +67,28 @@ This displays a short introduction to the command line interface and gives an ov
 
 ---
 
-## API Example
+## Quick Deconvolution API Example
+HIDE-deconv contains a "lazy" API for users who want quick access to deconvolution.
+
+```python
+import anndata as ad
+import pandas as pd
+from hide_deconv import deconvolution
+
+adata = ad.read_h5ad("single_cells.h5ad")
+bulk = pd.read_csv("bulk.csv", index_col=0) # genes x samples
+
+results = deconvolution(adata, bulk, celltype_cols=["cell_type", "major"]) # Two layer hierarchy
+# results = deconvolution(adata, bulk, celltype_cols="major") # Deconvolution only on major level
+
+# results is a list of pandas DataFrames, one per hierarchy layer
+# results[0] is the finest layer, results[1] the next coarser layer
+```
+
+If you only pass `adata` and `bulk`, `celltype_cols` defaults to `"cell_type"`.
+
+## Extended API Example
+For experienced users offers HIDE-deconv a highly customizable API, where they can integrate their own preprocessing steps into the pipeline. An example is given below.
 
 ```python
 import anndata as ad

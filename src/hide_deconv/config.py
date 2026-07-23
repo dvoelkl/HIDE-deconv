@@ -32,6 +32,7 @@ class hidedeconv_config:
         self.trained = False
 
         # Parameters for domain transfer, currently only set in code. Cannot be set by user (yet!)
+        self.domain_transfer_bulk_count = 1000
         self.preds_per_bulk = 5
         self.alpha_window = 25
 
@@ -56,6 +57,7 @@ class hidedeconv_config:
             "n_hide_iter": self.n_hide_iter,
             "preprocessed": self.preprocessed,
             "domainTransfer": self.domainTransfer,
+            "domain_transfer_bulk_count": self.domain_transfer_bulk_count,
             "preds_per_bulk": self.preds_per_bulk,
             "alpha_window": self.alpha_window,
             "trained": self.trained,
@@ -91,6 +93,9 @@ class hidedeconv_config:
         hconf.n_hide_iter = int(d["n_hide_iter"])
         hconf.preprocessed = d["preprocessed"]
         hconf.domainTransfer = d["domainTransfer"]
+        hconf.domain_transfer_bulk_count = int(
+            d.get("domain_transfer_bulk_count", 1000)
+        )
         hconf.preds_per_bulk = int(d.get("preds_per_bulk", 5))
         hconf.alpha_window = int(d.get("alpha_window", 25))
         hconf.trained = d["trained"]
