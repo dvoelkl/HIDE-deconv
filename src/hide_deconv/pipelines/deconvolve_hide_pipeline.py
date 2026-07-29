@@ -50,6 +50,7 @@ def predict_deconvolution_results(
     seed: int = DOMAIN_TRANSFER_SEED,
     return_errors: bool = False,
 ) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
+
     if not domain_transfer or bulk.shape[1] < alpha_window + preds_per_bulk:
         if domain_transfer and bulk.shape[1] < alpha_window + preds_per_bulk:
             warnings.warn(
@@ -64,8 +65,9 @@ def predict_deconvolution_results(
         raise ValueError("adata is required when domain_transfer is enabled.")
 
     common_genes = [gene for gene in model.gene_labels if gene in adata.var_names]
-    adata = adata[:, common_genes].copy()
+
     sc.pp.normalize_total(adata, target_sum=1e4)
+    adata = adata[:, common_genes].copy()
 
     Y_domain, _ = create_bulks(
         adata,
@@ -231,6 +233,7 @@ def deconvolve_hide_pipeline(
 
     if hconf.domainTransfer:
         adata = ad.read_h5ad(hconf.sc_file_name)
+
         common_sc_genes = [gene for gene in X_sub.index if gene in adata.var_names]
         adata = adata[:, common_sc_genes]
 
