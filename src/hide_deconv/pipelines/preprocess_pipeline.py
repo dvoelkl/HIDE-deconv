@@ -51,7 +51,7 @@ def preprocessing_pipeline(
 
     common_genes = get_common_genes(adata, bulk)
 
-    # Convert to TPM
+    # Convert to CPM
     bulk = (bulk * 1e6) / bulk.sum(axis=0)
     sc.pp.normalize_total(adata, target_sum=1e4)
 

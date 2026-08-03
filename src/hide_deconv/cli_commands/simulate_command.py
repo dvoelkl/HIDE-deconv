@@ -9,6 +9,7 @@ from ..constants import MSG_FAILURE, MSG_SUCCESS
 from ..preprocessing import train_test_split_adata, create_bulks
 from ..preprocessing import get_adata_info
 import anndata as ad
+import scanpy as sc
 from pathlib import Path
 
 from InquirerPy import inquirer, prompt
@@ -122,6 +123,8 @@ def create_simulation(
         with console.status(
             "[bold blue]Splitting AnnData File...[/bold blue]", spinner="dots"
         ):
+            # Normalize Single Cells, such that training and testing happens on the same scale
+            sc.pp.normalize_total(adata, target_sum=1e4)
             train, test = train_test_split_adata(adata, celltype_col, train_frac)
 
         train.write_h5ad(str(output_path) + f"/{ad_path.stem}_train.h5ad")
