@@ -274,11 +274,21 @@ def cli_run_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> int
         return MSG_FAILURE
 
     if Confirm.ask("Run preprocessing now?", default=True):
-        preprocess(hidedeconv_path, fDomTransfer)
+        ret = preprocess(hidedeconv_path, fDomTransfer)
+
+        if ret == MSG_FAILURE:
+            console.print("[red]Preprocessing failed[/red]")
+            return MSG_FAILURE
+
         console.print("[green]Preprocessing completed successfully.[/green]")
 
         if Confirm.ask("Train model now?", default=True):
-            train_model(hidedeconv_path)
+            ret = train_model(hidedeconv_path)
+
+            if ret == MSG_FAILURE:
+                console.print("[red]Preprocessing failed[/red]")
+                return MSG_FAILURE
+
             console.print("[green]Model trained successfully.[/green]")
             if Confirm.ask(
                 "Choose deconvolution model and deconvolve now?", default=True
@@ -384,14 +394,17 @@ def cli_preprocess(hidedeconv_path: Path, fDomTransfer) -> None:
     """
     from .cli_commands import preprocess, train_model
 
-    preprocess(hidedeconv_path, fDomTransfer)
-    console.print("[green]Preprocessing completed successfully[/green]")
-
-    if Confirm.ask("Train model now?", default=True):
-        train_model(hidedeconv_path)
-        console.print("[green]Model trained successfully.[/green]")
+    ret = preprocess(hidedeconv_path, fDomTransfer)
+    if ret == MSG_FAILURE:
+        console.print("[red]Preprocessing failed[/red]")
     else:
-        console.print("[dim]Next step [i]hide-deconv train[/i][/dim]")
+        console.print("[green]Preprocessing completed successfully[/green]")
+
+        if Confirm.ask("Train model now?", default=True):
+            train_model(hidedeconv_path)
+            console.print("[green]Model trained successfully.[/green]")
+        else:
+            console.print("[dim]Next step [i]hide-deconv train[/i][/dim]")
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

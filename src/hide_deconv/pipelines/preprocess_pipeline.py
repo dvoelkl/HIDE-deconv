@@ -49,6 +49,23 @@ def preprocessing_pipeline(
     adata = ad.read_h5ad(hconf.sc_file_name)
     bulk = pd.read_csv(hconf.bulk_file_name, index_col=0)
 
+    if bulk.isna().sum().sum() > 0:
+        warnings.warn(
+            (
+                "There are NaN values in the bulk RNA file, that might lead to errors."
+                "To prevent unexpected behavior, all NaNs were replaced with 0's."
+            )
+        )
+
+        bulk = bulk.fillna(0.0, inplace=False)
+
+    if (bulk < 0.0).sum().sum() > 0:
+        warnings.warn(
+            ("There are negative values in the bulk RNA file.Please check your data.")
+        )
+
+        raise ValueError("Bulk RNA file contains negative values!")
+
     common_genes = get_common_genes(adata, bulk)
 
     # Convert to CPM

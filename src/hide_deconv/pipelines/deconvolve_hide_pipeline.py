@@ -235,7 +235,7 @@ def deconvolve_hide_pipeline(
         adata = ad.read_h5ad(hconf.sc_file_name)
 
         common_sc_genes = [gene for gene in X_sub.index if gene in adata.var_names]
-        adata = adata[:, common_sc_genes]
+        adata = adata[:, common_sc_genes].copy()
 
         deconv_res, deconv_errs = predict_deconvolution_results(
             hide_model,

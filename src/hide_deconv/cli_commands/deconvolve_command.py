@@ -51,11 +51,13 @@ def deconvolve_command(
     ).execute()
 
     # Evaluate user choice
+    ret = MSG_SUCCESS
     if deconv_model == MSG_USER_ABORT:
-        return MSG_USER_ABORT
+        ret = MSG_USER_ABORT
     elif deconv_model == MODEL_HIDE:
-        deconvolve_hide(hidedeconv_path, alternative_bulk_path)
-    return MSG_SUCCESS
+        ret = deconvolve_hide(hidedeconv_path, alternative_bulk_path)
+
+    return ret
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
