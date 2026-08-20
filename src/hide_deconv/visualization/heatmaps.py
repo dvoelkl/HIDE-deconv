@@ -392,8 +392,8 @@ def plot_genemap(X: pd.DataFrame, gene_series, title: str, out_path: Path) -> No
         yticklabels=True,
         # cbar_pos=(0.05, 0.8, 0.03, 0.15),
     )
-    clustermap.ax_heatmap.tick_params(axis="x", labelrotation=90, labelsize=8)
-    clustermap.ax_heatmap.tick_params(axis="y", labelsize=8)
+    clustermap.ax_heatmap.tick_params(axis="x", labelrotation=90, labelsize=16)
+    clustermap.ax_heatmap.tick_params(axis="y", labelsize=16)
     plt.title(f"{title}")
 
     clustermap.savefig(out_path)
