@@ -77,8 +77,8 @@ class TestPlotGeneMap:
         assert captured["figsize"] == (25, 6)
         assert mock_clustermap.saved_path == out_path
         assert mock_clustermap.ax_heatmap.calls == [
-            {"axis": "x", "labelrotation": 90, "labelsize": 8},
-            {"axis": "y", "labelsize": 8},
+            {"axis": "x", "labelrotation": 90, "labelsize": 16},
+            {"axis": "y", "labelsize": 16},
         ]
 
     def test_plot_genemap_scales_figure_with_more_labels(
