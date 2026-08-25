@@ -137,9 +137,9 @@ results = hide.predict(Y_test, norm=True)["prediction"]
 ---
 
 ## Citation
-HIDE-deconv's deconvolution algorithm is based on HIDE: Hierarchical Cell Type Deconvolution. If you use HIDE-deconv, please cite the following article.
+If you use HIDE-deconv, please cite the following article.
 
-Dennis Völkl, Malte Mensching-Buhr, Thomas Sterr, Sarah Bolz, Andreas Schäfer, Nicole Seifert, Jana Tauschke, Austin Rayford, Oddbjørn Straume, Helena U Zacharias, Sushma Nagaraja Grellscheid, Tim Beissbarth, Michael Altenbuchinger, Franziska Görtler, HIDE: hierarchical cell-type deconvolution, Bioinformatics, Volume 41, Issue Supplement_1, July 2025, Pages i207–i216, https://doi.org/10.1093/bioinformatics/btaf179
+...
 
 ---
 
