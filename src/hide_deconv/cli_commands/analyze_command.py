@@ -1342,3 +1342,178 @@ def gene_markerplot(hidedeconv_path: Path) -> int:
             ret = MSG_FAILURE
 
     return ret
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def create_celltype_scatter_plot(hidedeconv_path: Path) -> int:
+    """
+    Create a cell type abundance scatter plot of estimated compositions.
+    """
+
+    from ..visualization import plot_celltype_bar_scatter
+
+    console.print("[bold blue]Cell Type Abundance Plotting[/bold blue]")
+
+    ret = MSG_SUCCESS
+
+    available_projects = get_deconvolution_results(hidedeconv_path)
+
+    if len(available_projects) > 0:
+        selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+
+        celltypes = bulk.index.to_list()
+
+        normalize = inquirer.confirm(
+            message="Normalize proportions by excluding cell types?",
+            default=False,
+        ).execute()
+
+        celltypes_to_normalize_to = []
+
+        if normalize:
+            celltypes_to_normalize_to = inquirer.checkbox(
+                message="Select cell types to exclude before normalization:",
+                choices=celltypes,
+                validate=lambda result: (
+                    True if len(result) > 0 else "Select at least one cell type."
+                ),
+            ).execute()
+
+        available_celltypes = [
+            celltype
+            for celltype in celltypes
+            if celltype not in celltypes_to_normalize_to
+        ]
+
+        display_only = inquirer.confirm(
+            message="Display only specific cell types?",
+            default=False,
+        ).execute()
+
+        displayed_celltypes = []
+
+        if display_only:
+            displayed_celltypes = inquirer.checkbox(
+                message="Select cell types to display:",
+                choices=available_celltypes,
+                validate=lambda result: (
+                    True if len(result) > 0 else "Select at least one cell type."
+                ),
+            ).execute()
+
+        load_sample_sheet = inquirer.confirm(
+            message="Load sample sheet?",
+            default=False,
+        ).execute()
+
+        labeling = []
+        group_name = "Cohorts"
+        out_path = (
+            Path(hidedeconv_path)
+            / "results"
+            / selected_project
+            / selected_ct_layer
+            / "celltype_bar_scatter.png"
+        )
+
+        if load_sample_sheet:
+            samplesheet_path = inquirer.filepath(
+                message="Select sample sheet:",
+                default=str(hidedeconv_path.expanduser()),
+                mandatory=True,
+                mandatory_message=(
+                    "An sample sheet (.csv) must be selected to continue analysis."
+                ),
+                validate=PathValidator(
+                    is_file=True,
+                    message="Input is not a file.",
+                ),
+            ).execute()
+
+            try:
+                sample_sheet = pd.read_csv(samplesheet_path)
+
+                available_sample_cols = sample_sheet.columns.to_list()
+
+                sample_id_col = inquirer.select(
+                    message="Select column that holds sample ids:",
+                    choices=available_sample_cols,
+                    default=available_sample_cols[0],
+                    height=5,
+                ).execute()
+
+                if sample_ids_valid(
+                    sample_sheet[sample_id_col],
+                    bulk.columns.to_list(),
+                ):
+                    available_sample_cols.remove(sample_id_col)
+
+                    cohort_cols = [
+                        Choice(
+                            value=col,
+                            name=f"{col} [Unique Cohorts: "
+                            f"{len(sample_sheet[col].unique())}]",
+                        )
+                        for col in available_sample_cols
+                        if len(sample_sheet[col].unique()) > 1
+                    ]
+
+                    cohort_col = inquirer.select(
+                        message="Select column that will be used to split in cohorts:",
+                        choices=cohort_cols,
+                        height=5,
+                    ).execute()
+
+                    ids, sample_sheet = filter_sample_sheet(
+                        sample_sheet,
+                        sample_id_col,
+                    )
+
+                    bulk = bulk[ids]
+
+                    labeling = sample_sheet[cohort_col].to_list()
+                    group_name = str(cohort_col)
+
+                    out_path = (
+                        Path(hidedeconv_path)
+                        / "results"
+                        / selected_project
+                        / selected_ct_layer
+                        / f"celltype_bar_scatter_"
+                        f"{str(cohort_col).replace(' ', '_')}.png"
+                    )
+
+                else:
+                    console.print(
+                        f"[red]Bulk sample ids are no subset of "
+                        f"{sample_id_col} column of sample sheet.[/red]"
+                    )
+
+                    return ret
+
+            except Exception:
+                console.print_exception()
+
+                console.print("[red]Cannot open sample sheet.[/red]")
+                console.print("[dim]Please provide a valid sample sheet.[/dim]")
+
+                return ret
+
+        with console.status(
+            "[bold blue]Creating cell type abundance plot...[/bold blue]",
+            spinner="dots",
+        ):
+            plot_celltype_bar_scatter(
+                C_est=bulk,
+                out_path=str(out_path),
+                labeling=labeling,
+                displayed_celltypes=displayed_celltypes,
+                celltypes_to_normalize_to=celltypes_to_normalize_to,
+                group_name=group_name,
+                title_suffix=f" - {selected_ct_layer}",
+                show_meta=len(celltypes_to_normalize_to) > 0,
+            )
+
+    return ret

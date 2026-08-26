@@ -5,6 +5,7 @@ from .compositions import (
     plot_umap,
     plot_kmeans_pca,
     plot_kmeans_pca_biplot,
+    plot_celltype_bar_scatter,
 )
 from .anndata import plot_anndata_umap
 from .survival import plot_kaplan_meier_comp, plot_cox_forest, plot_kaplan_meier_cohort
@@ -35,4 +36,5 @@ __all__ = [
     "plot_volcano",
     "plot_hier_heat",
     "plot_genemap",
+    "plot_celltype_bar_scatter",
 ]

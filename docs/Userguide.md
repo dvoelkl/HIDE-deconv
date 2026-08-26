@@ -75,13 +75,13 @@ Additionally the command has certain flags, that can be turned on, that will cha
 - `--censors True` will add marks for censored patients to the plot
 - `--median_surv True` will add dashed lines at 50% survival probability
 
-### 4.5 Identification of compositional clusters
-HIDE-Deconv provides a command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded.
-
-To run the command, use the following syntax: `hide-deconv analyze cluster -p <PathToProject>`
-
-### 4.6 Partial least squares discriminant analysis
+### 4.5 Partial least squares discriminant analysis
 A common alternative to PCA and UMAP is PLS-DA, which is also included in HIDE-Deconv. The command `hide-deconv analyze plsda -p <PathToProject>` will perform a PLS-DA (to be more specific a PLS2-DA) and save the score, vip and loading plot.
+
+### 4.6 Visualizing sample compositions as scatterplot
+HIDE-Deconv provides a command that plots cell-type abundances as scatterplot. Furthermore the command allows to renormalize the estimated composition to certain cell-types, for example, if you want to compare only changes in immune cell populations without the epithelial compartmenet. If a sample sheet is provided, the points are colored by cohorts.
+
+To use the command, use the following syntax: `hide-deconv analyze scatter -p <PathToProject>`
 
 ### 4.7 Benchmarking against known compositions
 If you have ground truth cell proportions, HIDE-Deconv offers a command that calculates various benchmarking metrics, such as correlation coefficients or RMSE estimates. The ground truth data must be provided as a CSV table, with column names representing sample names and row names representing cell types. It’s important to note that all models produce proportions, which naturally sum to 1. The resulting benchmark results are stored as both a table and a plot in the corresponding results directory. Ensure that the cell type names used in the ground truth data match those used in the deconvolution process.
@@ -96,6 +96,10 @@ HIDE-Deconv also provides a command that clusters the cellular compositions with
 
 To run the command, use the following syntax: `hide-deconv analyze kmean -p <PathToProject>`.
 
+### 4.10 Identification of compositional clusters (alternative to K-means)
+HIDE-Deconv provides an alternative clustering command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded. In comparison to k-means it is not necessary to specify the number of clusters beforehand.
+
+To run the command, use the following syntax: `hide-deconv analyze cluster -p <PathToProject>`
 
 ## 5. Single Cell Related Commands
 HIDE-Deconv, which utilizes the AnnData file format for single-cell data, offers specific functions to enhance accessibility for non-programmers when working with this file type.

@@ -683,3 +683,192 @@ def plot_umap(
 
     plt.close(fig)
     # Save plot at out-path
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def plot_celltype_bar_scatter(
+    C_est: pd.DataFrame,
+    out_path: str,
+    labeling: list = [],
+    displayed_celltypes: list = [],
+    celltypes_to_normalize_to=[],
+    group_name: str = "Cohorts",
+    title_suffix: str = "",
+    show_meta: bool = False,
+) -> None:
+    """
+    Plots the cell-type abundance as a scatter plot.
+
+    If labeling is provided, samples are colored by cohort.
+    Renormalizes samples when list of cell-types to renormalize is provided.
+
+    Parameters
+    ----------
+    C_est : pd.DataFrame
+        Composition dataframe (celltypes x samples).
+    out_path : str
+        Filename + path, where the plot will be stored.
+    labeling : list = []
+        List with one cohort label for each sample.
+    displayed_celltypes : list = []
+        Cell types to display. If empty, all cell types are displayed.
+    celltypes_to_normalize_to : list = []
+        Cell types to exclude before sample wise renormalization.
+    group_name : str = "Cohorts"
+        Name of the legend.
+    title_suffix : str = ""
+        Suffix displayed after the figure title.
+    show_meta : bool = False
+        Shows meta information.
+    """
+    point_size = 10
+
+    # Renormalize samples
+    if len(celltypes_to_normalize_to) > 0:
+        C_plot = C_est.drop(index=celltypes_to_normalize_to).copy()
+        sample_sums = C_plot.sum(axis=0)
+        C_plot = C_plot.div(sample_sums, axis=1)
+    else:
+        C_plot = C_est.copy()
+
+    if len(displayed_celltypes) > 0:
+        celltypes = displayed_celltypes
+    else:
+        celltypes = list(C_plot.index)
+
+    if len(celltypes) == 0:
+        raise ValueError("No cell types available for plotting.")
+
+    sns.set_theme(style="whitegrid", context="paper")
+
+    if len(labeling) > 0:
+        labels = pd.Series(labeling, index=C_plot.columns)
+        unique_labels = labels.dropna().unique()
+        palette = dict(zip(unique_labels, sns.color_palette("hls", len(unique_labels))))
+    else:
+        labels = None
+        unique_labels = []
+        palette = None
+
+    if len(unique_labels) > 0:
+        n_cohorts = len(unique_labels)
+        cohort_spacing = 0.28
+        block_height = max(1.0, cohort_spacing * n_cohorts)
+
+        celltype_centers = np.arange(len(celltypes)) * block_height
+        cohort_offsets = (np.arange(n_cohorts) - (n_cohorts - 1) / 2) * cohort_spacing
+    else:
+        celltype_centers = np.arange(len(celltypes))
+        cohort_offsets = np.array([0.0])
+
+    fig, ax = plt.subplots(figsize=(8, max(4, 0.55 * len(celltypes) + 1)))
+
+    for celltype_idx, celltype in enumerate(celltypes):
+        values = C_plot.loc[celltype]
+
+        if len(unique_labels) > 0:
+            for cohort_idx, label in enumerate(unique_labels):
+                sample_mask = labels == label
+                x_values = values.loc[sample_mask].values * 100
+
+                y = celltype_centers[celltype_idx] + cohort_offsets[cohort_idx]
+
+                y_values = np.full(len(x_values), y, dtype=float)
+
+                if len(x_values) > 1:
+                    y_values += np.linspace(-0.07, 0.07, len(x_values))
+
+                ax.scatter(
+                    x_values,
+                    y_values,
+                    color=palette[label],
+                    s=point_size,
+                    alpha=0.75,
+                    zorder=3,
+                    label=label if celltype_idx == 0 else None,
+                )
+
+                mean_value = values.loc[sample_mask].mean() * 100
+
+                ax.vlines(
+                    mean_value,
+                    y - 0.15,
+                    y + 0.15,
+                    linewidth=2,
+                    zorder=4,
+                )
+
+        else:
+            x_values = values.values * 100
+            y = celltype_centers[celltype_idx]
+
+            y_values = np.full(len(x_values), y, dtype=float)
+
+            if len(x_values) > 1:
+                y_values += np.linspace(-0.07, 0.07, len(x_values))
+
+            ax.scatter(
+                x_values,
+                y_values,
+                s=point_size,
+                alpha=0.75,
+                zorder=3,
+            )
+
+        if len(celltypes) > 1:
+            separator_positions = (celltype_centers[:-1] + celltype_centers[1:]) / 2
+
+            for y_sep in separator_positions:
+                ax.axhline(
+                    y=y_sep,
+                    color="0.8",
+                    linewidth=0.8,
+                    linestyle="-",
+                    zorder=1,
+                )
+
+    ax.set_yticks(celltype_centers)
+    ax.set_yticklabels(celltypes)
+    ax.set_xlabel("total abundance (%)")
+    ax.set_ylabel("")
+    ax.set_title(f"Cell type abundance{title_suffix}")
+
+    if len(unique_labels) > 0:
+        ax.legend(
+            title=group_name,
+            bbox_to_anchor=(1.02, 1),
+            loc="upper left",
+        )
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    y_margin = abs(cohort_offsets).max() + 0.25 if len(unique_labels) > 0 else 0.5
+
+    ax.set_ylim(
+        celltype_centers[0] - y_margin,
+        celltype_centers[-1] + y_margin,
+    )
+
+    if show_meta and len(celltypes_to_normalize_to) > 0:
+        fig.subplots_adjust(bottom=0.18)
+        fig.text(
+            0.5,
+            0.04,
+            "Excluded before normalization: " + ", ".join(celltypes_to_normalize_to),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+        )
+    else:
+        fig.tight_layout()
+
+    fig.savefig(
+        out_path,
+        dpi=300,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)

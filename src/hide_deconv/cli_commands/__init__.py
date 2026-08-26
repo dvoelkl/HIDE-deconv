@@ -17,6 +17,7 @@ from .analyze_command import (
     create_umap_plot,
     cell_type_clustering,
     gene_markerplot,
+    create_celltype_scatter_plot,
 )
 from .download_command import download_single_cells
 from .anndata_command import (
@@ -76,4 +77,5 @@ __all__ = [
     "gene_markerplot",
     "convert_csv_from_mtx",
     "convert_adata_from_mtx",
+    "create_celltype_scatter_plot",
 ]
