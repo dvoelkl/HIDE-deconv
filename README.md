@@ -141,6 +141,7 @@ results = hide.predict(Y_test, norm=True)["prediction"]
 If you use HIDE-deconv, please cite the following preprint.
 
 HIDE-Deconv: A hierarchical deconvolution framework for multiscale characterization of cellular remodeling
+
 Dennis Voelkl, Sarah Bolz, Austin Rayford, Thomas Stevenson, Thomas Sterr, Malte Mensching-Buhr, Nicole Seifert, Julia Arp, Cornelia Schuster, Jana Tausche, Laurenz Engel, Helena U. Zacharias, Michael Altenbuchinger, Franziska Görter
 bioRxiv 2026.08.24.746754; doi: https://doi.org/10.64898/2026.08.24.746754
 
