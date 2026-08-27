@@ -62,6 +62,7 @@ def show_help():
         "[bold]hide-deconv analyze pca[/bold]       Plots compositions as PCA plot\n"
         "[bold]hide-deconv analyze umap[/bold]      Plots compositions as UMAP plot\n"
         "[bold]hide-deconv analyze plsda[/bold]     Plots compositions as PLS-DA plot\n"
+        "[bold]hide-deconv analyze scatter[/bold]   Plots compositions as tell-type-wise scatter plot\n"
         "[bold]hide-deconv analyze survival[/bold]  Runs Cox regression\n"
         "[bold]hide-deconv analyze cluster[/bold]   Performs clustering on estimated compositions using Greedy Modularity Communities\n"
         "[bold]hide-deconv analyze kmean[/bold]     Performs k-means clustering and plots PCA\n"
