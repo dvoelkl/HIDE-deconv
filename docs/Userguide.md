@@ -6,6 +6,9 @@ HIDE-Deconv is a Python Command Line Interface designed to simplify the process 
 
 ![HIDE-Deconv Summary](../figures/HIDE-deconv%20Graphical%20summary.png)
 
+
+You can read more about the HIDE-deconv model in the preprint uploaded on [BioRxiv](https://www.biorxiv.org/content/10.64898/2026.08.24.746754v2). Note that the used model is different to our previously published work [HIDE](https://academic.oup.com/bioinformatics/article/41/Supplement_1/i207/8199347).
+
 ## 2. Preliminaries
 
 ### 2.1 Installation
@@ -212,13 +215,23 @@ Additionally the command has certain flags, that can be turned on:
 - `--censors True` will add marks for censored patients to the plot
 - `--median_surv True` will add dashed lines at 50% survival probability
 
-## 8. License
+## 8. Benchmarking HIDE-Deconv
+HIDE-deconv contains a simple command, that splits a given AnnData single cell file into a train and test set, and generates artifical bulks for testing with a known composition. The percentage of cells to remain in the training set can be chosen beforehand.
+
+To run the bulk simulation command, use the following syntax: `hide-deconv simulate`
+
+Simulated validation bulks without an explicitly simulated domain shift should be applied to the model with the domain transfer feature turned off. This can be done by setting the domain transfer flag to false: `hide-deconv run --domain_transfer False`.
+
+After training the model and deconvolving the simulated bulks, it is possible to calculate various deconvolution benchmark metrics by using `hide-deconv analyze benchmark -p <PathToProject>`
+
+
+## 9. License
 HIDE-deconv is licensed under the MIT license. 
 
-## 9. Contributing, Bugs, Feature Requests
+## 10. Contributing, Bugs, Feature Requests
 If you found a bug or have specific feature requests, we encourage you to either contact us or read the [Contributing](../CONTRIBUTING.md) guide on GitHub.
 
-## 10. Contact
+## 11. Contact
 For questions, support or scientific collaboration feel free to contact us per Email:
 - Dennis Voelkl: dennis.k.voelkl(at)uib.no
 - Franziska Goertler: Franziska.Gortler(at)uib.no
