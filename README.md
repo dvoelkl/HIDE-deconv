@@ -1,19 +1,21 @@
 # HIDE-deconv
 
-**Interactive command line tool and Python package for hierarchical deconvolution and multiscale characterization of cellular remodeling from bulk RNA-seq data.**
+**A framework for characterizing cellular remodeling from bulk RNA-seq data through hierarchical cell-type deconvolution.**
 
 ---
 ![HIDE-Deconv Summary](https://github.com/dvoelkl/HIDE-deconv/blob/main/figures/HIDE-deconv-overview_extended.png)
 ---
 
-## Features
+## Key Features
 
-- Designed for AnnData single cell datasets
-- Open Source package, that can be run on safe servers
-- Hierarchical cell type deconvolution for any number of cell type annotation layers
-- Includes methods for post-deconvolution analysis
-- Usable via command line interface and Python API
-- Provides a guided workflow that allows users without programming experience to perform deconvolution
+- Bulk RNA-seq cell-type deconvolution using annotated single-cell references
+- Hierarchical estimation of cell-type compositions across multiple annotation levels
+- Characterization of cellular remodeling across cell populations and biological conditions
+- Configurable domain-transfer and library-size correction
+- Downstream analysis of deconvolution results, including PCA, UMAP, clustering, survival analysis, and differential composition analysis
+- Python API and command-line interface for reproducible workflows
+- Supports AnnData based single-cell workflows
+- Local execution suitable for secure research environments
 
 For a detailed overview of all features and usage, please read the [Userguide](https://github.com/dvoelkl/HIDE-deconv/blob/main/docs/Userguide.md)
 
@@ -126,10 +128,21 @@ Y_test, C_test = create_bulks(adata_test, n_bulks=100, n_cells_per_bulk=100, cel
 hide = HIDE(X_l, A_l)
 hide.train(Y_train, C_train, iter=1000)
 
-# 7. Deconvolution on test data
-results = hide.predict(Y_test, norm=True)["prediction"]
+# 7. Calculate library sizes on the complete single-cell gene set
+library_sizes = (
+	adata.obs.assign(library_size=np.asarray(adata.X.sum(axis=1)).ravel())
+	.groupby("cell_type")["library_size"]
+	.median()
+)
 
-# 8. Optional: Difference in composition analysis
+# 8. Deconvolution on test data
+results = hide.predict(
+	Y_test,
+	norm=True,
+	library_sizes=library_sizes,
+)["prediction"]
+
+# 9. Optional: Difference in composition analysis
 # (requires a sample sheet with columns 'SampleID' and 'Cohort')
 
 # sample_sheet = read_csv("sample_sheet.csv")

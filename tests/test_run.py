@@ -159,7 +159,9 @@ class TestRunCommand:
         monkeypatch.setattr(
             hide_cli,
             "preprocess",
-            lambda path, fDomTransfer: calls["preprocess"].append((path, fDomTransfer)),
+            lambda path, fDomTransfer, flibSizeCorr: calls["preprocess"].append(
+                (path, fDomTransfer, flibSizeCorr)
+            ),
         )
         monkeypatch.setattr(
             hide_cli,
@@ -177,7 +179,9 @@ class TestRunCommand:
             create_confirm_sequence([True, False]),
         )
 
-        result = get_run_callback()(hidedeconv_path=tmp_path, fDomTransfer=False)
+        result = get_run_callback()(
+            hidedeconv_path=tmp_path, fDomTransfer=False, flibSizeCorr=False
+        )
 
         assert result == MSG_SUCCESS
         assert len(calls["preprocess"]) == 1

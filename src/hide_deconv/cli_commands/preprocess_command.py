@@ -19,7 +19,7 @@ console = Console()
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def preprocess(hidedeconv_path: Path, fDomTransfer) -> int:
+def preprocess(hidedeconv_path: Path, fDomTransfer, librarySizeCorrection) -> int:
     """
     Run preprocessing for HIDEOUT by aligning genes between single-cell and bulk data,
     creating reference/hierarchy matrices, generating training bulks and optionally
@@ -31,7 +31,11 @@ def preprocess(hidedeconv_path: Path, fDomTransfer) -> int:
             "[bold blue]Preprocessing single cells and bulk RNA data...[/bold blue]",
             spinner="dots",
         ):
-            preprocessing_pipeline(hidedeconv_path, fDomTransfer)
+            preprocessing_pipeline(
+                hidedeconv_path,
+                f_domainTransfer=fDomTransfer,
+                f_librarySizeCorrection=librarySizeCorrection,
+            )
     except Exception:
         console.print_exception()
         return MSG_FAILURE

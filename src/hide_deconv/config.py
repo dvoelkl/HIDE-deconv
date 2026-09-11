@@ -29,6 +29,7 @@ class hidedeconv_config:
 
         self.preprocessed = False
         self.domainTransfer = True
+        self.LibrarySizeCorrect = True
         self.trained = False
 
         # Parameters for domain transfer, currently only set in code. Cannot be set by user (yet!)
@@ -57,6 +58,7 @@ class hidedeconv_config:
             "n_hide_iter": self.n_hide_iter,
             "preprocessed": self.preprocessed,
             "domainTransfer": self.domainTransfer,
+            "librarySizeCorrection": self.LibrarySizeCorrect,
             "domain_transfer_bulk_count": self.domain_transfer_bulk_count,
             "preds_per_bulk": self.preds_per_bulk,
             "alpha_window": self.alpha_window,
@@ -93,6 +95,7 @@ class hidedeconv_config:
         hconf.n_hide_iter = int(d["n_hide_iter"])
         hconf.preprocessed = d["preprocessed"]
         hconf.domainTransfer = d["domainTransfer"]
+        hconf.LibrarySizeCorrect = d["librarySizeCorrection"]
         hconf.domain_transfer_bulk_count = int(
             d.get("domain_transfer_bulk_count", 1000)
         )

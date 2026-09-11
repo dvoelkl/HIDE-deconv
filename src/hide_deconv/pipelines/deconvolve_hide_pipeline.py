@@ -49,6 +49,7 @@ def predict_deconvolution_results(
     domain_transfer: bool = True,
     seed: int = DOMAIN_TRANSFER_SEED,
     return_errors: bool = False,
+    library_size_correction: pd.Series | None = None,
 ) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
 
     if not domain_transfer or bulk.shape[1] < alpha_window + preds_per_bulk:
@@ -57,7 +58,9 @@ def predict_deconvolution_results(
                 "Not enough bulk samples for the domain-transfer windowing scheme. Estimating composition without domain transfer!"
             )
 
-        predictions = model.predict(bulk, norm=True)["prediction"]
+        predictions = model.predict(
+            bulk, norm=True, library_sizes=library_size_correction
+        )["prediction"]
 
         return predictions, []
 
@@ -114,7 +117,9 @@ def predict_deconvolution_results(
         Y_test = bulk.loc[common_genes, test_cols]
         Y_test_adj = Y_test.mul(alpha_inv, axis=0)
 
-        preds = model.predict(Y_test_adj, norm=True)["prediction"]
+        preds = model.predict(
+            Y_test_adj, norm=True, library_sizes=library_size_correction
+        )["prediction"]
 
         for layer in range(model.L):
             C_est = preds[layer]
@@ -179,6 +184,13 @@ def deconvolve_hide_pipeline(
     # Load model data
     X_sub = pd.read_csv(str(hidedeconv_path) + "/data/X_sub.csv", index_col=0)
     A_sub = pd.read_csv(str(hidedeconv_path) + "/data/A_sub.csv", index_col=0)
+
+    if hconf.LibrarySizeCorrect:
+        library_sizes = pd.read_csv(
+            str(hidedeconv_path) + "/data/library_sizes.csv", index_col=0
+        ).iloc[:, 0]
+    else:
+        library_sizes = None
 
     # Use either the predefined bulk of the configuration or if given an alternative bulk
     if alternative_bulk_path is None:
@@ -249,6 +261,7 @@ def deconvolve_hide_pipeline(
             domain_transfer=True,
             seed=2304,
             return_errors=True,
+            library_size_correction=library_sizes,
         )
 
     else:
@@ -262,6 +275,7 @@ def deconvolve_hide_pipeline(
             preds_per_bulk=hconf.preds_per_bulk,
             alpha_window=hconf.alpha_window,
             domain_transfer=False,
+            library_size_correction=library_sizes,
         )
 
     for layer in range(hide_model.L):

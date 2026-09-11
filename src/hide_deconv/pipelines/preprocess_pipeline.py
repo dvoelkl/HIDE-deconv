@@ -22,8 +22,13 @@ import warnings
 
 
 def preprocessing_pipeline(
-    hidedeconv_path: Path, f_domainTransfer: bool = True, fSave: bool = True
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, list, list]:
+    hidedeconv_path: Path,
+    f_domainTransfer: bool = True,
+    fSave: bool = True,
+    f_librarySizeCorrection: bool = True,
+) -> tuple[
+    pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, list, list, pd.Series
+]:
     """
     Run preprocessing for HIDE-Deconv by aligning genes between single-cell and bulk data,
     creating reference/hierarchy matrices, generating training bulks, and optionally
@@ -37,6 +42,8 @@ def preprocessing_pipeline(
         If True apply gene wise domain-transfer from simulated to observed bulk.
     fSave : bool, default=True
         If True save generated matrices and training data as CSV files.
+    f_librarySizeCorrection : bool, default=True
+        If True correct for library size differences between single cell and real bulk.
 
     Returns
     -------
@@ -45,6 +52,7 @@ def preprocessing_pipeline(
     """
     hconf = hidedeconv_config.load(str(hidedeconv_path) + "/config.json")
     hconf.domainTransfer = f_domainTransfer
+    hconf.LibrarySizeCorrect = f_librarySizeCorrection
 
     adata = ad.read_h5ad(hconf.sc_file_name)
     bulk = pd.read_csv(hconf.bulk_file_name, index_col=0)
@@ -67,6 +75,14 @@ def preprocessing_pipeline(
         raise ValueError("Bulk RNA file contains negative values!")
 
     common_genes = get_common_genes(adata, bulk)
+
+    # Calculate Library Sizes
+    adata.obs["library_size"] = np.asarray(adata.X.sum(axis=1)).ravel()
+    library_sizes = (
+        adata.obs.groupby(hconf.sub_ct_col)["library_size"]
+        .median()
+        .rename("Median_Library_Size")
+    )
 
     # Convert to CPM
     bulk = (bulk * 1e6) / bulk.sum(axis=0)
@@ -121,6 +137,8 @@ def preprocessing_pipeline(
         X_sub.to_csv(str(hidedeconv_path) + "/data/X_sub.csv")
         A_sub.to_csv(str(hidedeconv_path) + "/data/A_sub.csv")
 
+        library_sizes.to_csv(str(hidedeconv_path) + "/data/library_sizes.csv")
+
         bulk.to_csv(str(hidedeconv_path) + "/processed/Y_bulk.csv")
 
         for l3 in range(len(hconf.higher_ct_cols)):
@@ -131,4 +149,4 @@ def preprocessing_pipeline(
                 str(hidedeconv_path) + f"/data/A_{hconf.higher_ct_cols[l3]}.csv"
             )
 
-    return X_sub, A_sub, Y_train, C_train, X_ls, A_ls
+    return X_sub, A_sub, Y_train, C_train, X_ls, A_ls, library_sizes

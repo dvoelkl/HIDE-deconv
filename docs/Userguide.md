@@ -52,6 +52,8 @@ The next step is to select the deconvolution model. Currently, only the HIDE mod
 
 You can access the results of the deconvolution in the results folder, which is located under the subfolder name of the used deconvolution model. Additionally, you can review the error estimates of the models in the files with the err_ prefix.
 
+HIDE-Deconv automatically takes care of accounting for domain transfer between single cell and bulk RNA-seq and necessary library size corrections. These can manually be deactivated by using the `--domain_transfer False` and `--library_size_correction False` flag. The libary size correction should be turned off if you work with normalized bulks. If you are using simulated bulks for benchmarking, please read the chapter 8 on benchmarking HIDE-Deconv.
+
 ## 4. Post Deconvolution Analysis
 HIDE-Deconv offers several methods for analyzing the deconvolution results. All these commands are accessible within the analyze command subgroup. 
 
@@ -220,7 +222,7 @@ HIDE-deconv contains a simple command, that splits a given AnnData single cell f
 
 To run the bulk simulation command, use the following syntax: `hide-deconv simulate`
 
-Simulated validation bulks without an explicitly simulated domain shift should be applied to the model with the domain transfer feature turned off. This can be done by setting the domain transfer flag to false: `hide-deconv run --domain_transfer False`.
+Simulated validation bulks without an explicitly simulated domain shift should be applied to the model with the domain transfer and library size correction feature turned off. This can be done by setting the domain transfer flag to false: `hide-deconv run --domain_transfer False --library_size_correction False`.
 
 After training the model and deconvolving the simulated bulks, it is possible to calculate various deconvolution benchmark metrics by using `hide-deconv analyze benchmark -p <PathToProject>`
 

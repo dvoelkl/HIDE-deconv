@@ -246,7 +246,18 @@ def cli_cohort_km(censors: bool, risk_table: bool, median_surv: bool) -> None:
     show_default=True,
     help="Account for domain transfer between single cell and bulks",
 )
-def cli_run_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> int:
+@click.option(
+    "--library_size_correction",
+    "-lsc",
+    "flibSizeCorr",
+    is_flag=False,
+    default=True,
+    show_default=True,
+    help="Account for different library sizes between single cell and bulks",
+)
+def cli_run_command(
+    hidedeconv_path: Path, fAdv=False, fDomTransfer=True, flibSizeCorr=True
+) -> int:
     """
     Complete walkthrough of the standard deconvolution process.
     Executes all commands necessary from starting a project until the final deconvolution.
@@ -274,7 +285,7 @@ def cli_run_command(hidedeconv_path: Path, fAdv=False, fDomTransfer=True) -> int
         return MSG_FAILURE
 
     if Confirm.ask("Run preprocessing now?", default=True):
-        ret = preprocess(hidedeconv_path, fDomTransfer)
+        ret = preprocess(hidedeconv_path, fDomTransfer, flibSizeCorr)
 
         if ret == MSG_FAILURE:
             console.print("[red]Preprocessing failed[/red]")
@@ -385,8 +396,17 @@ def cli_config_edit(hidedeconv_path: Path, fAdv: bool = False) -> None:
     show_default=True,
     help="Account for domain transfer between single cell and bulks",
 )
+@click.option(
+    "--library_size_correction",
+    "-lsc",
+    "flibSizeCorr",
+    is_flag=False,
+    default=True,
+    show_default=True,
+    help="Account for different library sizes between single cell and bulks",
+)
 @assert_init
-def cli_preprocess(hidedeconv_path: Path, fDomTransfer) -> None:
+def cli_preprocess(hidedeconv_path: Path, fDomTransfer, flibSizeCorr) -> None:
     """
     Run preprocessing for HIDE-Deconv by aligning genes between single-cell and bulk data,
     creating reference/hierarchy matrices, generating training bulks and optionally
@@ -394,7 +414,7 @@ def cli_preprocess(hidedeconv_path: Path, fDomTransfer) -> None:
     """
     from .cli_commands import preprocess, train_model
 
-    ret = preprocess(hidedeconv_path, fDomTransfer)
+    ret = preprocess(hidedeconv_path, fDomTransfer, flibSizeCorr)
     if ret == MSG_FAILURE:
         console.print("[red]Preprocessing failed[/red]")
     else:

@@ -328,6 +328,26 @@ class TestHIDEPrediction:
         expected_samples = [f"sample_{i}" for i in range(1, 51)]
         assert list(result.columns) == expected_samples
 
+    def test_hide_predict_library_size_correction_preserves_normalization(
+        self, sample_reference_data, sample_bulk_data
+    ) -> None:
+        """
+        Test that library size correction keeps normalized predictions normalized.
+        """
+        celltypes = sample_reference_data.columns
+        A_l = [pd.DataFrame(np.eye(10), index=celltypes, columns=celltypes)]
+        model = HIDE([sample_reference_data], A_l)
+        library_sizes = pd.Series(100000, index=celltypes)
+
+        result = model.predict(
+            sample_bulk_data,
+            norm=True,
+            library_sizes=library_sizes,
+        )["prediction"][0]
+
+        assert np.allclose(result.sum(axis=0).to_numpy(), 1.0)
+        assert np.isfinite(result.to_numpy()).all()
+
 
 class TestHIDEModel:
     """

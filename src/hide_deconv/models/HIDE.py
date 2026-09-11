@@ -170,7 +170,10 @@ class HIDE(nn.Module):
 
     @torch.no_grad()
     def predict(
-        self, Y: pd.DataFrame, norm: bool = False
+        self,
+        Y: pd.DataFrame,
+        norm: bool = False,
+        library_sizes: pd.Series | None = None,
     ) -> dict[str, list[pd.DataFrame]]:
         """
         Predicts the cellular composition of a bulk.
@@ -181,6 +184,8 @@ class HIDE(nn.Module):
             Bulk samples to be deconvoluted. (genes x samples)
         norm : bool = False
             Norm the results to one.
+        library_sizes : pd.Series | None = None
+            library_sizes at finest cell type layer. If provided, the results will be corrected for this.
 
         Returns
         -------
@@ -205,6 +210,20 @@ class HIDE(nn.Module):
 
         C_est = torch.linalg.lstsq(B_stack, A_stack).solution
         C_est[C_est < 0] = 0.0
+
+        # Correct for library sizes if provided
+        if library_sizes is not None:
+            library_sizes = 1000000 / library_sizes
+            C_est = torch.tensor(
+                pd.DataFrame(
+                    C_est.detach().cpu().numpy(),
+                    index=self.celltype_layer_labels[0],
+                    columns=sample_names,
+                )
+                .mul(library_sizes, axis=0)
+                .to_numpy(),
+                dtype=torch.float32,
+            )
 
         if norm:
             C_est = C_est / C_est.sum(dim=0)

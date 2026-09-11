@@ -59,7 +59,17 @@ def setup_model(
     n_cells_per_bulk: int,
     n_iter: int,
     seed: int,
-) -> tuple[HIDE, ad.AnnData]:
+    library_sizes: pd.Series | None = None,
+) -> tuple[HIDE, ad.AnnData, pd.Series]:
+
+    # Calculate Library Sizes
+    if library_sizes is None:
+        adata.obs["library_size"] = np.asarray(adata.X.sum(axis=1)).ravel()
+        library_sizes = (
+            adata.obs.groupby(celltype_cols[0])["library_size"]
+            .median()
+            .rename("Median_Library_Size")
+        )
 
     sc.pp.normalize_total(adata, target_sum=1e4)
 
@@ -94,7 +104,7 @@ def setup_model(
     )
     model.train(Y_train, C_train, iter=n_iter)
 
-    return model, adata
+    return model, adata, library_sizes
 
 
 def deconvolution(
@@ -106,6 +116,7 @@ def deconvolution(
     n_cells_per_bulk: int = 100,
     n_iter: int = 1000,
     domain_transfer: bool = True,
+    library_size_correction: bool = True,
     seed: int = 42,
 ) -> list[pd.DataFrame]:
     """
@@ -130,6 +141,8 @@ def deconvolution(
         Number of training iterations.
     domain_transfer : bool, default=True
         Correct for domain transfer between Single Cell and Bulk data.
+    library_size_correction: bool, default = True
+        Correct for library size differences between Single Cell and Bulk data.
     seed : int, default=42
         Random seed for the simulated training bulks.
 
@@ -143,13 +156,19 @@ def deconvolution(
     validate_required_columns(adata, celltype_cols)
 
     bulk = normalize_bulk_to_cpm(bulk)
+    adata.obs["library_size"] = np.asarray(adata.X.sum(axis=1)).ravel()
+    library_sizes = (
+        adata.obs.groupby(celltype_cols[0])["library_size"]
+        .median()
+        .rename("Median_Library_Size")
+    )
     common_genes = get_common_genes(adata, bulk)
     if len(common_genes) == 0:
         raise ValueError("No shared genes found between adata and bulk.")
 
     adata = adata[:, common_genes].copy()
 
-    model, adata = setup_model(
+    model, adata, library_sizes = setup_model(
         adata,
         celltype_cols,
         n_genes,
@@ -157,9 +176,13 @@ def deconvolution(
         n_cells_per_bulk,
         n_iter,
         seed,
+        library_sizes=library_sizes,
     )
 
     bulk = bulk.loc[model.gene_labels]
+
+    if not library_size_correction:
+        library_sizes = None
 
     predictions, _ = predict_deconvolution_results(
         model,
@@ -168,6 +191,7 @@ def deconvolution(
         celltype_cols[0],
         n_cells_per_bulk,
         domain_transfer=domain_transfer,
+        library_size_correction=library_sizes,
     )
 
     return predictions
