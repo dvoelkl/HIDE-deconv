@@ -19,6 +19,28 @@
 
 For a detailed overview of all features and usage, please read the [Userguide](https://github.com/dvoelkl/HIDE-deconv/blob/main/docs/Userguide.md)
 
+## Real world performance: Morandini
+
+As an additional evaluation on real world data, HIDE-deconv was benchmarked on the Morandini bulk RNA-seq dataset using the HaoSub single-cell reference, following the evaluation procedure of the `deconvBench` framework from Dietrich et al. (2026).
+
+| Method          | Pearson R   |    RMSE   |
+| --------------- | ----------: | --------: |
+| AutoGeneS       |       0.819 |     0.182 |
+| BayesPrism      |       0.254 |     0.295 |
+| Bisque          |       0.872 |     0.122 |
+| CIBERSORTx      |       0.648 |     0.193 |
+| DWLS            |       0.909 |     0.103 |
+| MuSiC           |       0.319 |     0.275 |
+| Scaden          |       0.795 |     0.150 |
+| SCDC            |       0.468 |     0.239 |
+| **HIDE-deconv** |   **0.934** | **0.094** |
+
+HIDE-deconv was evaluated independently ([Benchmark scripts](https://github.com/dvoelkl/HIDE-Deconv-Benchmarks)). Results for the other methods are taken from [Dietrich et al. (2026)](https://doi.org/10.1186/s13059-026-03955-w)
+
+
+
+
+
 ## Installation
 
 ```bash
