@@ -51,7 +51,7 @@ def show_help():
         "[bold]hide-deconv preprocess[/bold]        Run preprocessing\n"
         "[bold]hide-deconv train[/bold]             Learn optimal gene weights\n"
         "[bold]hide-deconv deconv[/bold]            Open deconvolution menu\n"
-        "[bold]hide-deconv deconv hide[/bold]       Run HIDE directly\n"
+        "[bold]hide-deconv deconv hide[/bold]       Run the hierarchical deconovlution model directly\n"
         "\n"
         "[bold]hide-deconv config edit[/bold]       Edit configuration\n"
         "[bold]hide-deoncv config show[/bold]       Show configuration\n"

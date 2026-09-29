@@ -174,6 +174,13 @@ def plot_pca(
 
     df = C_est.T
 
+    if len(labeling) > 0:
+        labeling = pd.Series(labeling, index=df.index)
+        mask = labeling.notna()
+
+        df = df.loc[mask]
+        labeling = labeling.loc[mask].tolist()
+
     df_scaled = StandardScaler().fit_transform(df)
 
     pca = PCA(n_components=2)
@@ -388,6 +395,13 @@ def plot_kmeans_pca(
     """
 
     df = C_est.T
+
+    if len(labeling) > 0:
+        labeling = pd.Series(labeling, index=df.index)
+        mask = labeling.notna()
+
+        df = df.loc[mask]
+        labeling = labeling.loc[mask].tolist()
 
     if len(df.index) < n_clusters:
         raise ValueError("Number of clusters must not exceed number of samples.")
@@ -643,6 +657,13 @@ def plot_umap(
 
     df = C_est.T
 
+    if len(labeling) > 0:
+        labeling = pd.Series(labeling, index=df.index)
+        mask = labeling.notna()
+
+        df = df.loc[mask]
+        labeling = labeling.loc[mask].tolist()
+
     df_scaled = StandardScaler().fit_transform(df)
 
     pca = PCA()
@@ -693,7 +714,7 @@ def plot_celltype_bar_scatter(
     out_path: str,
     labeling: list = [],
     displayed_celltypes: list = [],
-    celltypes_to_normalize_to=[],
+    celltypes_to_normalize_to: list = [],
     group_name: str = "Cohorts",
     title_suffix: str = "",
     show_meta: bool = False,

@@ -20,7 +20,11 @@ console = Console()
 
 
 def run_mann_whitney_u(
-    bulks: pd.DataFrame, sample_list: pd.DataFrame, sample_id_col: str, cohort_col: str
+    bulks: pd.DataFrame,
+    sample_list: pd.DataFrame,
+    sample_id_col: str,
+    cohort_col: str,
+    celltypes_to_normalize_to: list = [],
 ) -> pd.DataFrame:
     """
     Performs a Man Whitney U Test with FDR correction for two cohorts.
@@ -35,6 +39,8 @@ def run_mann_whitney_u(
         Name of the column, that links to the bulks
     cohort_col: str
         Name of the column containing the cohort identifiers.
+    celltypes_to_normalize_to : list = []
+        Cell types to exclude before sample wise renormalization.
 
     Returns
     -------
@@ -56,6 +62,13 @@ def run_mann_whitney_u(
         )
 
     group1, group2 = cohorts[0], cohorts[1]
+
+    if len(celltypes_to_normalize_to) > 0:
+        bulks = bulks.drop(index=celltypes_to_normalize_to).copy()
+        sample_sums = bulks.sum(axis=0)
+        bulks = bulks.div(sample_sums, axis=1)
+    else:
+        bulks = bulks.copy()
 
     pvals = []
     mean1, std1, mean2, std2 = [], [], [], []

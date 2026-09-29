@@ -134,6 +134,11 @@ class TestAnalyzeDifferences:
         )
         monkeypatch.setattr(
             analyze_command.inquirer,
+            "confirm",
+            lambda **kwargs: prompt(False),
+        )
+        monkeypatch.setattr(
+            analyze_command.inquirer,
             "filepath",
             lambda **kwargs: prompt(str(sample_sheet_path)),
         )

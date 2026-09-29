@@ -18,7 +18,11 @@ console = Console()
 
 
 def run_kruskal_wallis(
-    bulks: pd.DataFrame, sample_list: pd.DataFrame, sample_id_col: str, cohort_col: str
+    bulks: pd.DataFrame,
+    sample_list: pd.DataFrame,
+    sample_id_col: str,
+    cohort_col: str,
+    celltypes_to_normalize_to: list = [],
 ) -> pd.DataFrame:
     """
     Performs a Kruskal Wallis Test with FDR correction.
@@ -33,6 +37,8 @@ def run_kruskal_wallis(
         Name of the column, that links to the bulks
     cohort_col: str
         Name of the column containing the cohort identifiers.
+    celltypes_to_normalize_to : list = []
+        Cell types to exclude before sample wise renormalization.
 
     Returns
     -------
@@ -62,6 +68,13 @@ def run_kruskal_wallis(
         console.print(
             "[dim]It is recommended, that each cohort contains at least 5 samples.[/dim]"
         )
+
+    if len(celltypes_to_normalize_to) > 0:
+        bulks = bulks.drop(index=celltypes_to_normalize_to).copy()
+        sample_sums = bulks.sum(axis=0)
+        bulks = bulks.div(sample_sums, axis=1)
+    else:
+        bulks = bulks.copy()
 
     pvals = []
     valid_celltypes = []

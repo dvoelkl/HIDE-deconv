@@ -230,6 +230,22 @@ def analyze_differences(hidedeconv_path: Path) -> int:
     if len(available_projects) > 0:
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
 
+        normalize = inquirer.confirm(
+            message="Normalize proportions by excluding cell types?",
+            default=False,
+        ).execute()
+
+        celltypes_to_normalize_to = []
+
+        if normalize:
+            celltypes_to_normalize_to = inquirer.checkbox(
+                message="Select cell types to exclude before normalization:",
+                choices=bulk.index.to_list(),
+                validate=lambda result: (
+                    True if len(result) > 0 else "Select at least one cell type."
+                ),
+            ).execute()
+
         # Load samplesheet
         samplesheet_path = inquirer.filepath(
             message="Select sample sheet:",
@@ -293,7 +309,11 @@ def analyze_differences(hidedeconv_path: Path) -> int:
                         spinner="dots",
                     ):
                         mwu_res = run_mann_whitney_u(
-                            bulk, sample_sheet, sample_id_col, cohort_col
+                            bulk,
+                            sample_sheet,
+                            sample_id_col,
+                            cohort_col,
+                            celltypes_to_normalize_to,
                         )
                         mwu_res.to_csv(
                             str(hidedeconv_path)
@@ -323,7 +343,11 @@ def analyze_differences(hidedeconv_path: Path) -> int:
                         spinner="dots",
                     ):
                         krus_res = run_kruskal_wallis(
-                            bulk, sample_sheet, sample_id_col, cohort_col
+                            bulk,
+                            sample_sheet,
+                            sample_id_col,
+                            cohort_col,
+                            celltypes_to_normalize_to,
                         )
 
                     with console.status(
