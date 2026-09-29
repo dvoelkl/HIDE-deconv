@@ -224,7 +224,6 @@ def plot_pca(
             df=df,
             pca_df=pca_df,
             out_path=out_path,
-            labeling=labeling,
             group_name=group_name,
             title_suffix=title_suffix,
         )
@@ -242,7 +241,6 @@ def plot_pca_biplot(
     df: pd.DataFrame,
     pca_df: pd.DataFrame,
     out_path: str,
-    labeling: list = [],
     group_name: str = "Cohorts",
     title_suffix: str = "",
 ) -> None:
@@ -257,15 +255,31 @@ def plot_pca_biplot(
     biplot_fig, biplot_ax = plt.subplots(figsize=(7, 5))
     sns.set_theme(style="whitegrid", context="paper")
 
-    if len(labeling) > 0:
+    if "labels" in pca_df.columns:
         labels = pca_df["labels"].dropna().unique()
         palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
+
         sns.scatterplot(
-            x="PC1", y="PC2", data=pca_df, hue="labels", ax=biplot_ax, palette=palette
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            hue="labels",
+            ax=biplot_ax,
+            palette=palette,
         )
-        biplot_ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
+
+        biplot_ax.legend(
+            title=group_name,
+            bbox_to_anchor=(1.02, 1),
+            loc="upper left",
+        )
     else:
-        sns.scatterplot(x="PC1", y="PC2", data=pca_df, ax=biplot_ax)
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=pca_df,
+            ax=biplot_ax,
+        )
 
     feature_magnitudes = np.sqrt(np.sum(loadings[:, :2] ** 2, axis=1))
     top_features = np.argsort(feature_magnitudes)[::-1][: min(10, len(df.columns))]
@@ -483,7 +497,6 @@ def plot_kmeans_pca(
             pca_df=pca_df,
             out_path=out_path,
             kmeans=kmeans,
-            labeling=labeling,
             group_name=group_name,
             title_suffix=title_suffix,
         )
@@ -503,7 +516,6 @@ def plot_kmeans_pca_biplot(
     pca_df: pd.DataFrame,
     out_path: str,
     kmeans: KMeans,
-    labeling: list = [],
     group_name: str = "Cohorts",
     title_suffix: str = "",
 ) -> None:
@@ -538,7 +550,7 @@ def plot_kmeans_pca_biplot(
 
     plot_kmean_bgrd(biplot_ax, kmeans, X_pca[:, 0], X_pca[:, 1])
 
-    if len(labeling) > 0 and "labels" in pca_df.columns:
+    if "labels" in pca_df.columns:
         labels = pca_df["labels"].dropna().unique()
         palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
 
@@ -553,9 +565,17 @@ def plot_kmeans_pca_biplot(
             edgecolor="white",
             linewidth=0.4,
         )
-        biplot_ax.legend(title=group_name, bbox_to_anchor=(1.02, 1), loc="upper left")
+
+        biplot_ax.legend(
+            title=group_name,
+            bbox_to_anchor=(1.02, 1),
+            loc="upper left",
+        )
+
     else:
-        pca_df.loc[:, "cluster_label"] = pca_df["cluster"].astype(str)
+        pca_df = pca_df.copy()
+        pca_df["cluster_label"] = pca_df["cluster"].astype(str)
+
         cluster_palette = dict(
             zip(
                 [str(i) for i in range(n_clusters)],
@@ -574,7 +594,12 @@ def plot_kmeans_pca_biplot(
             edgecolor="white",
             linewidth=0.4,
         )
-        biplot_ax.legend(title="Cluster", bbox_to_anchor=(1.02, 1), loc="upper left")
+
+        biplot_ax.legend(
+            title="Cluster",
+            bbox_to_anchor=(1.02, 1),
+            loc="upper left",
+        )
 
     feature_magnitudes = np.sqrt(np.sum(loadings[:, :2] ** 2, axis=1))
     top_features = np.argsort(feature_magnitudes)[::-1][: min(10, len(df.columns))]
