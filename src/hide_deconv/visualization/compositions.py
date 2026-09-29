@@ -192,7 +192,6 @@ def plot_pca(
     sns.set_theme(style="whitegrid", context="paper")
 
     if len(labeling) > 0:
-        assert len(labeling) == len(C_est.columns)
         pca_df.loc[:, "labels"] = labeling
 
         labels = pca_df["labels"].dropna().unique()
@@ -437,7 +436,6 @@ def plot_kmeans_pca(
     plot_kmean_bgrd(ax, kmeans, X_pca[:, 0], X_pca[:, 1])
 
     if len(labeling) > 0:
-        assert len(labeling) == len(C_est.columns)
         pca_df.loc[:, "labels"] = labeling
 
         labels = pca_df["labels"].dropna().unique()
@@ -709,7 +707,6 @@ def plot_umap(
     sns.set_theme(style="whitegrid", context="paper")
 
     if len(labeling) > 0:
-        assert len(labeling) == len(C_est.columns)
         umap_df.loc[:, "labels"] = labeling
 
         labels = umap_df["labels"].dropna().unique()
