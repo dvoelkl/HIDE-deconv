@@ -78,6 +78,8 @@ class HIDE(nn.Module):
             TimeRemainingColumn(),
         )
 
+        self.epsilon = 1e-8 # small epsilon to prevent errors
+
     def get_loss(self, C: torch.float64, C_est: torch.float64):
         corr_terms = []
         nmse_terms = []
@@ -99,13 +101,13 @@ class HIDE(nn.Module):
             vh = C_est_l - mu_h
 
             num = (vt * vh).sum(dim=1)
-            den = torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1)))
+            den = torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1)))+ self.epsilon
             r = num / den
 
             corr_terms.append(-r.mean())
 
             nmse_num = (C_l - C_est_l).pow(2).sum()
-            nmse_den = (C_l).pow(2).sum()
+            nmse_den = (C_l).pow(2).sum() + self.epsilon
             nmse_terms.append(nmse_num / nmse_den)
 
         corr_loss = torch.stack(corr_terms).mean()
