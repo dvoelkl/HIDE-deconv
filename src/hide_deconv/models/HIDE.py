@@ -55,13 +55,13 @@ class HIDE(nn.Module):
         self.p, _ = X_l[0].shape
         self.q_l = [len(X.columns) for X in X_l]
 
-        self.A_l = [torch.tensor(A.to_numpy(), dtype=torch.float32) for A in A_l]
-        self.X_l = [torch.tensor(X.to_numpy(), dtype=torch.float32) for X in X_l]
+        self.A_l = [torch.tensor(A.to_numpy(), dtype=torch.float64) for A in A_l]
+        self.X_l = [torch.tensor(X.to_numpy(), dtype=torch.float64) for X in X_l]
 
         self.g_l = nn.ParameterList(
             [
                 nn.Parameter(
-                    torch.empty(self.p, dtype=torch.float32).uniform_(0.001, 0.1),
+                    torch.empty(self.p, dtype=torch.float64).uniform_(0.001, 0.1),
                     requires_grad=True,
                 )
                 for _ in range(self.L)
@@ -78,9 +78,13 @@ class HIDE(nn.Module):
             TimeRemainingColumn(),
         )
 
-    def get_loss(self, C, C_est):
+    def get_loss(self, C: torch.float64, C_est: torch.float64):
         corr_terms = []
         nmse_terms = []
+
+        # Ensure all datatypes are the same, as PyTorch tends to throw errors
+        C = C.to(dtype=self.A_l[0].dtype)
+        C_est = C_est.to(dtype=self.A_l[0].dtype)
 
         for layer in range(self.L):
             A = self.A_l[layer]
@@ -128,8 +132,8 @@ class HIDE(nn.Module):
         list
             Loss per epoch.
         """
-        Y = torch.tensor(Y.to_numpy(), dtype=torch.float32)
-        C = torch.tensor(C.to_numpy(), dtype=torch.float32)
+        Y = torch.tensor(Y.to_numpy(), dtype=torch.float64)
+        C = torch.tensor(C.to_numpy(), dtype=torch.float64)
 
         optim = torch.optim.Adam(self.parameters(), lr=0.001)
 
@@ -196,7 +200,7 @@ class HIDE(nn.Module):
         """
 
         sample_names = list(Y.columns)
-        Y = torch.tensor(Y.to_numpy(), dtype=torch.float32)
+        Y = torch.tensor(Y.to_numpy(), dtype=torch.float64)
 
         A_l = []
         B_l = []
@@ -222,7 +226,7 @@ class HIDE(nn.Module):
                 )
                 .mul(library_sizes, axis=0)
                 .to_numpy(),
-                dtype=torch.float32,
+                dtype=torch.float64,
             )
 
         if norm:
