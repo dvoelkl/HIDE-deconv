@@ -156,8 +156,9 @@ class HIDE(nn.Module):
 
                 A_stack = torch.vstack(A_l)
                 B_stack = torch.vstack(B_l)
-
-                C_est = torch.linalg.lstsq(B_stack, A_stack, driver="gelsd").solution
+                print(torch.isfinite(B_stack).sum())
+                print(torch.isfinite(A_stack).sum())
+                C_est = torch.linalg.lstsq(B_stack, A_stack).solution
                 loss, _, _ = self.get_loss(C, C_est)
 
                 loss.backward()
@@ -216,7 +217,7 @@ class HIDE(nn.Module):
         A_stack = torch.vstack(A_l)
         B_stack = torch.vstack(B_l)
 
-        C_est = torch.linalg.lstsq(B_stack, A_stack, driver="gelsd").solution
+        C_est = torch.linalg.lstsq(B_stack, A_stack).solution
         C_est[C_est < 0] = 0.0
 
         # Correct for library sizes if provided
