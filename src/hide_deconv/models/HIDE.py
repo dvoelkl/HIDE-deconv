@@ -78,7 +78,7 @@ class HIDE(nn.Module):
             TimeRemainingColumn(),
         )
 
-        self.epsilon = 1e-8 # small epsilon to prevent errors
+        self.epsilon = 1e-8  # small epsilon to prevent errors
 
     def get_loss(self, C: torch.float64, C_est: torch.float64):
         corr_terms = []
@@ -101,7 +101,9 @@ class HIDE(nn.Module):
             vh = C_est_l - mu_h
 
             num = (vt * vh).sum(dim=1)
-            den = torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1)))+ self.epsilon
+            den = (
+                torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1))) + self.epsilon
+            )
             r = num / den
 
             corr_terms.append(-r.mean())
@@ -155,7 +157,7 @@ class HIDE(nn.Module):
                 A_stack = torch.vstack(A_l)
                 B_stack = torch.vstack(B_l)
 
-                C_est = torch.linalg.lstsq(B_stack, A_stack).solution
+                C_est = torch.linalg.lstsq(B_stack, A_stack, driver="gelsd").solution
                 loss, _, _ = self.get_loss(C, C_est)
 
                 loss.backward()
@@ -214,7 +216,7 @@ class HIDE(nn.Module):
         A_stack = torch.vstack(A_l)
         B_stack = torch.vstack(B_l)
 
-        C_est = torch.linalg.lstsq(B_stack, A_stack).solution
+        C_est = torch.linalg.lstsq(B_stack, A_stack, driver="gelsd").solution
         C_est[C_est < 0] = 0.0
 
         # Correct for library sizes if provided
