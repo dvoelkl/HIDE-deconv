@@ -101,9 +101,12 @@ class HIDE(nn.Module):
             vh = C_est_l - mu_h
 
             num = (vt * vh).sum(dim=1)
-            den = (
-                torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1))) + self.epsilon
-            )
+            var_t = vt.pow(2).sum(dim=1)
+            var_h = vh.pow(2).sum(dim=1)
+            den = torch.sqrt(var_t * var_h + self.epsilon)
+            #den = (
+            #    torch.sqrt((vt.pow(2).sum(dim=1) * vh.pow(2).sum(dim=1))) + self.epsilon
+            #)
             r = num / den
 
             corr_terms.append(-r.mean())
