@@ -1379,6 +1379,21 @@ def gene_markerplot(hidedeconv_path: Path) -> int:
                 + "/markermap.png"
             )
 
+            if not os.path.exists(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+            ):
+                os.mkdir(
+                    str(hidedeconv_path)
+                    + "/results/"
+                    + selected_project
+                    + "/"
+                    + selected_ct_layer
+                )
+
             plot_genemap(
                 X,
                 relevant_genes_ordered.index[0 : int(n_genes_to_display)],
@@ -1465,6 +1480,23 @@ def create_celltype_scatter_plot(hidedeconv_path: Path) -> int:
             / selected_ct_layer
             / "celltype_bar_scatter.png"
         )
+
+        if not os.path.exists(
+            str(hidedeconv_path)
+            + "/results/"
+            + selected_project
+            + "/"
+            + selected_ct_layer
+            + "/"
+        ):
+            os.mkdir(
+                str(hidedeconv_path)
+                + "/results/"
+                + selected_project
+                + "/"
+                + selected_ct_layer
+                + "/"
+            )
 
         if load_sample_sheet:
             samplesheet_path = inquirer.filepath(
