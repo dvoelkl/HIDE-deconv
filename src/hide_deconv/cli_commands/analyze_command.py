@@ -492,6 +492,12 @@ def benchmark_result(hidedeconv_path: Path) -> int:
             console.print_exception()
             ret = MSG_FAILURE
 
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
+
     return ret
 
 
@@ -610,6 +616,12 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
             console.print_exception()
             console.print("[red]Cannot open sample sheet.[/red]")
             console.print("[dim]Please provide a valid sample sheet.[/dim]")
+
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
 
     return ret
 
@@ -730,6 +742,12 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
             console.print("[red]Cannot open sample sheet.[/red]")
             console.print("[dim]Please provide a valid sample sheet.[/dim]")
 
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
+
     return ret
 
 
@@ -816,6 +834,12 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
             console.print_exception()
             console.print("[red]Cannot open sample sheet.[/red]")
             console.print("[dim]Please provide a valid sample sheet.[/dim]")
+
+    else:
+        console.print(
+            f"[red]No deconvolved project available at {hidedeconv_path.expanduser()}[/red]"
+        )
+        ret = MSG_FAILURE
 
     return ret
 

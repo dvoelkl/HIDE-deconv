@@ -280,6 +280,17 @@ def get_deconvolution_results(hidedeconv_path: Path) -> list[str]:
                     if name.startswith("C_") and name.endswith(".csv"):
                         layer = Path(name).stem[2:]
                         composition_layers.add(layer)
+                if len(composition_layers) > len(necessary_filenames):
+                    console.print(
+                        "[red]Warning: More files found in results folder than expected![/red]"
+                    )
+                    console.print(
+                        "[dim]Please ensure, that only the estimated compositions are stored as files starting with [i]C_[/i].[/dim]"
+                    )
+                    console.print(
+                        f"[dim]Identified {composition_layers} as composition layers.[/dim]"
+                    )
+                    console.print(f"[dim]Expected {necessary_filenames}.[/dim]")
 
                 if composition_layers == necessary_filenames:
                     ret.append(Path(folder).stem)
