@@ -1,0 +1,42 @@
+site_name: HIDE-deconv
+site_description: Hierarchical Cell Type Deconvolution
+site_url: https://dvoelkl.github.io/HIDE-deconv/
+repo_name: dvoelkl/HIDE-deconv
+repo_url: https://github.com/dvoelkl/HIDE-deconv
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.highlight
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            members_order: source
+            show_source: true
+            show_root_heading: true
+            show_object_full_path: false
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - User guide: Userguide.md
+  - API:
+      - Overview: api/index.md
+      - Preprocessing: api/preprocessing.md
+      - Models: api/models.md
+      - Statistics: api/statistics.md
