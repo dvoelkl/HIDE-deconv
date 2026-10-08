@@ -35,8 +35,16 @@ markdown_extensions:
 nav:
   - Home: index.md
   - User guide: Userguide.md
+  - Examples:
+      - Quick API: examples/quick-api.md
+      - Extended API: examples/extended-api.md
   - API:
       - Overview: api/index.md
       - Preprocessing: api/preprocessing.md
+      - Deconvolution: api/deconvolution.md
       - Models: api/models.md
       - Statistics: api/statistics.md
+      - Visualization: api/visualization.md
+  - CLI:
+      - Overview: cli/index.md
+      - Analyze: cli/analyze.md

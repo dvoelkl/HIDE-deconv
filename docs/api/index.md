@@ -1,7 +1,7 @@
 # Python API
 
-The Python API is organized into preprocessing, model, pipeline, statistical
-and visualization components.
+The Python API is organized into preprocessing, deconvolution, model,
+statistical and visualization components.
 
 The main workflow is:
 
@@ -11,3 +11,17 @@ The main workflow is:
 4. Apply domain-transfer and library-size corrections where required.
 5. Predict cell-type proportions.
 6. Analyze and visualize the resulting compositions.
+
+## Public API
+
+The package-level convenience function is:
+
+::: hide_deconv.deconvolution
+
+The lower-level API is grouped by responsibility:
+
+- [Preprocessing](preprocessing.md)
+- [Deconvolution](deconvolution.md)
+- [Models](models.md)
+- [Statistics](statistics.md)
+- [Visualization](visualization.md)

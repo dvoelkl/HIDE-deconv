@@ -119,7 +119,7 @@ results = deconvolution(adata, bulk, celltype_cols=["cell_type", "major"]) # Two
 If you only pass `adata` and `bulk`, `celltype_cols` defaults to `"cell_type"`.
 
 ## Extended API Example
-For experienced users offers HIDE-deconv a highly customizable API, where they can integrate their own preprocessing steps into the pipeline. An example is given below.
+For experienced users offers HIDE-deconv a highly customizable API, where they can integrate their own preprocessing steps into the pipeline. An example is given below. For a detailed description of the API we refer to [GitHub Pages](https://dvoelkl.github.io/HIDE-deconv/)
 
 ```python
 import anndata as ad

@@ -13,3 +13,5 @@ Python API.
 - [Preprocessing API](api/preprocessing.md)
 - [Models API](api/models.md)
 - [Statistics API](api/statistics.md)
+- [Visualization API](api/visualization.md)
+- [CLI reference](cli/index.md)
