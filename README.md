@@ -17,7 +17,7 @@
 - Supports AnnData based single-cell workflows
 - Local execution suitable for secure research environments
 
-For a detailed overview of all features and usage, please read the [Userguide](https://github.com/dvoelkl/HIDE-deconv/blob/main/docs/Userguide.md)
+For a detailed overview of all features and usage, please read the [Userguide](https://github.com/dvoelkl/HIDE-deconv/blob/main/docs/Userguide.md). The API documentation can be found on [GitHub Pages](https://dvoelkl.github.io/HIDE-deconv/).
 
 ## Real world performance: Morandini
 
