@@ -100,7 +100,7 @@ def run_plsda(
 
     Parameters
     ----------
-    C_est : pd.DataFrame
+    data : pd.DataFrame
         Estimated composition to be used for PLS-DA
     sample_sheet : pd.DataFrame
         Samples sheet holding clinical metainformation

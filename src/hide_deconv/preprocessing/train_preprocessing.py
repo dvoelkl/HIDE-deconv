@@ -87,13 +87,13 @@ def create_reference(
     ----------
     adata : anndata.AnnData
         Input expression data.
-    ct_col : str, default="cell_type"
+    celltype_col : str, default="cell_type"
         Column in adata.obs containing the cell type labels used for averaging over the gene expressions.
 
     Returns
     -------
     pd.DataFrame
-       A gene x cell type pandas DataFrame containing the archetypal gene expression profiles of each cell type.
+        A gene x cell type pandas DataFrame containing the archetypal gene expression profiles of each cell type.
 
     """
 

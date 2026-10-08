@@ -4,7 +4,7 @@
 ## 1. Overview
 HIDE-Deconv is a Python Command Line Interface designed to simplify the process of deconvolution. It serves as an intuitive interface for deconvolution models, providing users with the ability to preprocess single-cell files and conduct statistical post-analyses of deconvolution results. This guide aims to provide an overview of all available commands and the recommended workflow for using HIDE-Deconv.
 
-![HIDE-Deconv Summary](../figures/HIDE-deconv%20Graphical%20summary.png)
+![HIDE-Deconv Summary](https://raw.githubusercontent.com/dvoelkl/HIDE-deconv/main/figures/HIDE-deconv%20Graphical%20summary.png)
 
 
 You can read more about the HIDE-deconv model in the preprint uploaded on [BioRxiv](https://www.biorxiv.org/content/10.64898/2026.08.24.746754v2). Note that the used model is different to our previously published work [HIDE](https://academic.oup.com/bioinformatics/article/41/Supplement_1/i207/8199347).
@@ -233,7 +233,7 @@ After training the model and deconvolving the simulated bulks, it is possible to
 HIDE-deconv is licensed under the MIT license. 
 
 ## 10. Contributing, Bugs, Feature Requests
-If you found a bug or have specific feature requests, we encourage you to either contact us or read the [Contributing](../CONTRIBUTING.md) guide on GitHub.
+If you found a bug or have specific feature requests, we encourage you to either contact us or read the [Contributing](https://github.com/dvoelkl/HIDE-deconv/blob/main/CONTRIBUTING.md) guide on GitHub.
 
 ## 11. Contact
 For questions, support or scientific collaboration feel free to contact us per Email:
