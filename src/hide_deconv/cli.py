@@ -667,6 +667,14 @@ def cli_analyze_benchmark(hidedeconv_path: Path) -> None:
 
 @cli_analyze.command("pca")
 @click.option(
+    "--map-others",
+    "-mo",
+    "map_others",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
+    help="CSV files with compositions to project into the plot.",
+)
+@click.option(
     "--path",
     "-p",
     "hidedeconv_path",
@@ -678,13 +686,13 @@ def cli_analyze_benchmark(hidedeconv_path: Path) -> None:
     help="Path, where the HIDE-Deconv project structure is located.",
 )
 @assert_trained
-def cli_analyze_pca(hidedeconv_path: Path) -> None:
+def cli_analyze_pca(hidedeconv_path: Path, map_others: tuple[Path, ...]) -> None:
     """
     Perform a principal component analysis on the deconvoluted bulk and save the resulting scatter plot.
     """
     from .cli_commands import create_pca_plot
 
-    create_pca_plot(hidedeconv_path)
+    create_pca_plot(hidedeconv_path, map_others)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -692,30 +700,13 @@ def cli_analyze_pca(hidedeconv_path: Path) -> None:
 
 @cli_analyze.command("umap")
 @click.option(
-    "--path",
-    "-p",
-    "hidedeconv_path",
-    default=".",
-    show_default=True,
-    type=click.Path(
-        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
-    ),
-    help="Path, where the HIDE-Deconv project structure is located.",
+    "--map-others",
+    "-mo",
+    "map_others",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
+    help="CSV files with compositions to project into the plot.",
 )
-@assert_trained
-def cli_analyze_umap(hidedeconv_path: Path) -> None:
-    """
-    Perform a principal component analysis and uniform manifold projection on the deconvoluted bulk and save the resulting scatter plot.
-    """
-    from .cli_commands import create_umap_plot
-
-    create_umap_plot(hidedeconv_path)
-
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-@cli_analyze.command("plsda")
 @click.option(
     "--path",
     "-p",
@@ -728,13 +719,46 @@ def cli_analyze_umap(hidedeconv_path: Path) -> None:
     help="Path, where the HIDE-Deconv project structure is located.",
 )
 @assert_trained
-def cli_analyze_plsda(hidedeconv_path: Path) -> None:
+def cli_analyze_umap(hidedeconv_path: Path, map_others: tuple[Path, ...]) -> None:
+    """
+    Perform a principal component analysis and uniform manifold projection on the deconvoluted bulk and save the resulting scatter plot.
+    """
+    from .cli_commands import create_umap_plot
+
+    create_umap_plot(hidedeconv_path, map_others)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_analyze.command("plsda")
+@click.option(
+    "--map-others",
+    "-mo",
+    "map_others",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path),
+    help="CSV files with compositions to project into the plot.",
+)
+@click.option(
+    "--path",
+    "-p",
+    "hidedeconv_path",
+    default=".",
+    show_default=True,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path, where the HIDE-Deconv project structure is located.",
+)
+@assert_trained
+def cli_analyze_plsda(hidedeconv_path: Path, map_others: tuple[Path, ...]) -> None:
     """
     Performs a partial least squares discriminant analysis and saves the resulting plots.
     """
     from .cli_commands import create_plsda_plot
 
-    create_plsda_plot(hidedeconv_path)
+    create_plsda_plot(hidedeconv_path, map_others)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

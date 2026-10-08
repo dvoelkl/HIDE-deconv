@@ -29,6 +29,38 @@ console = Console()
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+def load_datasets_to_map(
+    map_others: tuple[Path, ...], bulk: pd.DataFrame
+) -> tuple[list[pd.DataFrame], list[str]] | None:
+    """
+    Loads and validates composition datasets for projection into an analysis plot.
+    """
+    datasets_to_map = []
+    labels_data_map = []
+
+    try:
+        for map_path in map_others:
+            dataset = pd.read_csv(map_path, index_col=0)
+            if set(dataset.index) != set(bulk.index):
+                console.print(
+                    f"[red]The cell type labels in {map_path} do not match the selected composition.[/red]"
+                )
+                return None
+
+            datasets_to_map.append(dataset.reindex(bulk.index))
+            labels_data_map.append(Path(map_path).stem)
+    except Exception:
+        console.print_exception()
+        console.print("[red]Cannot open mapped composition.[/red]")
+        console.print("[dim]Please provide valid composition CSV files.[/dim]")
+        return None
+
+    return datasets_to_map, labels_data_map
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 def create_hdiff_plot(hidedeconv_path: Path) -> int:
     """
     Create a hierarchical difference heatmap for two cohorts.
@@ -504,7 +536,7 @@ def benchmark_result(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def create_pca_plot(hidedeconv_path: Path) -> int:
+def create_pca_plot(hidedeconv_path: Path, map_others: tuple[Path, ...] = ()) -> int:
     """
     Create a pca plot of deconvolved compositions. Guides through selecting a deconvolution project and sample sheet
     with clinical meta information.
@@ -531,6 +563,10 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
     if len(available_projects) > 0:
         # Load project, ct_layer and bulk
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+        mapped_data = load_datasets_to_map(map_others, bulk)
+        if mapped_data is None:
+            return MSG_FAILURE
+        datasets_to_map, labels_data_map = mapped_data
 
         # Create subfolder in results for storing each cell type layer independently
         if not os.path.exists(
@@ -606,6 +642,8 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
                     group_name=cohort_col,
                     title_suffix=" Composition",
                     biplot=True,
+                    datasets_to_map=datasets_to_map,
+                    labels_data_map=labels_data_map,
                 )
             else:
                 console.print(
@@ -629,7 +667,7 @@ def create_pca_plot(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def create_umap_plot(hidedeconv_path: Path) -> int:
+def create_umap_plot(hidedeconv_path: Path, map_others: tuple[Path, ...] = ()) -> int:
     """
     Create a umap plot of deconvolved compositions. Guides through selecting a deconvolution project and sample sheet
     with clinical meta information.
@@ -655,6 +693,10 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
     if len(available_projects) > 0:
         # Load project, ct_layer and bulk
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+        mapped_data = load_datasets_to_map(map_others, bulk)
+        if mapped_data is None:
+            return MSG_FAILURE
+        datasets_to_map, labels_data_map = mapped_data
 
         # Create subfolder in results for storing each cell type layer independently
         if not os.path.exists(
@@ -731,6 +773,8 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
                     labeling=labels,
                     group_name=cohort_col,
                     title_suffix=" Composition",
+                    datasets_to_map=datasets_to_map,
+                    labels_data_map=labels_data_map,
                 )
             else:
                 console.print(
@@ -754,7 +798,7 @@ def create_umap_plot(hidedeconv_path: Path) -> int:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def create_plsda_plot(hidedeconv_path: Path) -> int:
+def create_plsda_plot(hidedeconv_path: Path, map_others: tuple[Path, ...] = ()) -> int:
     """
     Create a PLS-DA plot of estimated compositions.
     """
@@ -768,6 +812,10 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
 
     if len(available_projects) > 0:
         selected_project, selected_ct_layer, bulk = load_project_bulk(hidedeconv_path)
+        mapped_data = load_datasets_to_map(map_others, bulk)
+        if mapped_data is None:
+            return MSG_FAILURE
+        datasets_to_map, labels_data_map = mapped_data
 
         samplesheet_path = inquirer.filepath(
             message="Select sample sheet:",
@@ -824,7 +872,15 @@ def create_plsda_plot(hidedeconv_path: Path) -> int:
                     "[bold blue]Running PLS-DA...[/bold blue]",
                     spinner="dots",
                 ):
-                    run_plsda(bulk, sample_sheet, sample_id_col, cohort_col, out_path)
+                    run_plsda(
+                        bulk,
+                        sample_sheet,
+                        sample_id_col,
+                        cohort_col,
+                        out_path,
+                        datasets_to_map=datasets_to_map,
+                        labels_data_map=labels_data_map,
+                    )
             else:
                 console.print(
                     f"[red]Bulk sample ids are no subset of {sample_id_col} column of sample sheet.[/red]"

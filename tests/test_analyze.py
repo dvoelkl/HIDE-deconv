@@ -405,6 +405,35 @@ class TestPcaAndUmap:
     Tests for pca and umap helper commands.
     """
 
+    def test_load_datasets_to_map_validates_indices(self, tmp_path, capsys) -> None:
+        bulk = pd.DataFrame([[1, 2]], index=["ct_a"], columns=["sample_1", "sample_2"])
+        mapped_path = tmp_path / "mapped.csv"
+        pd.DataFrame([[1, 2]], index=["ct_b"], columns=["mapped_1", "mapped_2"]).to_csv(
+            mapped_path
+        )
+
+        result = analyze_command.load_datasets_to_map((mapped_path,), bulk)
+
+        assert result is None
+        assert "cell type labels" in capsys.readouterr().out
+
+    def test_load_datasets_to_map_returns_data_and_file_labels(self, tmp_path) -> None:
+        bulk = pd.DataFrame([[1, 2]], index=["ct_a"], columns=["sample_1", "sample_2"])
+        mapped_path = tmp_path / "mapped_study.csv"
+        pd.DataFrame([[3, 4]], index=["ct_a"], columns=["mapped_1", "mapped_2"]).to_csv(
+            mapped_path
+        )
+
+        result = analyze_command.load_datasets_to_map((mapped_path,), bulk)
+
+        assert result is not None
+        datasets, labels = result
+        assert labels == ["mapped_study"]
+        pd.testing.assert_frame_equal(
+            datasets[0],
+            pd.DataFrame([[3, 4]], index=["ct_a"], columns=["mapped_1", "mapped_2"]),
+        )
+
     def test_create_pca_plot_uses_reindexed_labels(self, monkeypatch, tmp_path) -> None:
         """
         Test that create_pca_plot aligns cohort labels to bulk column order.
@@ -491,10 +520,18 @@ class TestPcaAndUmap:
 
         captured = {}
 
-        def capture_plot_umap(data, out_path, labeling, group_name, title_suffix=""):
+        def capture_plot_umap(
+            data,
+            out_path,
+            labeling,
+            group_name,
+            title_suffix="",
+            **kwargs,
+        ):
             captured["labeling"] = labeling
             captured["group_name"] = group_name
             captured["out_path"] = out_path
+            captured["kwargs"] = kwargs
 
         monkeypatch.setattr(
             analyze_command, "get_deconvolution_results", lambda path: ["proj"]
@@ -522,6 +559,8 @@ class TestPcaAndUmap:
         assert result == MSG_SUCCESS
         assert captured["labeling"] == ["A", "B"]
         assert captured["group_name"] == "Cohort"
+        assert captured["kwargs"]["datasets_to_map"] == []
+        assert captured["kwargs"]["labels_data_map"] == []
         assert captured["out_path"].endswith("/results/proj/sub/umap_sub_Cohort.png")
 
     def test_create_kmean_plot_saves_assignments_and_uses_labels(

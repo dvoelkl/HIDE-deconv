@@ -151,6 +151,8 @@ def plot_pca(
     group_name: str = "Cohorts",
     title_suffix: str = "",
     biplot: bool = False,
+    datasets_to_map: list[pd.DataFrame] = [],
+    labels_data_map: list[str] = [],
 ) -> None:
     """
     Performs a principal component analysis on the given composition and plots the result as a scatterplot.
@@ -173,26 +175,51 @@ def plot_pca(
     """
 
     df = C_est.T
+    label_values = list(labeling)
 
-    if len(labeling) > 0:
-        labeling = pd.Series(labeling, index=df.index)
-        mask = labeling.notna()
+    if label_values:
+        labels_series = pd.Series(label_values, index=df.index)
+        mask = labels_series.notna()
 
         df = df.loc[mask]
-        labeling = labeling.loc[mask].tolist()
+        label_values = labels_series.loc[mask].tolist()
 
-    df_scaled = StandardScaler().fit_transform(df)
+    scaler = StandardScaler()
+    df_scaled = scaler.fit_transform(df)
 
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(df_scaled)
 
     pca_df = pd.DataFrame(X_pca, index=df.index, columns=["PC1", "PC2"])
+    if len(datasets_to_map) != len(labels_data_map):
+        raise ValueError("Mapped datasets and labels must have the same length.")
+
+    mapped_pca = []
+    mapped_labels = []
+    for dataset, label in zip(datasets_to_map, labels_data_map):
+        mapped_df = dataset.T.reindex(columns=df.columns)
+        mapped_pca.append(
+            pd.DataFrame(
+                pca.transform(scaler.transform(mapped_df)),
+                index=mapped_df.index,
+                columns=["PC1", "PC2"],
+            )
+        )
+        mapped_labels.extend([label] * len(mapped_df))
+
+    if mapped_pca:
+        mapped_pca_df = pd.concat(mapped_pca)
+        pca_df = pd.concat([pca_df, mapped_pca_df])
 
     fig, ax = plt.subplots(figsize=(7, 5))
     sns.set_theme(style="whitegrid", context="paper")
 
-    if len(labeling) > 0:
-        pca_df.loc[:, "labels"] = labeling
+    if label_values or mapped_labels:
+        if mapped_labels:
+            label_values = [*label_values, *mapped_labels]
+            if len(label_values) < len(pca_df):
+                label_values = [None] * (len(pca_df) - len(label_values)) + label_values
+        pca_df.loc[:, "labels"] = label_values
 
         labels = pca_df["labels"].dropna().unique()
         palette = dict(zip(labels, sns.color_palette("hls", len(labels))))
@@ -659,6 +686,8 @@ def plot_umap(
     labeling: list = [],
     group_name="Cohorts",
     title_suffix: str = "",
+    datasets_to_map: list[pd.DataFrame] = [],
+    labels_data_map: list[str] = [],
 ) -> None:
     """
     Performs a principal component analysis combined with an universal manifold projection on the given composition and plots the result.
@@ -679,15 +708,17 @@ def plot_umap(
     """
 
     df = C_est.T
+    label_values = list(labeling)
 
-    if len(labeling) > 0:
-        labeling = pd.Series(labeling, index=df.index)
-        mask = labeling.notna()
+    if label_values:
+        labels_series = pd.Series(label_values, index=df.index)
+        mask = labels_series.notna()
 
         df = df.loc[mask]
-        labeling = labeling.loc[mask].tolist()
+        label_values = labels_series.loc[mask].tolist()
 
-    df_scaled = StandardScaler().fit_transform(df)
+    scaler = StandardScaler()
+    df_scaled = scaler.fit_transform(df)
 
     pca = PCA()
     X_pca = pca.fit_transform(df_scaled)
@@ -702,12 +733,36 @@ def plot_umap(
         },
         index=df.index,
     )
+    if len(datasets_to_map) != len(labels_data_map):
+        raise ValueError("Mapped datasets and labels must have the same length.")
+
+    mapped_umap = []
+    mapped_labels = []
+    for dataset, label in zip(datasets_to_map, labels_data_map):
+        mapped_df = dataset.T.reindex(columns=df.columns)
+        mapped_umap.append(
+            pd.DataFrame(
+                reducer.transform(pca.transform(scaler.transform(mapped_df))),
+                index=mapped_df.index,
+                columns=["UMAP1", "UMAP2"],
+            )
+        )
+        mapped_labels.extend([label] * len(mapped_df))
+
+    if mapped_umap:
+        umap_df = pd.concat([umap_df, *mapped_umap])
 
     fig, ax = plt.subplots(figsize=(7, 5))
     sns.set_theme(style="whitegrid", context="paper")
 
-    if len(labeling) > 0:
-        umap_df.loc[:, "labels"] = labeling
+    if label_values or mapped_labels:
+        if mapped_labels:
+            label_values = [*label_values, *mapped_labels]
+            if len(label_values) < len(umap_df):
+                label_values = [None] * (
+                    len(umap_df) - len(label_values)
+                ) + label_values
+        umap_df.loc[:, "labels"] = label_values
 
         labels = umap_df["labels"].dropna().unique()
         palette = dict(zip(labels, sns.color_palette("hls", len(labels))))

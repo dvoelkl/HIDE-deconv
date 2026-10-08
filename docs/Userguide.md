@@ -57,8 +57,10 @@ HIDE-Deconv automatically takes care of accounting for domain transfer between s
 ## 4. Post Deconvolution Analysis
 HIDE-Deconv offers several methods for analyzing the deconvolution results. All these commands are accessible within the analyze command subgroup. 
 
-### 4.1 PCA and UMAP Plotting
-To visualize the deconvolution results using either PCA or UMAP, execute the command `hide-deconv analyze <umap/pca> -p <PathToProject>`. This command will prompt you to select the desired model and cell type layer from submenus. Additionally, you’ll be asked to specify the path of the sample sheet and the column containing IDs for assigning bulk samples with their corresponding metadata. Finally, you’ll need to select the metadata to divide the results into cohorts. The generated plots will be located in the results folder of the chosen model.
+### 4.1 PCA, UMAP and PLS-DA Plotting
+To visualize the deconvolution results using PCA, UMAP or PLS-DA, execute the command `hide-deconv analyze <pca/umap/plsda> -p <PathToProject>`. This command will prompt you to select the desired model and cell type layer from submenus. Additionally, you’ll be asked to specify the path of the sample sheet and the column containing IDs for assigning bulk samples with their corresponding metadata. Finally, you’ll need to select the metadata to divide the results into cohorts. The generated plots will be located in the results folder of the chosen model.
+
+Existing composition datasets can be projected into the PCA, UMAP or PLS-DA calculated from the selected dataset by providing one or more CSV files with `--map-others` (or `-mo`). Repeat the option for multiple files, for example `hide-deconv analyze pca -p <PathToProject> -mo <PathToComposition1.csv> -mo <PathToComposition2.csv>`. The CSV files must use the same cell type labels as the selected composition. The mapped datasets do not influence the calculated components and are shown as additional entries in the plot legend.
 
 ### 4.2 Statistical Differences
 HIDE-Deconv also provides an interface to test for statistical differences in the cellular composition of specific cohorts. Based on the number of available cohorts, HIDE-Deconv automatically determines whether to perform a Mann-Whitney-U test between two cohorts or a Kruskal-Wallis test with a post hoc Dunn test to identify the significantly different cohort among multiple cohorts. In all cases, the p-value is adjusted for multiple testing.

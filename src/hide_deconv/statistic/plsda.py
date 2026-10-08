@@ -91,6 +91,8 @@ def run_plsda(
     sample_id_col: str,
     cohort_col: str,
     out_path: Path,
+    datasets_to_map: list[pd.DataFrame] = [],
+    labels_data_map: list[str] = [],
 ) -> pd.DataFrame:
     """
     Runs a PLS-DA (PLS2) model and saves the corresponding plots
@@ -120,8 +122,12 @@ def run_plsda(
     classes = sorted(labels.unique())
     y = pd.get_dummies(labels, dtype=float).reindex(columns=classes, fill_value=0.0)
 
+    if len(datasets_to_map) != len(labels_data_map):
+        raise ValueError("Mapped datasets and labels must have the same length.")
+
     x = data.T.to_numpy(dtype=float)
-    x = StandardScaler().fit_transform(x)
+    scaler = StandardScaler()
+    x = scaler.fit_transform(x)
 
     n_components = min(2, x.shape[0], x.shape[1], y.shape[1])
     if n_components < 2:
@@ -136,6 +142,24 @@ def run_plsda(
         columns=["PLS1", "PLS2"],
     )
     scores[cohort_col] = labels.reindex(scores.index).values
+
+    mapped_scores = []
+    for dataset, label in zip(datasets_to_map, labels_data_map):
+        if set(dataset.index) != set(data.index):
+            raise ValueError("Mapped datasets must have the same cell type labels.")
+        mapped_data = dataset.reindex(data.index)
+
+        mapped_x = scaler.transform(mapped_data.T.to_numpy(dtype=float))
+        mapped_scores.append(
+            pd.DataFrame(
+                model.transform(mapped_x)[:, :2],
+                index=mapped_data.columns,
+                columns=["PLS1", "PLS2"],
+            ).assign(**{cohort_col: label})
+        )
+
+    if mapped_scores:
+        scores = pd.concat([scores, *mapped_scores])
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
