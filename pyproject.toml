@@ -1,11 +1,14 @@
 [project]
 name = "hide-deconv"
-version = "0.4.1"
+version = "0.4.2"
 description = "HIDE-Deconv - Hierarchical Cell Type Deconvolution"
 authors = [
     {name = "Dennis Voelkl",email = "dennis.k.volkl@uib.no"},
     {name = "Franziska Goertler",email = "Franziska.Gortler@uib.no"}
 ]
+
+keywords = [ "Bioinformatics", "Computational Biology", "Deconvolution", "Tumor Microenvironment", "RNA-seq" ]
+
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.12,<3.15,!=3.14.1"
@@ -35,6 +38,7 @@ dependencies = [
 Homepage = "https://github.com/dvoelkl/HIDE-deconv"
 Repository = "https://github.com/dvoelkl/HIDE-deconv"
 Issues = "https://github.com/dvoelkl/HIDE-deconv/issues"
+Documentation = "https://dvoelkl.github.io/HIDE-deconv/"
 
 
 
@@ -48,4 +52,9 @@ hide-deconv = "hide_deconv.cli:cli"
 dev = [
     "pytest (>=9.0.3,<10.0.0)",
     "ipykernel (>=7.2.0,<8.0.0)"
+]
+
+[tool.poetry]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
 ]
