@@ -34,7 +34,8 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - User guide: Userguide.md
+  - Installation: Installation.md
+  - CLI User guide: Userguide.md
   - Examples:
       - Quick API: examples/quick-api.md
       - Extended API: examples/extended-api.md

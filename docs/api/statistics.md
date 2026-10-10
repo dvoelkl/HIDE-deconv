@@ -2,10 +2,6 @@
 
 ## PLS-DA
 
-::: hide_deconv.statistic.plsda.prepare_plsda_inputs
-
-::: hide_deconv.statistic.plsda.calculate_vip
-
 ::: hide_deconv.statistic.run_plsda
 
 ## Cohort differences

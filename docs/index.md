@@ -8,7 +8,8 @@ Python API.
 
 ## Quick links
 
-- [User guide](Userguide.md)
+- [Installation](Installation.md)
+- [CLI User guide](Userguide.md)
 - [Python API](api/index.md)
 - [Preprocessing API](api/preprocessing.md)
 - [Models API](api/models.md)
