@@ -1,0 +1,67 @@
+cff-version: 1.2.0
+message: "If you use HIDE-deconv, please cite the preprint listed under preferred-citation."
+type: software
+title: "HIDE-deconv: Hierarchical cell-type deconvolution and analysis of bulk RNA-seq data using single-cell references"
+abstract: >-
+  HIDE-deconv is a Python package and command line interface for hierarchical
+  cell-type deconvolution of bulk RNA-seq data using annotated single-cell
+  references. It jointly estimates cellular compositions across multiple
+  levels of a cell-type hierarchy and integrates reference construction,
+  model training, deconvolution, statistical analysis and visualization.
+authors:
+  - family-names: Voelkl
+    given-names: Dennis
+    affiliation: University of Bergen
+    orcid: https://orcid.org/0009-0001-9550-8434
+  - family-names: Görtler
+    given-names: Franziska
+    affiliation: University of Bergen
+    orcid: https://orcid.org/0000-0003-2015-5766
+doi: 10.5281/zenodo.22122668
+license: MIT
+repository-code: "https://github.com/dvoelkl/HIDE-deconv"
+url: "https://dvoelkl.github.io/HIDE-deconv/"
+keywords:
+  - bioinformatics
+  - deconvolution
+  - hierarchical deconvolution
+  - bulk RNA-seq
+  - single-cell RNA-seq
+  - transcriptomics
+  - tumor microenvironment
+preferred-citation:
+  type: article
+  title: "HIDE-Deconv: A hierarchical deconvolution framework for multiscale characterization of cellular remodeling"
+  authors:
+    - family-names: Voelkl
+      given-names: Dennis
+    - family-names: Bolz
+      given-names: Sarah
+    - family-names: Rayford
+      given-names: Austin
+    - family-names: Stevenson
+      given-names: Thomas
+    - family-names: Sterr
+      given-names: Thomas
+    - family-names: Mensching-Buhr
+      given-names: Malte
+    - family-names: Seifert
+      given-names: Nicole
+    - family-names: Arp
+      given-names: Julia
+    - family-names: Schuster
+      given-names: Cornelia
+    - family-names: Tausche
+      given-names: Jana
+    - family-names: Engel
+      given-names: Laurenz
+    - family-names: Zacharias
+      given-names: Helena U.
+    - family-names: Altenbuchinger
+      given-names: Michael
+    - family-names: Görtler
+      given-names: Franziska
+  journal: bioRxiv
+  year: 2026
+  doi: 10.64898/2026.08.24.746754
+  url: "https://doi.org/10.64898/2026.08.24.746754"
