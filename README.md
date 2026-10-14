@@ -2,6 +2,10 @@
 
 **A framework for characterizing cellular remodeling from bulk RNA-seq data through hierarchical cell-type deconvolution.**
 
+> **Note:** HIDE-deconv is not the same method as our previously published
+> [HIDE](https://academic.oup.com/bioinformatics/article/41/Supplement_1/i207/8199347) (Bioinformatics, 2025).
+> HIDE-deconv uses a new model for hierarchical deconvolution that jointly optimizes all hierarchy levels.
+
 ---
 ![HIDE-Deconv Summary](https://github.com/dvoelkl/HIDE-deconv/blob/main/figures/HIDE-deconv-overview_extended.png)
 ---
@@ -185,6 +189,7 @@ results = hide.predict(
 ```
 
 ---
+
 
 ## Citation
 If you use HIDE-deconv, please cite the following preprint.
