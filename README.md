@@ -33,16 +33,12 @@ As an additional evaluation on real world data, HIDE-deconv was benchmarked on t
 | MuSiC           |       0.319 |     0.275 |
 | Scaden          |       0.795 |     0.150 |
 | SCDC            |       0.468 |     0.239 |
-| **HIDE-deconv (1)** |   **0.934** | **0.094** |
-| **HIDE-deconv (2)** |   **0.933** | **0.094** |
+| **HIDE-deconv v0.1.10** |   **0.926** | **0.098** |
+| **HIDE-deconv v0.4.0**  |   **0.933** | **0.094** |
 
-HIDE-deconv (1) was trained and evaluated at the resolution of the cell types defined in the Hao single-cell reference, without specifying a hierarchy.
+Both HIDE-deconv runs were trained and evaluated using a three-level cell-type hierarchy, analogous to the hierarchical aggregation used for the FACS benchmarking. HIDE-deconv v0.1.10 corresponds to the version used in the preprint.
 
-HIDE-deconv (2) was trained and evaluated using a three-level cell-type hierarchy, analogous to the hierarchical aggregation used for the FACS benchmarking.
-
-HIDE-deconv was evaluated independently ([Benchmark scripts](https://github.com/dvoelkl/HIDE-Deconv-Benchmarks)). Results for the other methods are taken from [Dietrich et al. (2026)](https://doi.org/10.1186/s13059-026-03955-w)
-
-
+HIDE-deconv was evaluated independently. Benchmark scripts and results for further configurations, including runs without a cell-type hierarchy, are available in the [benchmark repository](https://github.com/dvoelkl/HIDE-Deconv-Benchmarks). Results for the other methods are taken from [Dietrich et al. (2026)](https://doi.org/10.1186/s13059-026-03955-w).
 
 
 
