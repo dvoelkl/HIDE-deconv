@@ -1,5 +1,7 @@
 # HIDE-deconv
 
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/hide-deconv/README.html)
+
 **A framework for characterizing cellular remodeling from bulk RNA-seq data through hierarchical cell-type deconvolution.**
 
 > **Note:** HIDE-deconv is not the same method as our previously published
