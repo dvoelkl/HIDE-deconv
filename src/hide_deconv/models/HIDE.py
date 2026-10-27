@@ -46,6 +46,9 @@ class HIDE(nn.Module):
         """
         super().__init__()
 
+        # Set generator with fixed seed for reproducible training
+        generator = torch.Generator().manual_seed(42)
+
         self.L = len(A_l)
         self.lambdaNMSE = lambdaNMSE
 
@@ -61,7 +64,9 @@ class HIDE(nn.Module):
         self.g_l = nn.ParameterList(
             [
                 nn.Parameter(
-                    torch.empty(self.p, dtype=torch.float64).uniform_(0.001, 0.1),
+                    torch.empty(self.p, dtype=torch.float64).uniform_(
+                        0.001, 0.1, generator=generator
+                    ),
                     requires_grad=True,
                 )
                 for _ in range(self.L)
