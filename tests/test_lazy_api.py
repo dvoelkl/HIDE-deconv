@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from hide_deconv import deconvolution
+from hide_deconv.pipelines import lazy_deconvolution_pipeline as lazy_pipeline
 
 
 def make_test_adata() -> ad.AnnData:
@@ -97,3 +98,34 @@ def test_deconvolution_defaults_to_cell_type_column() -> None:
 
     assert len(results) == 1
     assert results[0].shape == (4, 2)
+
+
+def test_deconvolution_passes_domain_transfer_parameters(monkeypatch) -> None:
+    adata = make_test_adata()
+    bulk = make_test_bulk()
+    calls = {}
+
+    def predict(model, adata, bulk, celltype_col, n_cells_per_bulk, **kwargs):
+        calls.update(kwargs)
+        return model.predict(bulk, norm=True)["prediction"], []
+
+    monkeypatch.setattr(lazy_pipeline, "predict_deconvolution_results", predict)
+
+    deconvolution(
+        adata,
+        bulk,
+        n_genes=4,
+        n_train_bulks=8,
+        n_cells_per_bulk=4,
+        n_iter=2,
+        domain_transfer_bulk_count=50,
+        preds_per_bulk=3,
+        alpha_window=10,
+        domain_transfer_seed=7,
+    )
+
+    assert calls["domain_transfer"] is True
+    assert calls["domain_transfer_bulk_count"] == 50
+    assert calls["preds_per_bulk"] == 3
+    assert calls["alpha_window"] == 10
+    assert calls["seed"] == 7

@@ -17,17 +17,7 @@ from InquirerPy.validator import PathValidator
 
 from rich.console import Console
 
-"""
-Planned implementations:
-- AnnData Train Test split
-- Interface to various scanpy function:
-    - scanpy.pp.filter_cells ?
-    - scanpy.pp.filter_genes
-    -
-- Analysis functions, e.g.
-    - https://pydeseq2.readthedocs.io/en/stable/
 
-"""
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 console = Console()

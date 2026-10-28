@@ -14,7 +14,7 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 import scanpy as sc
-from torch import float32, tensor
+from torch import float64, tensor
 
 from ..config import hidedeconv_config
 from ..models import HIDE
@@ -51,6 +51,29 @@ def normalize_bulk_to_cpm(bulk: pd.DataFrame) -> pd.DataFrame:
     bulk = (bulk * 1e6) / bulk.sum(axis=0)
     bulk = bulk.replace([np.inf, -np.inf], 0).fillna(0)
     return bulk
+
+
+def get_domain_transfer_windows(
+    bulk_names: list,
+    alpha_window: int,
+    preds_per_bulk: int,
+    seed: int,
+) -> list[list]:
+
+    sorted_names = sorted(bulk_names)
+    permutation = np.random.default_rng(seed).permutation(len(sorted_names))
+    order = [sorted_names[idx] for idx in permutation]
+
+    n_bulks = len(order)
+    window_step = max(
+        1,
+        int(round((n_bulks - alpha_window) / preds_per_bulk)),
+    )
+
+    return [
+        [order[(start + offset) % n_bulks] for offset in range(alpha_window)]
+        for start in range(0, n_bulks, window_step)
+    ]
 
 
 def predict_deconvolution_results(
@@ -147,12 +170,9 @@ def predict_deconvolution_results(
     )
 
     bulk_names = bulk.columns.tolist()
-    n_bulks = len(bulk_names)
-    window_step = max(
-        1,
-        int(round((n_bulks - alpha_window) / preds_per_bulk)),
+    windows = get_domain_transfer_windows(
+        bulk_names, alpha_window, preds_per_bulk, seed
     )
-    starts = list(range(0, n_bulks, window_step))
 
     common_genes = Y_domain.index.intersection(bulk.index).intersection(
         model.gene_labels
@@ -162,10 +182,7 @@ def predict_deconvolution_results(
 
     accum = [{bulk_name: [] for bulk_name in bulk_names} for _ in range(model.L)]
 
-    for start in starts:
-        alpha_idx = [(start + offset) % n_bulks for offset in range(alpha_window)]
-        alpha_cols = [bulk_names[idx] for idx in alpha_idx]
-
+    for alpha_cols in windows:
         Y_alpha = bulk.loc[common_genes, alpha_cols]
 
         alpha = get_domain_transfer_factor(Y_alpha, Y_domain)
@@ -306,7 +323,7 @@ def deconvolve_hide_pipeline(
                 index_col=0,
             ).to_numpy()
         hide_model.g_l[layer] = tensor(
-            g_l[:, 0], dtype=float32
+            g_l[:, 0], dtype=float64
         )  # manually set type, otherwise torch might be unhappy!
 
     if hconf.domainTransfer:

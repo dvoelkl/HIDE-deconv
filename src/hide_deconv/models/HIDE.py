@@ -126,6 +126,15 @@ class HIDE(nn.Module):
 
         return total_loss, corr_loss, nmse_loss
 
+    def gene_weights(self) -> list[torch.Tensor]:
+
+        weights = []
+        for layer in range(self.L):
+            g = torch.sqrt(self.g_l[layer] ** 2)
+            weights.append(g * self.p / g.sum())
+
+        return weights
+
     def train(self, Y: pd.DataFrame, C: pd.DataFrame, iter: int = 1000) -> list:
         """
         Trains the HIDE model.
@@ -153,12 +162,11 @@ class HIDE(nn.Module):
 
         with self.progress_bar as p:
             for e in p.track(range(iter)):
+                weights = self.gene_weights()
                 A_l = []
                 B_l = []
                 for layer in range(self.L):
-                    g = torch.sqrt(self.g_l[layer] ** 2)
-                    g = g * self.p / g.sum()
-                    G_l = g.unsqueeze(1)
+                    G_l = weights[layer].unsqueeze(1)
                     A_l.append(G_l * Y)
                     B_l.append(G_l * (self.X_l[layer] @ self.A_l[layer]))
 
@@ -174,13 +182,11 @@ class HIDE(nn.Module):
 
                 losses.append(loss.item())
 
-        # Norm weights and make non-negative
-        # Option 1 => Might break relationship between layers
-        for layer in range(self.L):
-            gamma_l = self.g_l[layer] ** 2
-            gamma_l = self.p * gamma_l / torch.sum(gamma_l)
-            g_l = torch.sqrt(gamma_l)
-            self.g_l[layer] = g_l
+        # Store the weights in the same form as used during training
+        with torch.no_grad():
+            weights = self.gene_weights()
+            for layer in range(self.L):
+                self.g_l[layer].copy_(weights[layer])
 
         return losses
 
@@ -214,10 +220,11 @@ class HIDE(nn.Module):
         sample_names = list(Y.columns)
         Y = torch.tensor(Y.to_numpy(), dtype=torch.float64)
 
+        weights = self.gene_weights()
         A_l = []
         B_l = []
         for layer in range(self.L):
-            G_l = self.g_l[layer].unsqueeze(1)
+            G_l = weights[layer].unsqueeze(1)
             A_l.append(G_l * Y)
             B_l.append(G_l * (self.X_l[layer] @ self.A_l[layer]))
 

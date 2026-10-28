@@ -8,6 +8,7 @@ import pytest
 import torch
 import pandas as pd
 import numpy as np
+from torch.optim.optimizer import register_optimizer_step_post_hook
 
 from hide_deconv.models.HIDE import HIDE
 
@@ -434,3 +435,114 @@ class TestHIDEModel:
 
         assert pred.shape == C_true.shape
         assert (pred.values >= -1e-12).all()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+class TestHIDEGeneWeights:
+    """
+    Tests for the consistency of the gene weights between training and prediction.
+    """
+
+    def simulate_hierarchical_data(self, p=60, n=200, seed=42):
+        """
+        Create noisy simulated data with four fine and two major cell types.
+        """
+        rng = np.random.default_rng(seed)
+
+        genes = [f"g{i}" for i in range(p)]
+        fine = ["a1", "a2", "b1", "b2"]
+        major = ["a", "b"]
+        samples = [f"s{i}" for i in range(n)]
+
+        X = rng.random((p, len(fine)))
+        block = p // len(fine)
+        for i in range(len(fine)):
+            X[i * block : (i + 1) * block, i] += 3.0
+        X_fine = pd.DataFrame(X, index=genes, columns=fine)
+
+        A_fine = pd.DataFrame(np.eye(len(fine)), index=fine, columns=fine)
+        A_major = pd.DataFrame(
+            [[1, 1, 0, 0], [0, 0, 1, 1]], index=major, columns=fine, dtype=float
+        )
+        X_major = pd.DataFrame(
+            X_fine.to_numpy() @ A_major.to_numpy().T / 2, index=genes, columns=major
+        )
+
+        C = pd.DataFrame(
+            rng.dirichlet([2.0] * len(fine), size=n).T, index=fine, columns=samples
+        )
+        Y = X_fine.to_numpy() @ C.to_numpy()
+        Y = Y * rng.lognormal(0, 0.2, size=Y.shape)
+        Y = pd.DataFrame(Y, index=genes, columns=samples)
+
+        return [X_fine, X_major], [A_fine, A_major], Y, C
+
+    def test_gene_weights_idempotent(self) -> None:
+        """
+        Test that applying the gene weight transformation twice yields the same weights.
+        """
+        X_l, A_l, Y, C = self.simulate_hierarchical_data()
+        model = HIDE(X_l, A_l)
+        model.train(Y, C, iter=10)
+
+        weights = model.gene_weights()
+        with torch.no_grad():
+            for layer in range(model.L):
+                model.g_l[layer].copy_(weights[layer])
+
+        for first, second in zip(weights, model.gene_weights()):
+            assert torch.allclose(first, second)
+            assert torch.isclose(
+                second.sum(), torch.tensor(model.p, dtype=second.dtype)
+            )
+
+    def test_stored_gene_weights_are_leaf_parameters(self) -> None:
+        """
+        Test that the stored gene weights remain trainable leaf parameters.
+        """
+        X_l, A_l, Y, C = self.simulate_hierarchical_data()
+        model = HIDE(X_l, A_l)
+        model.train(Y, C, iter=10)
+
+        for g in model.g_l:
+            assert isinstance(g, torch.nn.Parameter)
+            assert g.is_leaf
+            assert g.requires_grad
+
+    def test_predict_solves_trained_problem(self) -> None:
+        """
+        Test that predict solves the same stacked least squares problem as used
+        during training, with the gene weights of the last training iteration.
+        """
+        X_l, A_l, Y, C = self.simulate_hierarchical_data()
+        model = HIDE(X_l, A_l)
+
+        raw_weights = []
+
+        def record_weights(optimizer, args, kwargs):
+            raw_weights.append([g.detach().clone() for g in model.g_l])
+
+        handle = register_optimizer_step_post_hook(record_weights)
+        try:
+            model.train(Y, C, iter=50)
+        finally:
+            handle.remove()
+
+        Y_t = torch.tensor(Y.to_numpy(), dtype=torch.float64)
+        A_stack = []
+        B_stack = []
+        for layer, g in enumerate(raw_weights[-1]):
+            g = g.abs() * model.p / g.abs().sum()
+            A_stack.append(g.unsqueeze(1) * Y_t)
+            B_stack.append(g.unsqueeze(1) * (model.X_l[layer] @ model.A_l[layer]))
+
+        C_ref = torch.linalg.lstsq(
+            torch.vstack(B_stack), torch.vstack(A_stack)
+        ).solution
+        C_ref[C_ref < 0] = 0.0
+
+        pred = model.predict(Y, norm=False)["prediction"][0]
+
+        assert np.allclose(pred.to_numpy(), C_ref.numpy(), rtol=1e-6, atol=1e-10)
