@@ -37,6 +37,7 @@ nav:
   - Installation: Installation.md
   - CLI User guide: Userguide.md
   - Examples:
+      - Example data: examples/example-data.md
       - Quick API: examples/quick-api.md
       - Extended API: examples/extended-api.md
   - API:
@@ -46,6 +47,7 @@ nav:
       - Models: api/models.md
       - Statistics: api/statistics.md
       - Visualization: api/visualization.md
+      - Utilities: api/utils.md
   - CLI:
       - Overview: cli/index.md
       - Analyze: cli/analyze.md

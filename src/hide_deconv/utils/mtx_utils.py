@@ -21,7 +21,7 @@ def mtx_to_csv(mtx_path: str, barcodes_path: str, genes_path: str) -> pd.DataFra
         Path to mtx file
     barcodes_path : str
         Path to mtx barcodes
-    gene_path : str
+    genes_path : str
         Path to mtx genes
 
     Returns
@@ -71,7 +71,7 @@ def mtx_to_adata(mtx_path: str, barcodes_path: str, genes_path: str) -> ad.AnnDa
         Path to mtx file
     barcodes_path : str
         Path to mtx barcodes
-    gene_path : str
+    genes_path : str
         Path to mtx genes
 
     Returns

@@ -72,6 +72,7 @@ def show_help():
         "[bold]hide-deconv cohort km[/bold]         Plot a Kaplan Meier curve based on pure sample sheet information.\n"
         "\n"
         "[bold]hide-deconv download[/bold]          Download example AnnData Single Cells\n"
+        "[bold]hide-deconv example[/bold]           Generate synthetic example data to test HIDE-Deconv\n"
         "[bold]hide-deconv simulate[/bold]          Split AnnData in train and create test data\n"
         "\n"
         "[bold]hide-deconv bulk pca[/bold]          Plots bulk RNA-seq data as PCA plot\n"

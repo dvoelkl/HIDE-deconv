@@ -32,6 +32,11 @@ The sample sheet should be provided as a CSV table. One column must contain the 
 
 If you intend to conduct a survival analysis, the column indicating the event must be numerical, with 0 representing the absence of an event and 1 indicating its presence. The column holding the time should either represent the time to the event in the case of an event or the time to the last follow-up in the absence of an event.
 
+### 2.4 Example Data
+If you want to try out HIDE-Deconv, you can generate a synthetic example dataset that consists of an AnnData single cell file with two cell type annotation layers (`cell_type` and `major`), a bulk RNA-seq file and a sample sheet with metainformation. The files can be used with all commands described in this guide.
+
+To generate the example data, use the following syntax: `hide-deconv example -o <OutputFolder>`
+
 
 
 ## 3. Standard Workflow

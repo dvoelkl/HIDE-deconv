@@ -934,6 +934,30 @@ def cli_download() -> None:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+@cli.command("example")
+@click.option(
+    "--out",
+    "-o",
+    "out_path",
+    default=None,
+    show_default=False,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, writable=True, path_type=Path
+    ),
+    help="Path where the example AnnData file, bulk and sample sheet will be stored.",
+)
+def cli_example(out_path: Path | None = None) -> None:
+    """
+    Generate a synthetic example dataset (AnnData file, bulk and sample sheet) to test HIDE-Deconv.
+    """
+    from .cli_commands import create_example_data
+
+    create_example_data(out_path)
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 @cli_anndata.command("preprocess")
 def cli_anndata_preprocess() -> None:
     """

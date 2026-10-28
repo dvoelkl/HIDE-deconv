@@ -18,6 +18,12 @@
 
 ::: hide_deconv.preprocessing.combine_bulk_dataframes
 
+::: hide_deconv.pipelines.deconvolve_hide_pipeline.normalize_bulk_to_cpm
+
+## Single-cell quality control
+
+::: hide_deconv.pipelines.preprocess_anndata_file
+
 ## AnnData utilities
 
 ::: hide_deconv.preprocessing.reduce_genes

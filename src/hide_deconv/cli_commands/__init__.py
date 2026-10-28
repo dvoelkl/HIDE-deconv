@@ -20,6 +20,7 @@ from .analyze_command import (
     create_celltype_scatter_plot,
 )
 from .download_command import download_single_cells
+from .example_command import create_example_data
 from .anndata_command import (
     preprocess_anndata,
     inspect_anndata,
@@ -60,6 +61,7 @@ __all__ = [
     "create_pca_plot",
     "create_plsda_plot",
     "download_single_cells",
+    "create_example_data",
     "preprocess_anndata",
     "survival_analysis",
     "create_umap_plot",

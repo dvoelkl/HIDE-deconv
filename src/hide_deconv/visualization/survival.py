@@ -245,8 +245,10 @@ def plot_kaplan_meier_cohort(
 
     Parameters
     ----------
-    samples_sheet : pd.DataFrame
+    sample_sheet : pd.DataFrame
         sample list (samples x clinical variables)
+    cohort_strat_col : str
+        Name of the column containing the cohorts used for stratification
     time_col : str
         Name of the column that links to survival time
     event_col : str

@@ -28,6 +28,22 @@ from ..constants import (
 
 
 def normalize_bulk_to_cpm(bulk: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalize bulk expression to counts per million (CPM).
+
+    Duplicate gene labels are summed before normalization. Samples with a
+    total count of zero result in zeros instead of NaN or inf values.
+
+    Parameters
+    ----------
+    bulk : pd.DataFrame
+        Bulk expression with genes as rows and samples as columns.
+
+    Returns
+    -------
+    pd.DataFrame
+        CPM normalized bulk expression (genes x samples).
+    """
     bulk = bulk
     if bulk.index.has_duplicates:
         bulk = bulk.groupby(level=0).sum()
@@ -51,6 +67,57 @@ def predict_deconvolution_results(
     return_errors: bool = False,
     library_size_correction: pd.Series | None = None,
 ) -> tuple[list[pd.DataFrame], list[pd.DataFrame]]:
+    """
+    Predict cell type compositions with optional domain transfer.
+
+    If domain transfer is enabled, the bulk samples are processed in a sliding
+    window scheme. For each window, alpha_window samples are used to calculate
+    gene wise domain-transfer factors with respect to simulated bulks, which are
+    then applied to the remaining samples before prediction. Each sample is
+    thereby predicted multiple times and the predictions are averaged.
+
+    If there are fewer than alpha_window + preds_per_bulk bulk samples, the
+    composition is estimated without domain transfer.
+
+    **Note:** adata must be normalized to 1e4 on the complete gene set
+    (e.g. via sc.pp.normalize_total), analogous to the data used for training.
+
+    Parameters
+    ----------
+    model : HIDE
+        Trained HIDE model.
+    adata : anndata.AnnData | None
+        Normalized single-cell data used to simulate bulks for domain transfer.
+        Only required if domain_transfer is True.
+    bulk : pd.DataFrame
+        CPM normalized bulk expression (genes x samples).
+    celltype_col : str
+        Column in adata.obs containing the finest cell type labels.
+    n_cells_per_bulk : int
+        Number of cells sampled per simulated bulk. Should match the training bulks.
+    domain_transfer_bulk_count : int, default=1000
+        Number of simulated bulks used to calculate the domain-transfer factors.
+    preds_per_bulk : int, default=5
+        Approximate number of predictions per bulk sample.
+    alpha_window : int, default=25
+        Number of bulk samples used to calculate the domain-transfer factors per window.
+    domain_transfer : bool, default=True
+        If True correct for domain transfer between simulated and real bulks.
+    seed : int, default=2304
+        Random seed for the simulated bulks.
+    return_errors : bool, default=False
+        If True return the standard deviation of the predictions per sample.
+    library_size_correction : pd.Series | None, default=None
+        Median library sizes of the finest cell type layer. If provided, the
+        predictions are corrected for library size differences.
+
+    Returns
+    -------
+    tuple[list[pd.DataFrame], list[pd.DataFrame]]
+        Estimated compositions per cell type layer and, if return_errors is True
+        and domain transfer was applied, the corresponding standard deviations.
+        Otherwise the second list is empty.
+    """
 
     if not domain_transfer or bulk.shape[1] < alpha_window + preds_per_bulk:
         if domain_transfer and bulk.shape[1] < alpha_window + preds_per_bulk:
@@ -67,9 +134,8 @@ def predict_deconvolution_results(
     if adata is None:
         raise ValueError("adata is required when domain_transfer is enabled.")
 
+    # adata is expected to be normalized to 1e4 on the complete gene set
     common_genes = [gene for gene in model.gene_labels if gene in adata.var_names]
-
-    sc.pp.normalize_total(adata, target_sum=1e4)
     adata = adata[:, common_genes].copy()
 
     Y_domain, _ = create_bulks(
@@ -245,6 +311,8 @@ def deconvolve_hide_pipeline(
 
     if hconf.domainTransfer:
         adata = ad.read_h5ad(hconf.sc_file_name)
+        # Normalize on the complete gene set before subsetting, analogous to the preprocessing
+        sc.pp.normalize_total(adata, target_sum=1e4)
 
         common_sc_genes = [gene for gene in X_sub.index if gene in adata.var_names]
         adata = adata[:, common_sc_genes].copy()

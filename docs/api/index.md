@@ -14,14 +14,19 @@ The main workflow is:
 
 ## Public API
 
-The package-level convenience function is:
+To run the deconvolution with a single command, you can use:
 
 ::: hide_deconv.deconvolution
 
-The lower-level API is grouped by responsibility:
+To generate synthetic data, you can use:
+
+::: hide_deconv.generate_example
+
+The API is grouped in modules:
 
 - [Preprocessing](preprocessing.md)
 - [Deconvolution](deconvolution.md)
 - [Models](models.md)
 - [Statistics](statistics.md)
 - [Visualization](visualization.md)
+- [Utilities](utils.md)

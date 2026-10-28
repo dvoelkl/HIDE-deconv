@@ -549,15 +549,17 @@ def plot_kmeans_pca_biplot(
     Parameters
     ----------
     pca : PCA
+        Fitted PCA object.
     X_pca : np.ndarray
+        PCA coordinates of the samples (samples x 2).
     df : pd.DataFrame
+        Composition used for the PCA (samples x cell types).
     pca_df : pd.DataFrame
+        PCA coordinates with columns PC1, PC2, cluster and optionally labels.
     out_path : str
         Filename + Path, where the plot will be stored.
-    n_clusters : int
-        Number of clusters to create.
-    labeling : list = []
-        List with labels for each bulk.
+    kmeans : KMeans
+        Fitted k-means object.
     group_name : str = "Cohorts"
         Name of the legend.
     title_suffix : str = ''

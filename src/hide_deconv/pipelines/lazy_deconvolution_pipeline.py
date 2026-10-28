@@ -59,20 +59,9 @@ def setup_model(
     n_cells_per_bulk: int,
     n_iter: int,
     seed: int,
-    library_sizes: pd.Series | None = None,
-) -> tuple[HIDE, ad.AnnData, pd.Series]:
+) -> tuple[HIDE, ad.AnnData]:
 
-    # Calculate Library Sizes
-    if library_sizes is None:
-        adata.obs["library_size"] = np.asarray(adata.X.sum(axis=1)).ravel()
-        library_sizes = (
-            adata.obs.groupby(celltype_cols[0])["library_size"]
-            .median()
-            .rename("Median_Library_Size")
-        )
-
-    sc.pp.normalize_total(adata, target_sum=1e4)
-
+    # adata is expected to be normalized to 1e4 on the complete gene set
     adata = reduce_genes(adata, n_genes, celltype_cols[0])
 
     X_sub = create_reference(adata, celltype_col=celltype_cols[0])
@@ -104,7 +93,7 @@ def setup_model(
     )
     model.train(Y_train, C_train, iter=n_iter)
 
-    return model, adata, library_sizes
+    return model, adata
 
 
 def deconvolution(
@@ -166,9 +155,11 @@ def deconvolution(
     if len(common_genes) == 0:
         raise ValueError("No shared genes found between adata and bulk.")
 
+    # Normalize before subsetting
+    adata = sc.pp.normalize_total(adata, target_sum=1e4, copy=True)
     adata = adata[:, common_genes].copy()
 
-    model, adata, library_sizes = setup_model(
+    model, adata = setup_model(
         adata,
         celltype_cols,
         n_genes,
@@ -176,7 +167,6 @@ def deconvolution(
         n_cells_per_bulk,
         n_iter,
         seed,
-        library_sizes=library_sizes,
     )
 
     bulk = bulk.loc[model.gene_labels]
