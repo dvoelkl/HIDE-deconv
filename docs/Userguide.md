@@ -60,12 +60,16 @@ You can access the results of the deconvolution in the results folder, which is 
 HIDE-Deconv automatically takes care of accounting for domain transfer between single cell and bulk RNA-seq and necessary library size corrections. These can manually be deactivated by using the `--domain_transfer False` and `--library_size_correction False` flag. The libary size correction should be turned off if you work with normalized bulks. If you are using simulated bulks for benchmarking, please read the chapter 8 on benchmarking HIDE-Deconv.
 
 ## 4. Post Deconvolution Analysis
-HIDE-Deconv offers several methods for analyzing the deconvolution results. All these commands are accessible within the analyze command subgroup. 
+HIDE-Deconv offers several methods for analyzing the deconvolution results. All these commands are accessible within the analyze command subgroup. The example figures shown in this guide were created with the synthetic example data (see section 2.4).
 
 ### 4.1 PCA, UMAP and PLS-DA Plotting
 To visualize the deconvolution results using PCA, UMAP or PLS-DA, execute the command `hide-deconv analyze <pca/umap/plsda> -p <PathToProject>`. This command will prompt you to select the desired model and cell type layer from submenus. Additionally, you’ll be asked to specify the path of the sample sheet and the column containing IDs for assigning bulk samples with their corresponding metadata. Finally, you’ll need to select the metadata to divide the results into cohorts. The generated plots will be located in the results folder of the chosen model.
 
 Existing composition datasets can be projected into the PCA, UMAP or PLS-DA calculated from the selected dataset by providing one or more CSV files with `--map-others` (or `-mo`). Repeat the option for multiple files, for example `hide-deconv analyze pca -p <PathToProject> -mo <PathToComposition1.csv> -mo <PathToComposition2.csv>`. The CSV files must use the same cell type labels as the selected composition. The mapped datasets do not influence the calculated components and are shown as additional entries in the plot legend.
+
+![PCA plot of the example data](assets/plots/pca.png)
+
+![UMAP plot of the example data](assets/plots/umap.png)
 
 ### 4.2 Statistical Differences
 HIDE-Deconv also provides an interface to test for statistical differences in the cellular composition of specific cohorts. Based on the number of available cohorts, HIDE-Deconv automatically determines whether to perform a Mann-Whitney-U test between two cohorts or a Kruskal-Wallis test with a post hoc Dunn test to identify the significantly different cohort among multiple cohorts. In all cases, the p-value is adjusted for multiple testing.
@@ -77,6 +81,8 @@ For two cohorts, HIDE-deconv is able to run a Mann-Whitney-U test on all cell ty
 
 The feature can be invoked by `hide-deconv analyze hdiff -p <PathToProject>`
 
+![Hierarchical heatmap of the example data](assets/plots/hier_heat.png)
+
 ### 4.4 Survival Analysis and Cox Regression
 To investigate the impact of specific cell types on patient survival, HIDE-Deconv offers a survival analysis command. Before executing this command, it’s crucial to ensure that both the censoring time and the time to event are included in a single column in the sample sheet. The column detailing the event status should contain numerical values, with 0 representing no event and 1 indicating an event. Additionally, the command allows for the inclusion of various covariates (press space to select the covariates in the list, press enter to continue) in the Cox Model. For cell types that significantly influence patient survival, a Kaplan Meier Curve is automatically generated. The user must first specify whether the patients should be divided into samples based on the mean, tertiary, or quartile cell type expression. Furthermore, p-values are corrected for multiple testing, and the resulting tables and plots are saved in the corresponding results folder.
 
@@ -87,13 +93,27 @@ Additionally the command has certain flags, that can be turned on, that will cha
 - `--censors True` will add marks for censored patients to the plot
 - `--median_surv True` will add dashed lines at 50% survival probability
 
+![Cox regression forest plot of the example data](assets/plots/cox_forest.png)
+
+![Kaplan-Meier plot by cell type composition of the example data](assets/plots/km_composition.png)
+
 ### 4.5 Partial least squares discriminant analysis
-A common alternative to PCA and UMAP is PLS-DA, which is also included in HIDE-Deconv. The command `hide-deconv analyze plsda -p <PathToProject>` will perform a PLS-DA (to be more specific a PLS2-DA) and save the score, vip and loading plot.
+A common alternative to PCA and UMAP is PLS-DA, which is also included in HIDE-Deconv. The command `hide-deconv analyze plsda -p <PathToProject>` will perform a PLS-DA (to be more specific a PLS2-DA) and save the score, vip, loading and biplot.
+
+![PLS-DA score plot of the example data](assets/plots/plsda_score.png)
+
+![PLS-DA VIP plot of the example data](assets/plots/plsda_vip.png)
+
+![PLS-DA loading plot of the example data](assets/plots/plsda_loading.png)
+
+![PLS-DA biplot of the example data](assets/plots/plsda_biplot.png)
 
 ### 4.6 Visualizing sample compositions as scatterplot
 HIDE-Deconv provides a command that plots cell-type abundances as scatterplot. Furthermore the command allows to renormalize the estimated composition to certain cell-types, for example, if you want to compare only changes in immune cell populations without the epithelial compartmenet. If a sample sheet is provided, the points are colored by cohorts.
 
 To use the command, use the following syntax: `hide-deconv analyze scatter -p <PathToProject>`
+
+![Cell type scatter plot of the example data](assets/plots/celltype_scatter.png)
 
 ### 4.7 Benchmarking against known compositions
 If you have ground truth cell proportions, HIDE-Deconv offers a command that calculates various benchmarking metrics, such as correlation coefficients or RMSE estimates. The ground truth data must be provided as a CSV table, with column names representing sample names and row names representing cell types. It’s important to note that all models produce proportions, which naturally sum to 1. The resulting benchmark results are stored as both a table and a plot in the corresponding results directory. Ensure that the cell type names used in the ground truth data match those used in the deconvolution process.
@@ -103,10 +123,14 @@ To invoke the command, use the following syntax: `hide-deconv analyze benchmark 
 ### 4.8 Visualizing relevant genes
 HIDE-Deconv also provides a command that visualizes the most relevant genes for deconvolution as a clustered heatmap. The command can be invoked by `hide-deconv analyze genes -p <PathToProject>`. After selecting the project, the cell type layer and the number of genes to display, the resulting markermap will be saved in the corresponding results folder.
 
+![Gene heatmap of the example data](assets/plots/genemap.png)
+
 ### 4.9 K-means clustering of compositions
 HIDE-Deconv also provides a command that clusters the cellular compositions with k-means and saves the cluster assignment and a PCA plot. Optionally a sample sheet can be selected so that points are colored by cohorts.
 
 To run the command, use the following syntax: `hide-deconv analyze kmean -p <PathToProject>`.
+
+![K-means PCA plot of the example data](assets/plots/kmeans_pca.png)
 
 ### 4.10 Identification of compositional clusters (alternative to K-means)
 HIDE-Deconv provides an alternative clustering command that allows you to identify clusters of similar cell type composition. These clusters are stored in a format that makes them easy to use as a sample sheet for, for example, difference analysis. Additionally, the command generates a UMAP and PCA plot with the assigned clusters color-coded. In comparison to k-means it is not necessary to specify the number of clusters beforehand.
@@ -160,6 +184,8 @@ Save the file and switch back to the terminal window. After entering `y`, HIDE-d
 ### 5.4 Visualization of single cells
 HIDE-Deconv provides a command line interface to scanpy's UMAP plot function. To execute this, type in the command `hide-deconv anndata umap`, select the AnnData file and the observation, that will be used for coloring the single cells. The plot will be stored at the same location as the AnnData file.
 
+![AnnData UMAP plot of the example data](assets/plots/anndata_umap.png)
+
 ### 5.5 Preprocessing of single cells
 Preprocessing single cell data often improves deconvolution results. Therefor HIDE-deconv offers a separate pipeline, that applies our standard preprocessing to a given AnnData file. It is important to note, that this pipeline was set up for raw count human single cell data and only works with Gene Names. The following steps are performed:
 1. Removal of celltypes with not enough single cells (Standard Threshold: 100 cells of one type)
@@ -201,6 +227,8 @@ To further support analyses related to bulk deconvolution projects, HIDE-deconv 
 
 To invoke the command, run `hide-deconv bulk deg`
 
+![Volcano plot of the example data](assets/plots/volcano.png)
+
 ### 6.5 Converting a MTX file to csv table
 Often bulk RNA files are not stored as csv tables, but rather as mtx files. Therefor HIDE-Deconv provides a command, that converts the mtx file and the corresponding barcode and feature file to a compatible csv table
 
@@ -223,6 +251,8 @@ Additionally the command has certain flags, that can be turned on:
 - `--risk_table True` adds a risk table below the figure
 - `--censors True` will add marks for censored patients to the plot
 - `--median_surv True` will add dashed lines at 50% survival probability
+
+![Kaplan-Meier plot by cohort of the example data](assets/plots/km_cohort.png)
 
 ## 8. Benchmarking HIDE-Deconv
 HIDE-deconv contains a simple command, that splits a given AnnData single cell file into a train and test set, and generates artifical bulks for testing with a known composition. The percentage of cells to remain in the training set can be chosen beforehand.
