@@ -4,6 +4,8 @@ Utility functions for anndata
 =====================================================
 """
 
+from typing import Any
+
 import anndata as ad
 import pandas as pd
 
@@ -83,7 +85,7 @@ def get_adata_obs_info(adata: ad.AnnData) -> dict[str, list[str]]:
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-def get_adata_uns_info(adata: ad.AnnData) -> dict[str, str]:
+def get_adata_uns_info(adata: ad.AnnData) -> dict[str, Any]:
     """
     Collects information on adata.uns and processes them.
 
@@ -94,7 +96,7 @@ def get_adata_uns_info(adata: ad.AnnData) -> dict[str, str]:
 
     Returns
     -------
-    dict[str, list[str]]
+    dict[str, Any]
         Dictionary with each entry of adata.uns as key. Each key contains the corresponding entry.
     """
 
