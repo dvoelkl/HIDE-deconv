@@ -187,7 +187,7 @@ HIDE-Deconv provides a command line interface to scanpy's UMAP plot function. To
 ![AnnData UMAP plot of the example data](assets/plots/anndata_umap.png)
 
 ### 5.5 Preprocessing of single cells
-Preprocessing single cell data often improves deconvolution results. Therefor HIDE-deconv offers a separate pipeline, that applies our standard preprocessing to a given AnnData file. It is important to note, that this pipeline was set up for raw count human single cell data and only works with Gene Names. The following steps are performed:
+Preprocessing single cell data often improves deconvolution results. Therefor HIDE-deconv offers a separate pipeline, that applies our standard preprocessing to a given AnnData file. It is important to note, that this pipeline was set up for raw count human single cell data and works with Gene Names or Ensembl IDs as `adata.var_names`. The following steps are performed:
 1. Removal of celltypes with not enough single cells (Standard Threshold: 100 cells of one type)
 2. Removal of cells with low gene counts (Standard Threshold: 100 counts per cell)
 3. Removal of cells with extremely high gene counts (Standard Threshold: 5000 counts per cell)
@@ -204,6 +204,22 @@ To run the preprocessing pipeline, use the command `hide-deconv anndata preproce
 Some single cell experiments are stored as mtx files, to facilitate usage of this datatype, HIDE-Deconv provides a command, that converts the mtx file and the corresponding barcode and feature file to an AnnData file. Note: currently cell type annotations have to be done manually afterwards.
 
 To invoke the command, run `hide-deconv anndata mtx`
+
+### 5.7 Downloading single cell data from CELLxGENE
+If no suitable single cell dataset is available, HIDE-Deconv can download annotated datasets from [CELLxGENE](https://cellxgene.cziscience.com/). This command requires internet access and uses the CELLxGENE Discover API.
+
+After starting the command, the organisms needs to be selected first. Afterwards one or multiple tissues and diseases can be selected. All datasets matching the selection are displayed as a table with meta information.
+
+If you selected specific tissues or diseases, you will be asked whether the downloaded dataset should be subset to the selected tissues and diseases. Afterwards, you can select whether Gene Symbols or Ensembl IDs are used as `adata.var_names`. The other identifier is kept in `adata.var` (`feature_id` for Ensembl IDs, `feature_name` for Gene Symbols). If multiple Ensembl IDs share the same Gene Symbol, their expression is summed up, as it is done for bulk data.
+
+If the dataset contains raw counts in `adata.raw`, these are stored in `adata.X`. Spike-ins are removed and by default only protein coding genes are kept. Meta information of the dataset, such as the citation, is stored in `adata.uns`. Additionally, a text file `<dataset_id>_citation.txt` is stored next to the AnnData file. It contains the publication, DOI and links of the dataset as well as the citation of CZ CELLxGENE Discover. Please cite both when using the downloaded data. The anndata dataset can be further preprocessed using the `hide-deconv anndata`commands.
+
+To execute the command, use the following syntax: `hide-deconv download`. To keep all genes instead of only protein coding genes, use `hide-deconv download -pc False`.
+
+### 5.8 Switching gene annotations
+Single cell and bulk data must use the same gene identifiers. If the AnnData file contains a different identifier in `adata.var`, e.g. Gene Symbols in addition to Ensembl IDs, the command `hide-deconv anndata switch-var` switches `adata.var_names` to this column. After selecting the AnnData file, all columns of `adata.var` are shown with their number of unique values and the first values. The current `adata.var_names` are stored in a new column of `adata.var`, whose name can be entered.
+
+If the selected column contains fewer unique values than there are genes (e.g. 1000 Ensembl IDs but only 800 unique Gene Symbols), a warning is shown before switching. Genes with the same identifier are then summed up, the previous identifiers of merged genes are stored separated by `;`. The switched file is saved at the same location as the original AnnData file.
 
 
 ## 6. Bulk related commands

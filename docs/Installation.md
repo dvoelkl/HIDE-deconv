@@ -1,6 +1,6 @@
 # Installation
 
-The latest released version of HIDE-deconv can be directly installed via pip.
+The latest released version of HIDE-deconv can be directly installed via pip or bioconda.
 
 We recommend to create a new python 3.12, 3.13 or 3.14 environment.
 

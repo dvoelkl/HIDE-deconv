@@ -22,6 +22,10 @@ To generate synthetic data, you can use:
 
 ::: hide_deconv.generate_example
 
+To download single cell data from CELLxGENE, you can use:
+
+::: hide_deconv.download_sc_cellxgene
+
 The API is grouped in modules:
 
 - [Preprocessing](preprocessing.md)

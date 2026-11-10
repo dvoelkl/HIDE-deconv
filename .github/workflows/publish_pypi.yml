@@ -29,11 +29,27 @@ jobs:
           version: latest
           virtualenvs-in-project: true
 
+      - name: Use CPU-only PyTorch
+        run: |
+          cat >> pyproject.toml <<'EOF'
+
+          [[tool.poetry.source]]
+          name = "pytorch-cpu"
+          url = "https://download.pytorch.org/whl/cpu"
+          priority = "explicit"
+
+          [tool.poetry.dependencies]
+          torch = { source = "pytorch-cpu" }
+          EOF
+
+      - name: Resolve dependencies
+        run: poetry lock
+
       - name: Cache virtualenv
         uses: actions/cache@v4
         with:
           path: .venv
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-root

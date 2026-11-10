@@ -8,6 +8,13 @@ import scanpy as sc
 import numpy as np
 import anndata as ad
 
+from ..constants import (
+    MITO_GENES_ENSEMBL,
+    RIBO_GENES_ENSEMBL,
+    HB_GENES_ENSEMBL,
+    MALAT1_ENSEMBL,
+)
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -28,6 +35,8 @@ def preprocess_anndata_file(
     """
     Applies a standard AnnData preprocessing pipeline to a given AnnData file. Removes cells with low quality or high mitochondrial rna expression.
     Additionally excludes celltypes, that are below the min_cell threshold and removes genes that are either ribosomal, mitochondrial or have a very low expression level.
+
+    Genes in adata.var_names can either be human gene symbols or human Ensembl IDs.
 
     Parameters:
     ----------
@@ -62,11 +71,13 @@ def preprocess_anndata_file(
         Preprocessed single cells
     """
 
-    # Calculate QC metrics
-    adata.var["mt"] = adata.var_names.str.startswith("MT-")
+    # Calculate QC metrics, genes are identified either by gene symbol or Ensembl ID
+    adata.var["mt"] = adata.var_names.str.startswith("MT-") | adata.var_names.isin(
+        MITO_GENES_ENSEMBL
+    )
     hb_genes = adata.var_names.str.startswith(
         ("HBA", "HBB", "HBD", "HBE", "HBG", "HBM", "HBQ", "HBZ")
-    )
+    ) | adata.var_names.isin(HB_GENES_ENSEMBL)
     adata.var["hb"] = hb_genes
     sc.pp.calculate_qc_metrics(adata, qc_vars=["mt", "hb"], inplace=True)
 
@@ -77,8 +88,11 @@ def preprocess_anndata_file(
     cell_mask &= (adata.obs["pct_counts_mt"] / 100) < mt_percentage_per_cell
     cell_mask &= (adata.obs["pct_counts_hb"] / 100) < hb_percentage_per_cell
 
-    if "MALAT1" in adata.var_names:
-        malat1_values = adata[:, "MALAT1"].X
+    malat1_gene = next(
+        (gene for gene in ("MALAT1", MALAT1_ENSEMBL) if gene in adata.var_names), None
+    )
+    if malat1_gene is not None:
+        malat1_values = adata[:, malat1_gene].X
 
         if hasattr(malat1_values, "toarray"):
             malat1_values = malat1_values.toarray().flatten()
@@ -100,6 +114,7 @@ def preprocess_anndata_file(
 
     if exclude_mito_ribo_rna:
         gene_mask &= ~(gene_names.str.startswith(("MT-", "RPS", "RPL")))
+        gene_mask &= ~(gene_names.isin(MITO_GENES_ENSEMBL + RIBO_GENES_ENSEMBL))
 
     if exclude_hemoglobine:
         gene_mask &= ~(
@@ -107,6 +122,7 @@ def preprocess_anndata_file(
                 ("HBA", "HBB", "HBD", "HBE", "HBG", "HBM", "HBQ", "HBZ")
             )
         )
+        gene_mask &= ~(gene_names.isin(HB_GENES_ENSEMBL))
 
     adata = adata[:, gene_mask].copy()
 

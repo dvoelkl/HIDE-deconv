@@ -5,6 +5,8 @@ data.
 =====================================================
 """
 
+import warnings
+
 import anndata as ad
 import numpy as np
 import pandas as pd
@@ -123,6 +125,146 @@ def create_reference(
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+MAX_REPORTED_CONFLICTS = 10
+
+
+def is_missing_celltype(labels: pd.Series) -> np.ndarray:
+    """
+    Detect cells without a cell type label.
+
+    A label counts as missing if it is NaN/None, an empty string or the string "nan".
+
+    Parameters
+    ----------
+    labels : pd.Series
+        Cell type labels of one annotation column.
+
+    Returns
+    -------
+    np.ndarray
+        Boolean mask, True for cells without a cell type label.
+    """
+
+    labels = labels.astype("object")
+    as_str = labels.astype(str).str.strip()
+
+    return (labels.isna() | as_str.isin(["", "nan", "NaN"])).to_numpy()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def fill_missing_celltypes(adata: ad.AnnData, celltype_cols: list[str]) -> ad.AnnData:
+    """
+    Fill missing child cell type labels with the label of their parent cell type.
+
+    The columns are expected to be ordered from the finest to the coarsest annotation
+    level. Starting at the coarsest level, every cell without a label in a column
+    receives the (already filled) label of the next coarser column. Cells without a
+    label on all levels are left unchanged.
+
+    adata.obs is modified in place.
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input expression data containing cell annotations in adata.obs.
+    celltype_cols : list[str]
+        Columns in adata.obs containing the cell type labels, ordered from the
+        finest to the coarsest annotation level.
+
+    Returns
+    -------
+    anndata.AnnData
+        The input AnnData object with filled cell type labels.
+    """
+
+    for i in range(len(celltype_cols) - 2, -1, -1):
+        child_col, parent_col = celltype_cols[i], celltype_cols[i + 1]
+
+        child = adata.obs[child_col]
+        parent = adata.obs[parent_col]
+        fill_mask = is_missing_celltype(child) & ~is_missing_celltype(parent)
+
+        if not fill_mask.any():
+            continue
+
+        filled = child.astype("object").to_numpy(copy=True)
+        filled[fill_mask] = parent.astype(str).to_numpy()[fill_mask]
+        adata.obs[child_col] = pd.Categorical(filled)
+
+        warnings.warn(
+            f"{int(fill_mask.sum())} cells without a cell type label in '{child_col}' "
+            f"were assigned the label of their parent cell type in '{parent_col}'."
+        )
+
+    return adata
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def validate_hierarchy(adata: ad.AnnData, celltype_cols: list[str]) -> None:
+    """
+    Check that the cell type annotations form a valid hierarchy.
+
+    The columns are expected to be ordered from the finest to the coarsest annotation
+    level. For each pair of neighboring levels, every child cell type must belong to
+    exactly one parent cell type. Multiple child cell types may belong to the same
+    parent cell type.
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Input expression data containing cell annotations in adata.obs.
+    celltype_cols : list[str]
+        Columns in adata.obs containing the cell type labels, ordered from the
+        finest to the coarsest annotation level.
+
+    Raises
+    ------
+    ValueError
+        If a child cell type is assigned to more than one parent cell type.
+    """
+
+    for child_col, parent_col in zip(celltype_cols[:-1], celltype_cols[1:]):
+        pairs = pd.DataFrame(
+            {
+                "child": adata.obs[child_col].astype(str).to_numpy(),
+                "parent": adata.obs[parent_col].astype(str).to_numpy(),
+            }
+        )
+        counts = pairs.value_counts().rename("n_cells").reset_index()
+        n_parents = counts.groupby("child")["parent"].nunique()
+        conflicts = sorted(n_parents[n_parents > 1].index)
+
+        if not conflicts:
+            continue
+
+        lines = []
+        for child in conflicts[:MAX_REPORTED_CONFLICTS]:
+            parents = counts[counts["child"] == child].sort_values(
+                "n_cells", ascending=False
+            )
+            parents_str = ", ".join(
+                f"'{p}' ({n} cells)"
+                for p, n in zip(parents["parent"], parents["n_cells"])
+            )
+            lines.append(f"  - '{child}' -> {parents_str}")
+        if len(conflicts) > MAX_REPORTED_CONFLICTS:
+            lines.append(f"  ... and {len(conflicts) - MAX_REPORTED_CONFLICTS} more.")
+
+        raise ValueError(
+            f"Invalid cell type hierarchy between '{child_col}' and '{parent_col}': "
+            f"{len(conflicts)} cell type(s) in '{child_col}' are assigned to more than one "
+            f"cell type in '{parent_col}'. Each cell type must belong to exactly one "
+            "parent cell type:\n" + "\n".join(lines)
+        )
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 def create_hierarchy(
     adata: ad.AnnData, ct_col_sub: str, ct_col_higher: list[str]
 ) -> dict[str, pd.DataFrame]:
@@ -133,6 +275,9 @@ def create_hierarchy(
     that maps each subtype in ct_col_sub to its corresponding higher-level cell type.
     Each returned matrix has higher-level cell types as rows and subtypes as columns.
 
+    Every cell type must belong to exactly one cell type of the next higher level,
+    otherwise a ValueError is raised (see validate_hierarchy).
+
     Parameters
     ----------
     adata : anndata.AnnData
@@ -141,7 +286,8 @@ def create_hierarchy(
         Column in adata.obs containing the lower-level cell type labels.
     ct_col_higher : list[str]
         List of column names in adata.obs containing the higher-level
-        cell type labels for which hiearchy matrices should be created.
+        cell type labels for which hiearchy matrices should be created,
+        ordered from the finest to the coarsest annotation level.
 
     Returns
     -------
@@ -150,7 +296,14 @@ def create_hierarchy(
         pandas DataFrame with shape (n_higher_types, n_subtypes), where
         entries are 1 if a subtype belongs to a higher-level type and
         0 otherwise.
+
+    Raises
+    ------
+    ValueError
+        If a cell type is assigned to more than one cell type of the next higher level.
     """
+
+    validate_hierarchy(adata, [ct_col_sub] + list(ct_col_higher))
 
     obs = adata.obs.copy()
 

@@ -36,6 +36,8 @@ The example plots below were created using the [example data](../examples/exampl
 
 ## PLS-DA plots
 
+To create a PLS-DA plot, first, the PLS-DA embeddings need to be calculated, which can be done using the [Statistics Module](./statistics.md)
+
 ::: hide_deconv.visualization.plot_plsda_score
 
 ![PLS-DA score plot of the example data](../assets/plots/plsda_score.png)

@@ -18,7 +18,7 @@
 - Configurable domain-transfer and library-size correction
 - Downstream analysis of deconvolution results, including PCA, UMAP, clustering, survival analysis, and differential composition analysis
 - Python API and command-line interface for reproducible workflows
-- Supports AnnData based single-cell workflows
+- Supports AnnData based single-cell workflows, with ability to directly search and download data from [CELLxGENE](https://cellxgene.cziscience.com)
 - Local execution suitable for secure research environments
 
 For a detailed overview of all features and usage, please read the [Userguide](https://github.com/dvoelkl/HIDE-deconv/blob/main/docs/Userguide.md). The API documentation can be found on [GitHub Pages](https://dvoelkl.github.io/HIDE-deconv/).
@@ -74,6 +74,11 @@ pip install hide-deconv
 - **Bulk RNA-seq data:** CSV file, genes as row index, samples as columns. Gene IDs must match single-cell data.
 - **Sample sheet (optional):** CSV with sample meta-information (e.g., cohort, survival time, event).
 - **Data Normalization:** We recommend to use raw counts for all datasets.
+
+Public annotated datasets can be searched and downloaded directly from [CELLxGENE](https://cellxgene.cziscience.com/) using the following command
+```bash
+hide-deconv download
+```
 
 ---
 

@@ -19,12 +19,13 @@ from .analyze_command import (
     gene_markerplot,
     create_celltype_scatter_plot,
 )
-from .download_command import download_single_cells
+from .download_command import download_cellxgene_command
 from .example_command import create_example_data
 from .anndata_command import (
     preprocess_anndata,
     inspect_anndata,
     subset_anndata,
+    switch_anndata_var,
     add_annotation,
     create_anndata_umap_plot,
     convert_adata_from_mtx,
@@ -60,7 +61,7 @@ __all__ = [
     "create_kmean_plot",
     "create_pca_plot",
     "create_plsda_plot",
-    "download_single_cells",
+    "download_cellxgene_command",
     "create_example_data",
     "preprocess_anndata",
     "survival_analysis",
@@ -71,6 +72,7 @@ __all__ = [
     "subset_bulk",
     "inspect_anndata",
     "subset_anndata",
+    "switch_anndata_var",
     "add_annotation",
     "create_anndata_umap_plot",
     "cell_type_clustering",

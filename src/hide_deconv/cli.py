@@ -922,13 +922,23 @@ def cli_analyze_scatter(hidedeconv_path: Path) -> None:
 
 
 @cli.command("download")
-def cli_download() -> None:
+@click.option(
+    "--protein_coding",
+    "-pc",
+    "fProteinCoding",
+    is_flag=False,
+    default=True,
+    show_default=True,
+    help="Keep only protein coding genes in the downloaded dataset",
+)
+def cli_download(fProteinCoding) -> None:
     """
-    Select and download an AnnData Single Cell file for certain pre-curated repositories.
+    Search and download an AnnData single cell dataset from CELLxGENE Discover.
+    Spike-ins are removed and by default only protein coding genes are kept.
     """
-    from .cli_commands import download_single_cells
+    from .cli_commands import download_cellxgene_command
 
-    download_single_cells()
+    download_cellxgene_command(fProteinCoding)
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -964,7 +974,7 @@ def cli_anndata_preprocess() -> None:
     Applies a standard AnnData preprocessing pipeline to a given AnnData file.
     Removes cells with low quality or high mitochondrial rna expression.
     Additionally excludes celltypes, that are below the min_cell threshold and removes genes that are either ribosomal, mitochondrial or have a very low expression level.\n
-    **Note:** AnnData *var_names* must be Gene Names for this function.
+    **Note:** AnnData *var_names* must be human Gene Names or Ensembl IDs for this function.
     """
     from .cli_commands import preprocess_anndata
 
@@ -995,6 +1005,20 @@ def cli_anndata_subset() -> None:
     from .cli_commands import subset_anndata
 
     subset_anndata()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+@cli_anndata.command("switch-var")
+def cli_anndata_switch_var() -> None:
+    """
+    Switches the gene annotation used as var_names to another column of adata.var (e.g. from Ensembl IDs to Gene Symbols).
+    Genes that share the same new identifier are summed up.
+    """
+    from .cli_commands import switch_anndata_var
+
+    switch_anndata_var()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

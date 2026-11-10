@@ -17,6 +17,8 @@ from ..preprocessing import (
     create_reference,
     create_hierarchy,
     create_bulks,
+    fill_missing_celltypes,
+    validate_hierarchy,
 )
 import warnings
 
@@ -55,6 +57,12 @@ def preprocessing_pipeline(
     hconf.LibrarySizeCorrect = f_librarySizeCorrection
 
     adata = ad.read_h5ad(hconf.sc_file_name)
+
+    # Cells without child cell type inherit the parent cell type
+    celltype_cols = [hconf.sub_ct_col] + list(hconf.higher_ct_cols)
+    adata = fill_missing_celltypes(adata, celltype_cols)
+    validate_hierarchy(adata, celltype_cols)
+
     bulk = pd.read_csv(hconf.bulk_file_name, index_col=0)
 
     if bulk.isna().sum().sum() > 0:
