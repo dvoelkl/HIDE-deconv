@@ -17,7 +17,6 @@ from .cohort_utils import (
     combine_categorical_cohorts,
     combine_numerical_cohorts,
 )
-from .download_utils import get_downloadable_projects
 from .anndata_utils import (
     get_adata_obs_info,
     get_adata_uns_info,
@@ -25,6 +24,8 @@ from .anndata_utils import (
     create_annotation_template,
     add_annotation_columns_from_template,
     subset_adata_obs,
+    get_var_names_from_column,
+    switch_adata_var_names,
 )
 from .mtx_utils import mtx_to_adata, mtx_to_csv
 
@@ -36,7 +37,6 @@ __all__ = [
     "get_deconvolution_results",
     "sample_ids_valid",
     "load_project_bulk",
-    "get_downloadable_projects",
     "remove_nan_sample_ids",
     "filter_sample_sheet",
     "get_cohort_choices",
@@ -48,6 +48,8 @@ __all__ = [
     "create_annotation_template",
     "add_annotation_columns_from_template",
     "subset_adata_obs",
+    "get_var_names_from_column",
+    "switch_adata_var_names",
     "check_bulk_raw",
     "mtx_to_adata",
     "mtx_to_csv",

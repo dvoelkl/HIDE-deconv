@@ -14,6 +14,7 @@ The main command groups are:
 - `bulk`: process and analyze bulk expression data
 - `cohort`: combine cohort labels and perform cohort survival analysis
 - `config`: inspect or edit project configuration
+- `download`: search and download single cell datasets from CELLxGENE Discover
 - `example`: generate synthetic example data to test HIDE-Deconv
 
-For the complete list of commands and options, run `hide-deconv help`.
+For the complete list of commands and options, run `hide-deconv help` or read the more comprehensive [Userguide](../Userguide.md)

@@ -1,5 +1,7 @@
 # Preprocessing
 
+This module contains various methods that can be included in the preprocessing workflow, e.g. creation of reference profiles, simulation of bulks, 
+
 ## Reference profiles
 
 ::: hide_deconv.preprocessing.create_reference
@@ -29,6 +31,10 @@
 ::: hide_deconv.preprocessing.reduce_genes
 
 ::: hide_deconv.preprocessing.create_hierarchy
+
+::: hide_deconv.preprocessing.validate_hierarchy
+
+::: hide_deconv.preprocessing.fill_missing_celltypes
 
 ::: hide_deconv.preprocessing.train_test_split_adata
 

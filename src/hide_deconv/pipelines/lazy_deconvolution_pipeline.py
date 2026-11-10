@@ -23,8 +23,10 @@ from ..preprocessing import (
     create_bulks,
     create_hierarchy,
     create_reference,
+    fill_missing_celltypes,
     get_common_genes,
     reduce_genes,
+    validate_hierarchy,
 )
 from .deconvolve_hide_pipeline import (
     normalize_bulk_to_cpm,
@@ -167,17 +169,22 @@ def deconvolution(
 
     bulk = normalize_bulk_to_cpm(bulk)
     adata.obs["library_size"] = np.asarray(adata.X.sum(axis=1)).ravel()
-    library_sizes = (
-        adata.obs.groupby(celltype_cols[0])["library_size"]
-        .median()
-        .rename("Median_Library_Size")
-    )
     common_genes = get_common_genes(adata, bulk)
     if len(common_genes) == 0:
         raise ValueError("No shared genes found between adata and bulk.")
 
     # Normalize before subsetting
     adata = sc.pp.normalize_total(adata, target_sum=1e4, copy=True)
+
+    # Fill on the copy, so that the annotations of the passed adata stay unchanged
+    adata = fill_missing_celltypes(adata, celltype_cols)
+    validate_hierarchy(adata, celltype_cols)
+
+    library_sizes = (
+        adata.obs.groupby(celltype_cols[0])["library_size"]
+        .median()
+        .rename("Median_Library_Size")
+    )
     adata = adata[:, common_genes].copy()
 
     model, adata = setup_model(

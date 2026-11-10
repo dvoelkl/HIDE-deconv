@@ -14,12 +14,13 @@ from ..pipelines import preprocess_anndata_file
 from ..visualization import plot_anndata_umap
 
 from InquirerPy import inquirer, prompt
+from InquirerPy.base.control import Choice
 from InquirerPy.validator import PathValidator
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
 
-from ..constants import MSG_FAILURE, MSG_SUCCESS
+from ..constants import MSG_FAILURE, MSG_SUCCESS, MSG_USER_ABORT
 from ..utils import (
     create_annotation_template,
     add_annotation_columns_from_template,
@@ -27,6 +28,8 @@ from ..utils import (
     get_adata_obs_info,
     get_adata_uns_info,
     subset_adata_obs,
+    get_var_names_from_column,
+    switch_adata_var_names,
 )
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -412,9 +415,10 @@ def inspect_anndata() -> int:
         uns_table.add_column("Value", overflow="fold")
 
         for key, val in adata_uns_info.items():
+            val = str(val)
             if len(val) > 300:
                 val = val[:300] + "..."
-            uns_table.add_row(key, str(val))
+            uns_table.add_row(key, val)
         console.print(Panel(uns_table, title="[bold]Unstructured Metadata[/bold]"))
     else:
         console.print(
@@ -518,6 +522,101 @@ def subset_anndata() -> int:
         subset_adata.write_h5ad(subset_path)
 
     console.print(f"[bold green]Saved subsetted file to {subset_path}[/bold green]")
+
+    return MSG_SUCCESS
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+def switch_anndata_var() -> int:
+    """
+    Switches the gene annotation used as var_names of an AnnData object.
+    """
+    console.print("[bold blue]AnnData Gene Annotation Switch[/bold blue]")
+
+    ad_path = Path(
+        inquirer.filepath(
+            message="Enter path to anndata single cell file:",
+            default=str(Path.cwd()),
+            mandatory=True,
+            mandatory_message="An AnnData file (.h5ad) must be selected to continue.",
+            validate=PathValidator(is_file=True, message="Input is not a file."),
+        ).execute()
+    )
+
+    try:
+        with console.status(
+            "[bold blue]Loading AnnData File...[/bold blue]", spinner="dots"
+        ):
+            adata = ad.read_h5ad(ad_path)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    adata_var_info = get_adata_var_info(adata)
+    var_cols = sorted(col for col in adata_var_info.keys() if col != "var_names")
+
+    if len(var_cols) == 0:
+        console.print("[yellow]No variable columns found in adata.var.[/yellow]")
+        return MSG_FAILURE
+
+    # Show number of unique values and first values of each column
+    current = adata_var_info["var_names"]
+    console.print(f"[dim]Current var_names ({current[0]}): {current[1]}[/dim]")
+
+    var_col = inquirer.select(
+        message="Select the variable column used as new var_names:",
+        choices=[
+            Choice(
+                value=col,
+                name=f"{col} ({adata_var_info[col][0]} unique: {adata_var_info[col][1]})",
+            )
+            for col in var_cols
+        ],
+        max_height=5,
+    ).execute()
+
+    old_var_col = inquirer.text(
+        message="Enter column name, where the current var_names will be stored:",
+        default=adata.var.index.name or "previous_var_names",
+        validate=lambda name: (
+            len(name.strip()) > 0 and name != var_col and name not in var_cols
+        ),
+        invalid_message="Column name must not be empty or already exist in adata.var.",
+    ).execute()
+
+    # Warn if genes have to be combined, because they share the same identifier
+    n_unique = get_var_names_from_column(adata, var_col).nunique()
+    if n_unique < adata.n_vars:
+        console.print(
+            f"[yellow]Switching to '{var_col}' merges {adata.n_vars} genes into {n_unique} unique identifiers. "
+            "Expression of genes with the same identifier will be summed.[/yellow]"
+        )
+
+        if not inquirer.confirm(
+            message="Continue and merge genes?", default=False
+        ).execute():
+            return MSG_USER_ABORT
+
+    try:
+        with console.status(
+            "[bold blue]Switching gene annotation...[/bold blue]", spinner="dots"
+        ):
+            switched_adata = switch_adata_var_names(adata, var_col, old_var_col)
+    except Exception:
+        console.print_exception()
+        return MSG_FAILURE
+
+    switched_path = ad_path.with_name(f"{ad_path.stem}_{var_col}.h5ad")
+
+    with console.status(
+        "[bold blue]Saving switched file...[/bold blue]",
+        spinner="dots",
+    ):
+        switched_adata.write_h5ad(switched_path)
+
+    console.print(f"[bold green]Saved switched file to {switched_path}[/bold green]")
 
     return MSG_SUCCESS
 
