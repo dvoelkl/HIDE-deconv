@@ -29,20 +29,21 @@ As an additional evaluation on real world data, HIDE-deconv was benchmarked on t
 
 | Method          | Pearson R   |    RMSE   |
 | --------------- | ----------: | --------: |
-| AutoGeneS       |       0.819 |     0.182 |
-| BayesPrism      |       0.254 |     0.295 |
-| Bisque          |       0.872 |     0.122 |
-| CIBERSORTx      |       0.648 |     0.193 |
-| DWLS            |       0.909 |     0.103 |
-| MuSiC           |       0.319 |     0.275 |
-| Scaden          |       0.795 |     0.150 |
-| SCDC            |       0.468 |     0.239 |
+| *AutoGeneS*       |       0.819 |     0.182 |
+| *BayesPrism*      |       0.254 |     0.295 |
+| *Bisque*          |       0.872 |     0.122 |
+| *CIBERSORTx*      |       0.648 |     0.193 |
+| *DWLS*            |       0.909 |     0.103 |
+| *MuSiC*           |       0.319 |     0.275 |
+| *Scaden*          |       0.795 |     0.150 |
+| *SCDC*            |       0.468 |     0.239 |
+| CSsingle        |       0.767 |     0.159 |
 | **HIDE-deconv v0.1.10** |   **0.926** | **0.098** |
 | **HIDE-deconv v0.4.0**  |   **0.933** | **0.094** |
 
 Both HIDE-deconv runs were trained and evaluated using a three-level cell-type hierarchy, analogous to the hierarchical aggregation used for the FACS benchmarking. HIDE-deconv v0.1.10 corresponds to the version used in the preprint.
 
-HIDE-deconv was evaluated independently. Benchmark scripts and results for further configurations, including runs without a cell-type hierarchy, are available in the [benchmark repository](https://github.com/dvoelkl/HIDE-Deconv-Benchmarks). Results for the other methods are taken from [Dietrich et al. (2026)](https://doi.org/10.1186/s13059-026-03955-w).
+HIDE-deconv was evaluated independently. Benchmark scripts and results for further configurations, including runs without a cell-type hierarchy, are available in the [benchmark repository](https://github.com/dvoelkl/HIDE-Deconv-Benchmarks). Results for the methods written in italics are taken from [Dietrich et al. (2026)](https://doi.org/10.1186/s13059-026-03955-w). CSsingle ([Shen et al (2026)](https://academic.oup.com/nar/article/54/8/gkag410/8666737)) was run using version 0.1.0.
 
 
 
